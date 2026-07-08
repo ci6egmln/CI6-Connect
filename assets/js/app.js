@@ -80,11 +80,36 @@ async function openContent(path, addHistory = true) {
 }
 
 backBtn.addEventListener("click", () => {
-  detailView.hidden = true;
-  homeView.hidden = false;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  history.back();
 });
-
 searchInput.addEventListener("input", event => renderCards(event.target.value));
 
+window.addEventListener("popstate", async () => {
+
+  if (location.hash === "") {
+    detailView.hidden = true;
+    homeView.hidden = false;
+    return;
+  }
+
+  const file =
+    "content/" +
+    location.hash.substring(1) +
+    ".md";
+
+  await openContent(file, false);
+
+});
+
 renderCards();
+
+if (location.hash !== "") {
+
+    openContent(
+        "content/" +
+        location.hash.substring(1) +
+        ".md",
+        false
+    );
+
+}
