@@ -4,32 +4,32 @@ window.CI6_RUBRIQUES = [
     "title": "Respecter les horaires",
     "description": "Horloge dorée, symbole de ponctualité.",
     "slug": "horaires",
-    "content": "content/01-horaires.md",
-    "card": "assets/cards/01-horaires.jpg"
+    "content": "content/01-respecter-les-horaires.md",
+    "card": "assets/cards/01-respecter-les-horaires.jpg"
   },
   {
     "id": "02",
     "title": "Tenue et présentation",
     "description": "Une tenue militaire soignée, reflet de l’exemplarité.",
     "slug": "tenue",
-    "content": "content/02-tenue.md",
-    "card": "assets/cards/02-tenue.jpg"
+    "content": "content/02-tenue-presentation.md",
+    "card": "assets/cards/02-tenue-presentation.jpg"
   },
   {
     "id": "03",
-    "title": "Entretenir les locaux",
+    "title": "Vie en caserne",
     "description": "Des locaux propres pour un cadre sain.",
     "slug": "locaux",
-    "content": "content/03-locaux.md",
-    "card": "assets/cards/03-locaux.jpg"
+    "content": "content/03-utilisation-entretien-locaux.md",
+    "card": "assets/cards/03-utilisation-entretien-locaux.jpg"
   },
   {
     "id": "04",
-    "title": "Utilisation des locaux",
+    "title": "Cercle mixte",
     "description": "Respecter les espaces et leurs règles d’usage.",
     "slug": "usage-locaux",
-    "content": "content/04-usage-locaux.md",
-    "card": "assets/cards/04-usage-locaux.jpg"
+    "content": "content/04-cercle-mixte.md",
+    "card": "assets/cards/04-cercle-mixte.jpg"
   },
   {
     "id": "05",
@@ -42,10 +42,10 @@ window.CI6_RUBRIQUES = [
   {
     "id": "06",
     "title": "Vivre en collectivité",
-    "description": "Plusieurs camarades, cohésion et respect quotidien.",
+    "description": "Camaraderie, cohésion et respect mutuel.",
     "slug": "collectivite",
-    "content": "content/06-collectivite.md",
-    "card": "assets/cards/06-collectivite.jpg"
+    "content": "content/06-vivre-collectivite.md",
+    "card": "assets/cards/06-vivre-collectivite.jpg"
   },
   {
     "id": "07",
@@ -73,7 +73,7 @@ window.CI6_RUBRIQUES = [
   },
   {
     "id": "10",
-    "title": "VH et compte rendu",
+    "title": "Les cadres, VH et compte rendu",
     "description": "Carnet, stylo et compte rendu clair.",
     "slug": "vh-compte-rendu",
     "content": "content/10-vh-compte-rendu.md",
@@ -81,27 +81,27 @@ window.CI6_RUBRIQUES = [
   },
   {
     "id": "11",
-    "title": "Défendre les valeurs du gendarme",
-    "description": "Respect, courage, intégrité et engagement.",
+    "title": "Dernières infos, documents utiles",
+    "description": "Se renseigner, s'informer.",
     "slug": "valeurs",
-    "content": "content/11-valeurs.md",
-    "card": "assets/cards/11-valeurs.jpg"
+    "content": "content/11-documents-utiles.md",
+    "card": "assets/cards/11-documents-utiles.jpg"
   },
   {
     "id": "12",
     "title": "Consignes MDL et élèves de jour",
     "description": "Rôle, rigueur et transmission des consignes.",
     "slug": "mdl-eleves-jour",
-    "content": "content/12-mdl-eleves-jour.md",
-    "card": "assets/cards/12-mdl-eleves-jour.jpg"
+    "content": "content/12-consignes-mdl.md",
+    "card": "assets/cards/12-consignes-mdl.jpg"
   },
   {
     "id": "13",
-    "title": "Vie de la promotion",
+    "title": "Vie de la promotion, FAQ",
     "description": "Traditions, cohésion et esprit de promotion.",
     "slug": "promotion",
-    "content": "content/13-promotion.md",
-    "card": "assets/cards/13-promotion.jpg"
+    "content": "content/13-vie-promotion.md",
+    "card": "assets/cards/13-vie-promotion.jpg"
   },
   {
     "id": "14",
@@ -116,7 +116,7 @@ window.CI6_RUBRIQUES = [
     "title": "Services de l’école",
     "description": "Les ressources utiles au quotidien.",
     "slug": "services",
-    "content": "content/15-services.md",
-    "card": "assets/cards/15-services.jpg"
+    "content": "content/15-services-ecole.md",
+    "card": "assets/cards/15-services-ecole.jpg"
   }
 ];
