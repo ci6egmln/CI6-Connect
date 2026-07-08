@@ -203,8 +203,8 @@ body::after{
 
 .tile-number{
   position:absolute;
-  top:16px;
-  left:18px;
+  top:24px;
+  left:28px;
   z-index:4;
   color:var(--gold-light);
   font-size:30px;
