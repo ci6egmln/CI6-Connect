@@ -1,6 +1,6 @@
 :root{
-  --gold:#d6ad3a;
-  --gold-light:#f2d37a;
+  --gold:#b88318;
+  --gold-light:#f4d77a;
   --silver:#d8dde3;
   --bg:#050607;
   --text:#f5f5f5;
@@ -82,13 +82,43 @@ body::after{
 }
 
 .ci6{
-  color:var(--gold-light);
-  text-shadow:0 3px 0 #3b2907,0 0 22px rgba(214,173,58,.34);
+  background:linear-gradient(
+      180deg,
+      #fff7cf 0%,
+      #f7dd87 12%,
+      #e2bb4b 32%,
+      #b67d14 58%,
+      #f5d978 82%,
+      #8b5c08 100%
+  );
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+
+  text-shadow:
+      0 2px 0 rgba(0,0,0,.45),
+      0 8px 18px rgba(0,0,0,.55);
 }
 
 .connect{
-  color:var(--silver);
-  text-shadow:0 3px 0 #000,0 0 18px rgba(255,255,255,.22);
+  background:linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #f3f5f7 12%,
+      #d9dde2 32%,
+      #bcc3cb 55%,
+      #f8f9fa 72%,
+      #8c949c 100%
+  );
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+
+  text-shadow:
+      0 2px 0 rgba(0,0,0,.55),
+      0 6px 12px rgba(0,0,0,.45);
 }
 
 .brand-subtitle{
