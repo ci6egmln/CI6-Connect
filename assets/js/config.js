@@ -118,13 +118,13 @@ window.CI6_RUBRIQUES = [
     "slug": "services-ecole",
     "content": "content/15-services-ecole.md",
     "card": "assets/cards/15-services-ecole.jpg"
-  }
+  },
   {
-  "id": "16",
-  "title": "FAQ",
-  "description": "Réponses rapides aux questions fréquentes.",
-  "slug": "faq",
-  "content": "content/16-faq.md",
-  "card": "assets/cards/16-faq.jpg"
+     "id": "16",
+     "title": "FAQ",
+     "description": "Réponses rapides aux questions fréquentes.",
+     "slug": "faq",
+     "content": "content/16-faq.md",
+     "card": "assets/cards/16-faq.jpg"
   }
 ];
