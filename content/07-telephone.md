@@ -1,14 +1,8 @@
----
-title: "Utiliser le téléphone à bon escient"
-description: "Un outil utile, jamais une distraction."
-card: "assets/cards/07-telephone.jpg"
----
-
 # Utiliser le téléphone à bon escient
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+À compléter.
 
 ## 📋 Consignes
 
@@ -25,6 +19,6 @@ Présenter clairement l'objectif de cette consigne.
 
 À compléter.
 
-## 📄 Documents associés
+## 📄 Documents utiles
 
-Aucun document associé pour le moment.
+À compléter.

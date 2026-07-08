@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Consignes MDL et élèves de jour
 
 ## 🎯 Objectif
 

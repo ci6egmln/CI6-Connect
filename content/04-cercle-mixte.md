@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Le cercle mixte
 
 ## 🎯 Objectif
 

@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Tenue et présentation
 
 ## 🎯 Objectif
 

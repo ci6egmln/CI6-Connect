@@ -1,14 +1,8 @@
----
-title: "S’investir dans sa formation"
-description: "Apprendre, progresser, réussir."
-card: "assets/cards/08-formation.jpg"
----
-
 # S’investir dans sa formation
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+À compléter.
 
 ## 📋 Consignes
 
@@ -25,6 +19,6 @@ Présenter clairement l'objectif de cette consigne.
 
 À compléter.
 
-## 📄 Documents associés
+## 📄 Documents utiles
 
-Aucun document associé pour le moment.
+À compléter.

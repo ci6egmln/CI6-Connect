@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Vie de la promotion
 
 ## 🎯 Objectif
 

@@ -1,14 +1,8 @@
----
-title: "Exercice des responsabilités"
-description: "S’engager, assumer, montrer l’exemple."
-card: "assets/cards/14-responsabilites.jpg"
----
-
 # Exercice des responsabilités
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+À compléter.
 
 ## 📋 Consignes
 
@@ -25,6 +19,6 @@ Présenter clairement l'objectif de cette consigne.
 
 À compléter.
 
-## 📄 Documents associés
+## 📄 Documents utiles
 
-Aucun document associé pour le moment.
+À compléter.

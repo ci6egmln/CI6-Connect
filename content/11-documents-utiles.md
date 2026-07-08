@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Dernières infos et documents utiles
 
 ## 🎯 Objectif
 

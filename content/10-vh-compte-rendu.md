@@ -1,14 +1,8 @@
----
-title: "VH et compte rendu"
-description: "Carnet, stylo et compte rendu clair."
-card: "assets/cards/10-vh-compte-rendu.jpg"
----
-
 # VH et compte rendu
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+À compléter.
 
 ## 📋 Consignes
 
@@ -25,6 +19,6 @@ Présenter clairement l'objectif de cette consigne.
 
 À compléter.
 
-## 📄 Documents associés
+## 📄 Documents utiles
 
-Aucun document associé pour le moment.
+À compléter.

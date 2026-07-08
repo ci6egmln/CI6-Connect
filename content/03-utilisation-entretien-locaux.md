@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Utilisation et entretien des locaux
 
 ## 🎯 Objectif
 

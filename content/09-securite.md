@@ -1,14 +1,8 @@
----
-title: "Respecter les consignes de sécurité"
-description: "Bouclier et vigilance : la sécurité de tous."
-card: "assets/cards/09-securite.jpg"
----
-
 # Respecter les consignes de sécurité
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+À compléter.
 
 ## 📋 Consignes
 
@@ -25,6 +19,6 @@ Présenter clairement l'objectif de cette consigne.
 
 À compléter.
 
-## 📄 Documents associés
+## 📄 Documents utiles
 
-Aucun document associé pour le moment.
+À compléter.

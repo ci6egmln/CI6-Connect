@@ -5,21 +5,24 @@ const detailView = document.getElementById("detailView");
 const detailContent = document.getElementById("detailContent");
 const backBtn = document.getElementById("backBtn");
 
-function normalizeText(s) {
-  return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+function normalizeText(value) {
+  return (value || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function renderCards(filter = "") {
-  const q = normalizeText(filter);
-  const rubriques = window.CI6_RUBRIQUES.filter(item => {
-    return normalizeText(item.title + " " + item.description).includes(q);
-  });
+  const query = normalizeText(filter);
+  const rubriques = window.CI6_RUBRIQUES.filter(item =>
+    normalizeText(`${item.id} ${item.title} ${item.description}`).includes(query)
+  );
 
   grid.innerHTML = rubriques.map(item => `
     <button class="tile" data-content="${item.content}" aria-label="${item.title}">
-      <img class="tile-bg" src="${item.card}" alt="">
+      <img class="tile-bg" src="${item.card}" alt="" loading="lazy">
       <span class="tile-number">${item.id}</span>
-      <span class="tile-shine"></span>
       <span class="tile-text">
         <strong>${item.title}</strong>
         <em>${item.description}</em>
@@ -32,23 +35,8 @@ function renderCards(filter = "") {
   });
 }
 
-function parseFrontMatter(markdown) {
-  if (!markdown.startsWith("---")) return { body: markdown, meta: {} };
-  const end = markdown.indexOf("---", 3);
-  if (end === -1) return { body: markdown, meta: {} };
-  const raw = markdown.slice(3, end).trim();
-  const body = markdown.slice(end + 3).trim();
-  const meta = {};
-  raw.split("\n").forEach(line => {
-    const [key, ...rest] = line.split(":");
-    if (!key || rest.length === 0) return;
-    meta[key.trim()] = rest.join(":").trim().replace(/^"|"$/g, "");
-  });
-  return { body, meta };
-}
-
-function markdownToHtml(md) {
-  let html = md
+function markdownToHtml(markdown) {
+  let html = markdown
     .replace(/^# (.*$)/gim, "<h1>$1</h1>")
     .replace(/^## (.*$)/gim, "<h2>$1</h2>")
     .replace(/^### (.*$)/gim, "<h3>$1</h3>")
@@ -57,29 +45,27 @@ function markdownToHtml(md) {
 
   html = html.replace(/(<li>.*<\/li>)/gims, "<ul>$1</ul>");
   html = html.replace(/<\/ul>\s*<ul>/gim, "");
-  html = html.split(/\n{2,}/).map(block => {
+
+  return html.split(/\n{2,}/).map(block => {
     const b = block.trim();
     if (!b) return "";
     if (b.startsWith("<h") || b.startsWith("<ul")) return b;
     return `<p>${b.replace(/\n/g, "<br>")}</p>`;
-  }).join("\n");
-  return html;
+  }).join("\\n");
 }
 
 async function openContent(path) {
   try {
-    const response = await fetch(path);
+    const response = await fetch(path, { cache: "no-store" });
     const markdown = await response.text();
-    const parsed = parseFrontMatter(markdown);
-    detailContent.innerHTML = markdownToHtml(parsed.body);
-    homeView.hidden = true;
-    detailView.hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } catch (e) {
-    detailContent.innerHTML = "<h1>Erreur</h1><p>Impossible de charger cette fiche.</p>";
-    homeView.hidden = true;
-    detailView.hidden = false;
+    detailContent.innerHTML = markdownToHtml(markdown);
+  } catch (error) {
+    detailContent.innerHTML = "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
   }
+
+  homeView.hidden = true;
+  detailView.hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 backBtn.addEventListener("click", () => {
@@ -88,6 +74,6 @@ backBtn.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-searchInput.addEventListener("input", e => renderCards(e.target.value));
+searchInput.addEventListener("input", event => renderCards(event.target.value));
 
 renderCards();

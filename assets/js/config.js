@@ -3,7 +3,7 @@ window.CI6_RUBRIQUES = [
     "id": "01",
     "title": "Respecter les horaires",
     "description": "Horloge dorée, symbole de ponctualité.",
-    "slug": "horaires",
+    "slug": "respecter-les-horaires",
     "content": "content/01-respecter-les-horaires.md",
     "card": "assets/cards/01-respecter-les-horaires.jpg"
   },
@@ -11,23 +11,23 @@ window.CI6_RUBRIQUES = [
     "id": "02",
     "title": "Tenue et présentation",
     "description": "Une tenue militaire soignée, reflet de l’exemplarité.",
-    "slug": "tenue",
+    "slug": "tenue-presentation",
     "content": "content/02-tenue-presentation.md",
     "card": "assets/cards/02-tenue-presentation.jpg"
   },
   {
     "id": "03",
-    "title": "Vie en caserne",
-    "description": "Des locaux propres pour un cadre sain.",
-    "slug": "locaux",
+    "title": "Utilisation et entretien des locaux",
+    "description": "Des locaux propres, utilisés avec respect.",
+    "slug": "utilisation-entretien-locaux",
     "content": "content/03-utilisation-entretien-locaux.md",
     "card": "assets/cards/03-utilisation-entretien-locaux.jpg"
   },
   {
     "id": "04",
-    "title": "Cercle mixte",
-    "description": "Respecter les espaces et leurs règles d’usage.",
-    "slug": "usage-locaux",
+    "title": "Le cercle mixte",
+    "description": "Respecter les horaires, les lieux et les règles de vie.",
+    "slug": "cercle-mixte",
     "content": "content/04-cercle-mixte.md",
     "card": "assets/cards/04-cercle-mixte.jpg"
   },
@@ -43,7 +43,7 @@ window.CI6_RUBRIQUES = [
     "id": "06",
     "title": "Vivre en collectivité",
     "description": "Camaraderie, cohésion et respect mutuel.",
-    "slug": "collectivite",
+    "slug": "vivre-collectivite",
     "content": "content/06-vivre-collectivite.md",
     "card": "assets/cards/06-vivre-collectivite.jpg"
   },
@@ -66,24 +66,24 @@ window.CI6_RUBRIQUES = [
   {
     "id": "09",
     "title": "Respecter les consignes de sécurité",
-    "description": "Bouclier et vigilance : la sécurité de tous.",
+    "description": "La sécurité de tous passe par la vigilance de chacun.",
     "slug": "securite",
     "content": "content/09-securite.md",
     "card": "assets/cards/09-securite.jpg"
   },
   {
     "id": "10",
-    "title": "Les cadres, VH et compte rendu",
-    "description": "Carnet, stylo et compte rendu clair.",
+    "title": "VH et compte rendu",
+    "description": "Transmettre clairement, rendre compte utilement.",
     "slug": "vh-compte-rendu",
     "content": "content/10-vh-compte-rendu.md",
     "card": "assets/cards/10-vh-compte-rendu.jpg"
   },
   {
     "id": "11",
-    "title": "Dernières infos, documents utiles",
-    "description": "Se renseigner, s'informer.",
-    "slug": "valeurs",
+    "title": "Dernières infos et documents utiles",
+    "description": "Retrouver rapidement les informations et supports utiles.",
+    "slug": "documents-utiles",
     "content": "content/11-documents-utiles.md",
     "card": "assets/cards/11-documents-utiles.jpg"
   },
@@ -91,15 +91,15 @@ window.CI6_RUBRIQUES = [
     "id": "12",
     "title": "Consignes MDL et élèves de jour",
     "description": "Rôle, rigueur et transmission des consignes.",
-    "slug": "mdl-eleves-jour",
+    "slug": "consignes-mdl",
     "content": "content/12-consignes-mdl.md",
     "card": "assets/cards/12-consignes-mdl.jpg"
   },
   {
     "id": "13",
-    "title": "Vie de la promotion, FAQ",
+    "title": "Vie de la promotion",
     "description": "Traditions, cohésion et esprit de promotion.",
-    "slug": "promotion",
+    "slug": "vie-promotion",
     "content": "content/13-vie-promotion.md",
     "card": "assets/cards/13-vie-promotion.jpg"
   },
@@ -114,8 +114,8 @@ window.CI6_RUBRIQUES = [
   {
     "id": "15",
     "title": "Services de l’école",
-    "description": "Les ressources utiles au quotidien.",
-    "slug": "services",
+    "description": "Identifier les ressources utiles au quotidien.",
+    "slug": "services-ecole",
     "content": "content/15-services-ecole.md",
     "card": "assets/cards/15-services-ecole.jpg"
   }

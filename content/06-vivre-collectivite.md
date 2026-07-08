@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Vivre en collectivité
 
 ## 🎯 Objectif
 

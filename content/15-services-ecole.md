@@ -1,4 +1,4 @@
-# Préparer et respecter le matériel
+# Services de l’école
 
 ## 🎯 Objectif
 
