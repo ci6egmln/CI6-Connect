@@ -1,55 +1,43 @@
+# CI6 Connect V3
 
-# CI6 Connect — V2 Markdown
+## Principe
 
-## Modifier les textes
+Cette version simplifie le site : chaque tuile utilise une image unique dans `assets/cards/`.
 
-Ouvrir le dossier `content/` puis modifier le fichier Markdown correspondant à la rubrique.
+Le site superpose automatiquement :
+- le numéro ;
+- le titre ;
+- la description.
+
+## À modifier au quotidien
+
+### Modifier les textes des fiches
+Dossier : `content/`
 
 Exemple :
+`content/01-horaires.md`
 
-- `content/01-horaires.md`
-- `content/12-mdl-eleves-jour.md`
+Cliquez sur le fichier dans GitHub, puis sur le crayon, modifiez le texte et validez avec **Commit changes**.
 
-Sur GitHub : ouvrir le fichier, cliquer sur le crayon, modifier, puis cliquer sur **Commit changes**.
+### Remplacer une carte visuelle
+Dossier : `assets/cards/`
 
-## Modifier une illustration
+Chaque carte doit garder le même nom.
 
-Les icônes sont dans `assets/icons/`.
+Exemple :
+`assets/cards/01-horaires.jpg`
 
-Pour remplacer l’icône de la rubrique 2, remplacer le fichier :
+Pour changer la tuile horaires, remplacez ce fichier par une nouvelle image portant exactement le même nom.
 
-`assets/icons/02-tenue.svg`
-
-Il faut garder exactement le même nom de fichier.
-
-## Modifier le fond d’une tuile
-
-Les fonds sont dans `assets/backgrounds/`.
-
-Pour remplacer le fond de la rubrique 6, remplacer :
-
-`assets/backgrounds/06-collectivite.svg`
-
-Il faut garder exactement le même nom de fichier.
-
-## Modifier le logo
-
-Remplacer :
-
-`assets/img/logo-ci6.png`
-
-## Modifier l’ordre ou le nom des tuiles
-
-Ouvrir :
-
+### Changer l’ordre ou les titres des tuiles
+Fichier :
 `assets/js/config.js`
 
-Chaque rubrique est décrite dans ce fichier.
+## Mise en ligne GitHub Pages
 
-## Publier sur GitHub Pages
+Le site est publié depuis :
+- branche : `main`
+- dossier : `/ (root)`
 
-1. Déposer tous les fichiers dans le dépôt GitHub.
-2. Aller dans **Settings → Pages**.
-3. Choisir **Deploy from a branch**.
-4. Choisir **main** et **/ root**.
-5. Enregistrer.
+Adresse attendue :
+`https://ci6egmln.github.io/CI6-Connect/`

@@ -1,10 +1,10 @@
 ---
-title: "Tenue et présentation"
-description: "Une tenue militaire soignée, reflet de l’exemplarité."
-card: "assets/cards/02-tenue.jpg"
+title: "Utilisation des locaux"
+description: "Respecter les espaces et leurs règles d’usage."
+card: "assets/cards/04-usage-locaux.jpg"
 ---
 
-# Tenue et présentation
+# Utilisation des locaux
 
 ## 🎯 Objectif
 

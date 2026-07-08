@@ -1,51 +1,45 @@
-
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CI6 Connect</title>
-  <meta name="description" content="Guide numérique des consignes de la 6e compagnie d'instruction" />
-  <link rel="icon" href="assets/img/logo-ci6.png" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <meta name="description" content="Guide numérique des consignes de la 6e compagnie d'instruction">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <div class="page-shell">
-    <header class="hero" id="accueil">
-      <img src="assets/img/logo-ci6.png" alt="Logo de la 6e compagnie" class="logo" />
-      <div class="hero-text">
-        <h1><span>CI6</span> CONNECT</h1>
-        <p class="subtitle">Guide numérique des consignes</p>
-        <p class="motto"> À cœur vaillant, rien d’impossible </p>
-      </div>
-    </header>
-
-    <main>
-      <section class="search-zone" aria-label="Recherche">
-        <label for="searchInput" class="sr-only">Rechercher une consigne</label>
-        <input id="searchInput" type="search" placeholder="Rechercher une consigne, une rubrique…" autocomplete="off" />
-      </section>
-
-      <section class="grid" id="cards" aria-label="Rubriques CI6 Connect"></section>
-
-      <article class="detail hidden" id="detail" aria-live="polite">
-        <button class="back" id="backBtn">← Retour à l’accueil</button>
-        <div class="detail-header">
-          <img id="detailIcon" alt="" />
-          <div>
-            <p id="detailNum" class="detail-num"></p>
-            <h2 id="detailTitle"></h2>
-          </div>
+  <main class="page">
+    <section id="homeView">
+      <header class="hero">
+        <img class="logo" src="assets/img/logo-ci6.png" alt="Logo de la 6e compagnie">
+        <div class="brand">
+          <p class="brand-kicker">6e compagnie d’instruction</p>
+          <h1 class="brand-title"><span class="ci6">CI6</span> <span class="connect">Connect</span></h1>
+          <p class="brand-subtitle">Guide numérique des consignes</p>
+          <p class="brand-unit">6e compagnie d’instruction</p>
+          <div class="separator">◆</div>
+          <p class="motto">« À cœur vaillant, rien d’impossible »</p>
         </div>
-        <div class="markdown" id="detailContent"></div>
-      </article>
-    </main>
+      </header>
 
-    <footer>
-      <p>ROBUSTESSE · RUSTICITÉ · RÉSILIENCE </p>
-      <p>6ᵉ compagnie d’instruction – École de gendarmerie de Montluçon</p>
-    </footer>
-  </div>
+      <div class="search-wrap">
+        <input id="searchInput" class="search" type="search" placeholder="Rechercher une consigne, une rubrique..." aria-label="Rechercher une rubrique">
+      </div>
+
+      <section id="cardsGrid" class="cards-grid" aria-label="Rubriques"></section>
+
+      <footer class="footer">
+        <p><strong>Discipline</strong> · Respect · Engagement · Solidarité</p>
+        <p>6e compagnie d’instruction – École de gendarmerie de Montluçon</p>
+      </footer>
+    </section>
+
+    <section id="detailView" class="detail" hidden>
+      <button id="backBtn" class="back-btn">← Retour à l’accueil</button>
+      <article id="detailContent"></article>
+    </section>
+  </main>
+
   <script src="assets/js/config.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

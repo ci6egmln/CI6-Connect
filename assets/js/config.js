@@ -1,137 +1,122 @@
-const RUBRIQUES = [
+window.CI6_RUBRIQUES = [
   {
-    "id": "horaires",
-    "num": "01",
+    "id": "01",
     "title": "Respecter les horaires",
-    "icon": "assets/icons/01-horaires.svg",
-    "background": "assets/backgrounds/01-horaires.svg",
+    "description": "Horloge dorée, symbole de ponctualité.",
+    "slug": "horaires",
     "content": "content/01-horaires.md",
-    "desc": "Une horloge dorée, symbole de ponctualité."
+    "card": "assets/cards/01-horaires.jpg"
   },
   {
-    "id": "tenue",
-    "num": "02",
+    "id": "02",
     "title": "Tenue et présentation",
-    "icon": "assets/icons/02-tenue.svg",
-    "background": "assets/backgrounds/02-tenue.svg",
+    "description": "Une tenue militaire soignée, reflet de l’exemplarité.",
+    "slug": "tenue",
     "content": "content/02-tenue.md",
-    "desc": "Une tenue militaire soignée, reflet de l’exemplarité."
+    "card": "assets/cards/02-tenue.jpg"
   },
   {
-    "id": "locaux",
-    "num": "03",
+    "id": "03",
     "title": "Entretenir les locaux",
-    "icon": "assets/icons/03-locaux.svg",
-    "background": "assets/backgrounds/03-locaux.svg",
+    "description": "Des locaux propres pour un cadre sain.",
+    "slug": "locaux",
     "content": "content/03-locaux.md",
-    "desc": "Balai et seau : des locaux propres pour un cadre sain."
+    "card": "assets/cards/03-locaux.jpg"
   },
   {
-    "id": "utilisation-locaux",
-    "num": "04",
+    "id": "04",
     "title": "Utilisation des locaux",
-    "icon": "assets/icons/04-utilisation-locaux.svg",
-    "background": "assets/backgrounds/04-utilisation-locaux.svg",
-    "content": "content/04-utilisation-locaux.md",
-    "desc": "Respecter les espaces et leurs règles d’usage."
+    "description": "Respecter les espaces et leurs règles d’usage.",
+    "slug": "usage-locaux",
+    "content": "content/04-usage-locaux.md",
+    "card": "assets/cards/04-usage-locaux.jpg"
   },
   {
-    "id": "materiel",
-    "num": "05",
+    "id": "05",
     "title": "Préparer et respecter le matériel",
-    "icon": "assets/icons/05-materiel.svg",
-    "background": "assets/backgrounds/05-materiel.svg",
+    "description": "Un matériel prêt, contrôlé et entretenu.",
+    "slug": "materiel",
     "content": "content/05-materiel.md",
-    "desc": "Le matériel prêt, contrôlé et entretenu."
+    "card": "assets/cards/05-materiel.jpg"
   },
   {
-    "id": "collectivite",
-    "num": "06",
+    "id": "06",
     "title": "Vivre en collectivité",
-    "icon": "assets/icons/06-collectivite.svg",
-    "background": "assets/backgrounds/06-collectivite.svg",
+    "description": "Plusieurs camarades, cohésion et respect quotidien.",
+    "slug": "collectivite",
     "content": "content/06-collectivite.md",
-    "desc": "Plusieurs camarades, cohésion et respect quotidien."
+    "card": "assets/cards/06-collectivite.jpg"
   },
   {
-    "id": "telephone",
-    "num": "07",
+    "id": "07",
     "title": "Utiliser le téléphone à bon escient",
-    "icon": "assets/icons/07-telephone.svg",
-    "background": "assets/backgrounds/07-telephone.svg",
+    "description": "Un outil utile, jamais une distraction.",
+    "slug": "telephone",
     "content": "content/07-telephone.md",
-    "desc": "Un outil utile, jamais une distraction."
+    "card": "assets/cards/07-telephone.jpg"
   },
   {
-    "id": "formation",
-    "num": "08",
+    "id": "08",
     "title": "S’investir dans sa formation",
-    "icon": "assets/icons/08-formation.svg",
-    "background": "assets/backgrounds/08-formation.svg",
+    "description": "Apprendre, progresser, réussir.",
+    "slug": "formation",
     "content": "content/08-formation.md",
-    "desc": "Un livre ouvert : apprendre, progresser, réussir."
+    "card": "assets/cards/08-formation.jpg"
   },
   {
-    "id": "securite",
-    "num": "09",
+    "id": "09",
     "title": "Respecter les consignes de sécurité",
-    "icon": "assets/icons/09-securite.svg",
-    "background": "assets/backgrounds/09-securite.svg",
+    "description": "Bouclier et vigilance : la sécurité de tous.",
+    "slug": "securite",
     "content": "content/09-securite.md",
-    "desc": "Bouclier et vigilance : la sécurité de tous."
+    "card": "assets/cards/09-securite.jpg"
   },
   {
-    "id": "vh-compte-rendu",
-    "num": "10",
+    "id": "10",
     "title": "VH et compte rendu",
-    "icon": "assets/icons/10-vh-compte-rendu.svg",
-    "background": "assets/backgrounds/10-vh-compte-rendu.svg",
+    "description": "Carnet, stylo et compte rendu clair.",
+    "slug": "vh-compte-rendu",
     "content": "content/10-vh-compte-rendu.md",
-    "desc": "Carnet, stylo et compte rendu clair."
+    "card": "assets/cards/10-vh-compte-rendu.jpg"
   },
   {
-    "id": "valeurs",
-    "num": "11",
+    "id": "11",
     "title": "Défendre les valeurs du gendarme",
-    "icon": "assets/icons/11-valeurs.svg",
-    "background": "assets/backgrounds/11-valeurs.svg",
+    "description": "Respect, courage, intégrité et engagement.",
+    "slug": "valeurs",
     "content": "content/11-valeurs.md",
-    "desc": "Grenade et valeurs : honneur, courage, intégrité."
+    "card": "assets/cards/11-valeurs.jpg"
   },
   {
-    "id": "mdl-eleves-jour",
-    "num": "12",
+    "id": "12",
     "title": "Consignes MDL et élèves de jour",
-    "icon": "assets/icons/12-mdl-eleves-jour.svg",
-    "background": "assets/backgrounds/12-mdl-eleves-jour.svg",
+    "description": "Rôle, rigueur et transmission des consignes.",
+    "slug": "mdl-eleves-jour",
     "content": "content/12-mdl-eleves-jour.md",
-    "desc": "Buste avec MDL au niveau de la poitrine."
+    "card": "assets/cards/12-mdl-eleves-jour.jpg"
   },
   {
-    "id": "promotion",
-    "num": "13",
+    "id": "13",
     "title": "Vie de la promotion",
-    "icon": "assets/icons/13-promotion.svg",
-    "background": "assets/backgrounds/13-promotion.svg",
+    "description": "Traditions, cohésion et esprit de promotion.",
+    "slug": "promotion",
     "content": "content/13-promotion.md",
-    "desc": "Le dragon, l’esprit de promotion et les traditions."
+    "card": "assets/cards/13-promotion.jpg"
   },
   {
-    "id": "responsabilites",
-    "num": "14",
+    "id": "14",
     "title": "Exercice des responsabilités",
-    "icon": "assets/icons/14-responsabilites.svg",
-    "background": "assets/backgrounds/14-responsabilites.svg",
+    "description": "S’engager, assumer, montrer l’exemple.",
+    "slug": "responsabilites",
     "content": "content/14-responsabilites.md",
-    "desc": "Galons : assumer, servir, rendre compte."
+    "card": "assets/cards/14-responsabilites.jpg"
   },
   {
-    "id": "services",
-    "num": "15",
+    "id": "15",
     "title": "Services de l’école",
-    "icon": "assets/icons/15-services.svg",
-    "background": "assets/backgrounds/15-services.svg",
+    "description": "Les ressources utiles au quotidien.",
+    "slug": "services",
     "content": "content/15-services.md",
-    "desc": "Le bâtiment école et les ressources utiles."
+    "card": "assets/cards/15-services.jpg"
   }
 ];

@@ -1,24 +1,30 @@
+---
+title: "Entretenir les locaux"
+description: "Des locaux propres pour un cadre sain."
+card: "assets/cards/03-locaux.jpg"
+---
+
 # Entretenir les locaux
 
-## Objectif
+## 🎯 Objectif
 
-Texte à compléter : préciser l’objectif pédagogique de cette consigne pour les élèves-gendarmes.
+Présenter clairement l'objectif de cette consigne.
 
-## Consignes essentielles
+## 📋 Consignes
 
-- Première consigne à compléter.
-- Deuxième consigne à compléter.
-- Troisième consigne à compléter.
+- À compléter.
+- À compléter.
+- À compléter.
 
-## Points de vigilance
+## ⚠️ Points de vigilance
 
-- Point de vigilance à compléter.
-- Situation fréquente à éviter.
+- À compléter.
+- À compléter.
 
-## Conseil du cadre
+## 💡 Conseil du cadre
 
-Texte à compléter : ajouter ici un conseil court, concret et directement applicable.
+À compléter.
 
-## Documents associés
+## 📄 Documents associés
 
-- [Ajouter un document PDF](../docs/exemple.pdf)
+Aucun document associé pour le moment.
