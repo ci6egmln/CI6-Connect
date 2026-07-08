@@ -61,7 +61,6 @@ async function openContent(path) {
     detailContent.innerHTML = markdownToHtml(markdown);
   } catch (error) {
     detailContent.innerHTML = "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
-    history.pushState(...)
   }
 
   homeView.hidden = true;
@@ -78,4 +77,3 @@ backBtn.addEventListener("click", () => {
 searchInput.addEventListener("input", event => renderCards(event.target.value));
 
 renderCards();
-window.addEventListener("popstate", ...)
