@@ -54,17 +54,28 @@ function markdownToHtml(markdown) {
   }).join("\\n");
 }
 
-async function openContent(path) {
+async function openContent(path, addHistory = true) {
+
   try {
     const response = await fetch(path, { cache: "no-store" });
     const markdown = await response.text();
     detailContent.innerHTML = markdownToHtml(markdown);
   } catch (error) {
-    detailContent.innerHTML = "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
+    detailContent.innerHTML =
+      "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
   }
 
   homeView.hidden = true;
   detailView.hidden = false;
+
+  if (addHistory) {
+    history.pushState(
+      { page: path },
+      "",
+      "#" + path.replace("content/", "").replace(".md", "")
+    );
+  }
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
