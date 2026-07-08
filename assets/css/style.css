@@ -377,5 +377,8 @@ body::after{
   .logo,.brand-logo{width:135px;height:135px}
   .brand-kicker{letter-spacing:.23em}
   .separator{margin-left:auto;margin-right:auto}
-  .cards-grid,.grid,#cardsGrid{grid-template-columns:1fr !important}
+  .cards-grid,.grid,#cardsGrid{
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:12px !important;
+  }
 }
