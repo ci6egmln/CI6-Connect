@@ -1,1 +1,53 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CI6 Connect — Consignes de la 6e compagnie</title><link rel="stylesheet" href="assets/css/style.css"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#050607"></head><body><div class="mobilebar"><strong>CI6 CONNECT</strong><a class="btn" href="#cards">Rubriques</a></div><div class="app"><aside class="sidebar"><div class="brand"><img src="assets/img/logo-ci6.png" alt="Logo 6e compagnie"><h2>CI6 CONNECT</h2><p>6e compagnie d'instruction</p></div><div class="side-title">RUBRIQUES</div><nav id="nav-rubriques" class="nav"></nav><div class="side-title">ACCÈS</div><nav class="nav"><a href="#faq"><span class="badge">?</span>FAQ</a><a href="#contacts"><span class="badge">☎</span>Contacts</a></nav></aside><main class="main"><section class="hero"><div class="top-actions"><input id="search" class="search" placeholder="🔎 Rechercher"></div><div class="hero-text"><div class="flame">🔥</div><h1>CI6 CONNECT</h1><div class="subtitle">Consignes de la 6ᵉ compagnie</div><div class="motto">À cœur vaillant, rien d’impossible</div></div><div class="hero-logo"><img src="assets/img/logo-ci6.png" alt="Dragon 6e compagnie"></div></section><section id="cards" class="grid"></section><section class="values"><div class="value"><div>🏅</div><div><strong>DISCIPLINE</strong><span>Base de l’efficacité collective.</span></div></div><div class="value"><div>🤝</div><div><strong>ENGAGEMENT</strong><span>Chacun s’engage pour tous.</span></div></div><div class="value"><div>👥</div><div><strong>SOLIDARITÉ</strong><span>Unis dans l’effort.</span></div></div><div class="value"><div>🌿</div><div><strong>EXEMPLARITÉ</strong><span>Digne de l’uniforme.</span></div></div></section><section id="faq" class="box"><h2>FAQ</h2><p>Cette zone pourra recevoir les questions fréquentes des élèves.</p></section><section id="contacts" class="box"><h2>Contacts</h2><p>Ajoute ici la BAL compagnie, les permanences, les services utiles et les numéros d’urgence internes.</p></section><div class="footer">6ᵉ COMPAGNIE D’INSTRUCTION — ÉCOLE DE GENDARMERIE DE MONTLUÇON</div></main></div><script src="assets/js/data.js"></script><script src="assets/js/app.js"></script></body></html>
+
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CI6 Connect</title>
+  <meta name="description" content="Guide numérique des consignes de la 6e compagnie d'instruction" />
+  <link rel="icon" href="assets/img/logo-ci6.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero" id="accueil">
+      <img src="assets/img/logo-ci6.png" alt="Logo de la 6e compagnie" class="logo" />
+      <div class="hero-text">
+        <p class="eyebrow">6ᵉ compagnie d’instruction</p>
+        <h1><span>CI6</span> CONNECT</h1>
+        <p class="subtitle">Guide numérique des consignes de la 6ᵉ compagnie</p>
+        <p class="motto">« À cœur vaillant, rien d’impossible »</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="search-zone" aria-label="Recherche">
+        <label for="searchInput" class="sr-only">Rechercher une consigne</label>
+        <input id="searchInput" type="search" placeholder="Rechercher une consigne, une rubrique…" autocomplete="off" />
+      </section>
+
+      <section class="grid" id="cards" aria-label="Rubriques CI6 Connect"></section>
+
+      <article class="detail hidden" id="detail" aria-live="polite">
+        <button class="back" id="backBtn">← Retour à l’accueil</button>
+        <div class="detail-header">
+          <img id="detailIcon" alt="" />
+          <div>
+            <p id="detailNum" class="detail-num"></p>
+            <h2 id="detailTitle"></h2>
+          </div>
+        </div>
+        <div class="markdown" id="detailContent"></div>
+      </article>
+    </main>
+
+    <footer>
+      <p>DISCIPLINE · ENGAGEMENT · SOLIDARITÉ · EXEMPLARITÉ</p>
+      <p>6ᵉ compagnie d’instruction – École de gendarmerie de Montluçon</p>
+    </footer>
+  </div>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

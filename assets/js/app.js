@@ -1,33 +1,74 @@
-function slugPage(r){return `pages/${r.id}.html`}
-function renderNav(active){
- const el=document.getElementById('nav-rubriques'); if(!el) return;
- el.innerHTML=RUBRIQUES.map(r=>`<a class="${active===r.id?'active':''}" href="${active?'../':''}${active? r.id+'.html':slugPage(r)}"><span class="badge">${r.n}</span><span>${r.title}</span></a>`).join('');
+
+const cardsEl = document.getElementById('cards');
+const searchInput = document.getElementById('searchInput');
+const detail = document.getElementById('detail');
+const detailIcon = document.getElementById('detailIcon');
+const detailNum = document.getElementById('detailNum');
+const detailTitle = document.getElementById('detailTitle');
+const detailContent = document.getElementById('detailContent');
+const backBtn = document.getElementById('backBtn');
+
+function renderCards(list = RUBRIQUES){
+  cardsEl.innerHTML = list.map(item => `
+    <button class="card" type="button" data-id="${item.id}" style="--bgimg:url('${item.background}')">
+      <span class="card-num">${item.num}</span>
+      <span class="card-content">
+        <img src="${item.icon}" alt="" loading="lazy" />
+        <h3>${item.title}</h3>
+        <p>${item.desc}</p>
+      </span>
+    </button>
+  `).join('');
 }
-function renderCards(){
- const el=document.getElementById('cards'); if(!el) return;
- el.innerHTML=RUBRIQUES.map(r=>`<a class="card" href="${slugPage(r)}"><span class="card-number">${r.n}</span><div class="card-icon">${r.icon}</div><h3>${r.title}</h3><p>${r.short}</p><span class="btn">Voir plus</span></a>`).join('');
-}
-function renderPage(){
- const id=document.body.dataset.page; if(!id) return;
- const r=RUBRIQUES.find(x=>x.id===id), d=DETAILS[id];
- document.title=`${r.title} — CI6 Connect`;
- document.getElementById('page-title').textContent=r.title;
- document.getElementById('page-number').textContent=String(r.n).padStart(2,'0');
- document.getElementById('page-icon').textContent=r.icon;
- document.getElementById('objectif').textContent=d.objectif;
- for(const key of ['retenir','consignes','vigilance']){
-   const ul=document.getElementById(key);
-   ul.innerHTML=d[key].map(x=>`<li>${x}</li>`).join('');
- }
-}
-function initSearch(){
- const input=document.getElementById('search'); if(!input) return;
- input.addEventListener('input',()=>{
-  const q=input.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  document.querySelectorAll('.card').forEach((card,i)=>{
-    const r=RUBRIQUES[i]; const txt=(r.title+' '+r.short).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    card.classList.toggle('hidden', q && !txt.includes(q));
+
+function mdToHtml(md){
+  let html = md
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  html = html.replace(/(?:^|\n)(- .*(?:\n- .*)*)/g, block => {
+    const items = block.trim().split('\n').map(line => '<li>'+line.replace(/^- /,'')+'</li>').join('');
+    return '<ul>'+items+'</ul>';
   });
- });
+  return html.split(/\n{2,}/).map(part => {
+    const t = part.trim();
+    if(!t) return '';
+    if(t.startsWith('<h') || t.startsWith('<ul')) return t;
+    return '<p>'+t.replace(/\n/g,'<br>')+'</p>';
+  }).join('\n');
 }
-document.addEventListener('DOMContentLoaded',()=>{renderNav(document.body.dataset.page); renderCards(); renderPage(); initSearch();});
+
+async function openRubrique(id){
+  const item = RUBRIQUES.find(r => r.id === id);
+  if(!item) return;
+  const res = await fetch(item.content);
+  const md = await res.text();
+  detailIcon.src = item.icon;
+  detailNum.textContent = `FICHE ${item.num}`;
+  detailTitle.textContent = item.title;
+  detailContent.innerHTML = mdToHtml(md);
+  cardsEl.classList.add('hidden');
+  document.querySelector('.search-zone').classList.add('hidden');
+  detail.classList.remove('hidden');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+cardsEl.addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if(card) openRubrique(card.dataset.id);
+});
+backBtn.addEventListener('click', () => {
+  detail.classList.add('hidden');
+  cardsEl.classList.remove('hidden');
+  document.querySelector('.search-zone').classList.remove('hidden');
+  history.replaceState(null, '', 'index.html');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const filtered = RUBRIQUES.filter(item => (item.num+' '+item.title+' '+item.desc).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(q));
+  renderCards(filtered);
+});
+renderCards();
