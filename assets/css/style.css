@@ -198,15 +198,7 @@ body::after{
 }
 
 .tile::after{
-  content:"";
-  position:absolute;
-  right:-1px;
-  top:-1px;
-  width:64px;
-  height:64px;
-  background:linear-gradient(135deg,transparent 50%,rgba(214,173,58,.95) 51%);
-  z-index:3;
-  pointer-events:none;
+    display:none;
 }
 
 .tile-number{
