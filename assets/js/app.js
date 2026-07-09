@@ -53,11 +53,14 @@ function markdownToHtml(markdown) {
     return `<p>${b.replace(/\n/g, "<br>")}</p>`;
   }).join("\\n");
 }
-
 async function openContent(path, addHistory = true) {
-
   try {
     const response = await fetch(path, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error("Fiche introuvable : " + path);
+    }
+
     const markdown = await response.text();
     detailContent.innerHTML = markdownToHtml(markdown);
   } catch (error) {
@@ -69,47 +72,52 @@ async function openContent(path, addHistory = true) {
   detailView.hidden = false;
 
   if (addHistory) {
+    const rubrique = window.CI6_RUBRIQUES.find(item => item.content === path);
+    const hash = rubrique ? rubrique.slug : path.replace("content/", "").replace(".md", "");
+
     history.pushState(
       { page: path },
       "",
-      "#" + path.replace("content/", "").replace(".md", "")
+      "#" + hash
     );
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-backBtn.addEventListener("click", () => {
-  history.back();
-});
-searchInput.addEventListener("input", event => renderCards(event.target.value));
-
-window.addEventListener("popstate", async () => {
-
+function openFromHash() {
   if (location.hash === "") {
     detailView.hidden = true;
     homeView.hidden = false;
     return;
   }
 
-  const file =
-    "content/" +
-    location.hash.substring(1) +
-    ".md";
+  const slug = location.hash.substring(1);
 
-  await openContent(file, false);
+  const rubrique = window.CI6_RUBRIQUES.find(item =>
+    item.slug === slug ||
+    item.content === "content/" + slug + ".md"
+  );
 
+  if (!rubrique) {
+    detailContent.innerHTML =
+      "<h1>Fiche introuvable</h1><p>Cette rubrique n’existe pas ou son lien est incorrect.</p>";
+    homeView.hidden = true;
+    detailView.hidden = false;
+    return;
+  }
+
+  openContent(rubrique.content, false);
+}
+
+backBtn.addEventListener("click", () => {
+  history.back();
 });
+
+searchInput.addEventListener("input", event => renderCards(event.target.value));
+
+window.addEventListener("popstate", openFromHash);
 
 renderCards();
 
-if (location.hash !== "") {
-
-    openContent(
-        "content/" +
-        location.hash.substring(1) +
-        ".md",
-        false
-    );
-
-}
+openFromHash();
