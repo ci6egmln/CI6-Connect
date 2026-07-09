@@ -1,10 +1,10 @@
 ---
-title: "Foire aux questions"
-description: "Répondre aux questions que tout le monde se pose."
+title: "Semaine d'initiation au fonctionnement"
+description: "Participer au fonctionnement quotidien de l'école avec rigueur et esprit de service."
 card: "assets/cards/S-sif.png"
 ---
 
-# FAQ
+# SIF
 
 ## 🎯 Objectif
 
