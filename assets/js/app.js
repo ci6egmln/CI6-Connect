@@ -119,23 +119,106 @@ function renderChildren(parent, addHistory = true) {
   }
 }
 
-function markdownToHtml(markdown) {
-  let html = markdown
-    .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-    .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-    .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-    .replace(/^\- (.*$)/gim, "<li>$1</li>")
-    .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>");
+function escapeHtml(value) {
+  return (value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-  html = html.replace(/(<li>.*<\/li>)/gims, "<ul>$1</ul>");
-  html = html.replace(/<\/ul>\s*<ul>/gim, "");
+function normalizeBlockType(type) {
+  return normalizeText(type)
+    .replace(/autorisee?/g, "autorise")
+    .replace(/documents?/g, "document")
+    .replace(/ressources?/g, "document")
+    .replace(/infos?/g, "info");
+}
 
-  return html.split(/\n{2,}/).map(block => {
-    const b = block.trim();
-    if (!b) return "";
-    if (b.startsWith("<h") || b.startsWith("<ul")) return b;
-    return `<p>${b.replace(/\n/g, "<br>")}</p>`;
+function formatInline(text) {
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+
+function renderBasicMarkdown(markdown) {
+  const blocks = markdown
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map(block => block.trim())
+    .filter(Boolean);
+
+  return blocks.map(block => {
+    if (/^###\s+/m.test(block)) {
+      return `<h3>${formatInline(block.replace(/^###\s+/, ""))}</h3>`;
+    }
+
+    if (/^##\s+/m.test(block)) {
+      return `<h2>${formatInline(block.replace(/^##\s+/, ""))}</h2>`;
+    }
+
+    if (/^#\s+/m.test(block)) {
+      return `<h1>${formatInline(block.replace(/^#\s+/, ""))}</h1>`;
+    }
+
+    if (/^[-*]\s+/m.test(block)) {
+      const items = block
+        .split("\n")
+        .map(line => line.trim())
+        .filter(line => /^[-*]\s+/.test(line))
+        .map(line => `<li>${formatInline(line.replace(/^[-*]\s+/, ""))}</li>`)
+        .join("");
+
+      return `<ul>${items}</ul>`;
+    }
+
+    return `<p>${formatInline(block).replace(/\n/g, "<br>")}</p>`;
   }).join("\n");
+}
+
+function renderCallout(type, content) {
+  const normalized = normalizeBlockType(type);
+
+  const labels = {
+    autorise: { icon: "✓", title: "Autorisé" },
+    interdit: { icon: "×", title: "Interdit" },
+    conseil: { icon: "!", title: "Conseil" },
+    document: { icon: "↓", title: "Documents" },
+    info: { icon: "i", title: "Information" }
+  };
+
+  const meta = labels[normalized] || labels.info;
+
+  return `
+    <section class="fiche-card fiche-card-${normalized}">
+      <div class="fiche-card-head">
+        <span class="fiche-card-icon">${meta.icon}</span>
+        <strong>${meta.title}</strong>
+      </div>
+      <div class="fiche-card-body">
+        ${renderBasicMarkdown(content.trim())}
+      </div>
+    </section>
+  `;
+}
+
+function markdownToHtml(markdown) {
+  const callouts = [];
+
+  const withoutCallouts = markdown
+    .replace(/\r\n/g, "\n")
+    .replace(/^:::\s*([a-zA-ZÀ-ÿ_-]+)\s*\n([\s\S]*?)\n:::\s*$/gm, (_, type, content) => {
+      const token = `@@CALLOUT_${callouts.length}@@`;
+      callouts.push(renderCallout(type, content));
+      return `\n\n${token}\n\n`;
+    });
+
+  const html = renderBasicMarkdown(withoutCallouts);
+
+  return html.replace(/<p>@@CALLOUT_(\d+)@@<\/p>/g, (_, index) => callouts[Number(index)] || "");
 }
 
 async function openContent(path, addHistory = true) {
@@ -149,7 +232,7 @@ async function openContent(path, addHistory = true) {
     }
 
     const markdown = await response.text();
-    detailContent.innerHTML = markdownToHtml(markdown);
+    detailContent.innerHTML = `<article class="fiche">${markdownToHtml(markdown)}</article>`;
   } catch (error) {
     detailContent.innerHTML =
       "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
