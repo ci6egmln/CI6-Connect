@@ -8,7 +8,7 @@ card: "assets/cards/S-sif.png"
 
 ## 🎯 Objectif
 
-Présenter clairement l'objectif de cette consigne.
+La Semaine d'Initiation au Fonctionnement (SIF) permet aux élèves de contribuer au bon fonctionnement de l'École de gendarmerie. Durant cette semaine, ils assurent différents services indispensables à la vie quotidienne de la compagnie et de l'école : poste de sécurité, service au mess, entretien des salles de cours, collecte des déchets, soutien logistique et autres missions confiées par l'encadrement. La qualité de ces services repose sur le sens des responsabilités, la rigueur et l'esprit de cohésion de chacun.
 
 ## 📋 Sortie promotion
 
