@@ -5,7 +5,7 @@ window.CI6_RUBRIQUES = [
     "description": "Horloge dorée, symbole de ponctualité.",
     "slug": "respecter-les-horaires",
     "content": "content/01-horaires.md",
-    "card": "assets/cards/01-horaires.jpg"
+    "card": "assets/cards/01-horaires.png"
   },
   {
     "id": "02",
@@ -13,7 +13,7 @@ window.CI6_RUBRIQUES = [
     "description": "Une tenue militaire soignée, reflet de l’exemplarité.",
     "slug": "tenue-presentation",
     "content": "content/02-tenue.md",
-    "card": "assets/cards/02-tenue.jpg"
+    "card": "assets/cards/02-tenue.png"
   },
   {
     "id": "03",
@@ -21,7 +21,7 @@ window.CI6_RUBRIQUES = [
     "description": "Des locaux propres, utilisés avec respect.",
     "slug": "utilisation-entretien-locaux",
     "content": "content/03-locaux.md",
-    "card": "assets/cards/03-locaux.jpg"
+    "card": "assets/cards/03-locaux.png"
   },
   {
     "id": "04",
@@ -29,7 +29,7 @@ window.CI6_RUBRIQUES = [
     "description": "Respecter les horaires, les lieux et les règles de vie.",
     "slug": "cercle-mixte",
     "content": "content/04-cercle-mixte.md",
-    "card": "assets/cards/04-cercle-mixte.jpg"
+    "card": "assets/cards/04-cercle-mixte.png"
   },
   {
     "id": "05",
@@ -37,7 +37,7 @@ window.CI6_RUBRIQUES = [
     "description": "Camaraderie, cohésion et respect mutuel.",
     "slug": "vivre-collectivite",
     "content": "content/05-collectivite.md",
-    "card": "assets/cards/05-collectivite.jpg"
+    "card": "assets/cards/05-collectivite.png"
   },
   {
     "id": "06",
@@ -45,7 +45,7 @@ window.CI6_RUBRIQUES = [
     "description": "Un matériel prêt, contrôlé et entretenu.",
     "slug": "materiel",
     "content": "content/06-materiel.md",
-    "card": "assets/cards/06-materiel.jpg"
+    "card": "assets/cards/06-materiel.png"
   },  
   {
     "id": "07",
@@ -53,7 +53,7 @@ window.CI6_RUBRIQUES = [
     "description": "Un outil utile, jamais une distraction.",
     "slug": "telephone",
     "content": "content/07-telephone.md",
-    "card": "assets/cards/07-telephone.jpg"
+    "card": "assets/cards/07-telephone.png"
   },
   {
     "id": "08",
@@ -61,7 +61,7 @@ window.CI6_RUBRIQUES = [
     "description": "Apprendre, progresser, réussir.",
     "slug": "formation",
     "content": "content/08-formation.md",
-    "card": "assets/cards/08-formation.jpg"
+    "card": "assets/cards/08-formation.png"
   },
    {
     "id": "09",
@@ -69,7 +69,7 @@ window.CI6_RUBRIQUES = [
     "description": "Transmettre clairement, rendre compte utilement.",
     "slug": "vh-compte-rendu",
     "content": "content/09-vh-compte-rendu.md",
-    "card": "assets/cards/09-vh-compte-rendu.jpg"
+    "card": "assets/cards/09-vh-compte-rendu.png"
   },
   {
     "id": "10",
@@ -77,7 +77,7 @@ window.CI6_RUBRIQUES = [
     "description": "La sécurité de tous passe par la vigilance de chacun.",
     "slug": "securite",
     "content": "content/10-securite.md",
-    "card": "assets/cards/10-securite.jpg"
+    "card": "assets/cards/10-securite.png"
   }, 
   {
     "id": "11",
@@ -85,7 +85,7 @@ window.CI6_RUBRIQUES = [
     "description": "Retrouver rapidement les informations et supports utiles.",
     "slug": "documents-utiles",
     "content": "content/11-documents-utiles.md",
-    "card": "assets/cards/11-documents-utiles.jpg"
+    "card": "assets/cards/11-documents-utiles.png"
   },
   {
     "id": "12",
@@ -93,7 +93,7 @@ window.CI6_RUBRIQUES = [
     "description": "Identifier les ressources utiles au quotidien.",
     "slug": "services-ecole",
     "content": "content/12-services.md",
-    "card": "assets/cards/12-services.jpg"
+    "card": "assets/cards/12-services.png"
   }, 
   {
     "id": "13",
@@ -101,7 +101,7 @@ window.CI6_RUBRIQUES = [
     "description": "Traditions, cohésion et esprit de promotion.",
     "slug": "vie-promotion",
     "content": "content/13-promotion.md",
-    "card": "assets/cards/13-promotion.jpg"
+    "card": "assets/cards/13-promotion.png"
   },
   {
     "id": "14",
@@ -109,7 +109,7 @@ window.CI6_RUBRIQUES = [
     "description": "S’engager, assumer, montrer l’exemple.",
     "slug": "responsabilites",
     "content": "content/14-responsabilites.md",
-    "card": "assets/cards/14-responsabilites.jpg"
+    "card": "assets/cards/14-responsabilites.png"
   },
    {
     "id": "15",
@@ -117,7 +117,7 @@ window.CI6_RUBRIQUES = [
     "description": "Rôle, rigueur et transmission des consignes.",
     "slug": "consignes-mdl",
     "content": "content/15-consignes.md",
-    "card": "assets/cards/15-consignes.jpg"
+    "card": "assets/cards/15-consignes.png"
   },
   {
      "id": "16",
@@ -125,7 +125,7 @@ window.CI6_RUBRIQUES = [
      "description": "Réponses rapides aux questions fréquentes.",
      "slug": "faq",
      "content": "content/16-faq.md",
-     "card": "assets/cards/16-faq.jpg"
+     "card": "assets/cards/16-faq.png"
   },
   {
      "id": "SIF",
@@ -133,6 +133,6 @@ window.CI6_RUBRIQUES = [
      "description": "Semaine d'initiation au fonctionnement.",
      "slug": "SIF",
      "content": "content/S-sif.md",
-     "card": "assets/cards/S-sif.jpg"
+     "card": "assets/cards/S-sif.png"
   }
 ];
