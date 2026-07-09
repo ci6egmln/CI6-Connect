@@ -197,7 +197,7 @@ window.CI6_RUBRIQUES = [
         "description": "Missions des plastrons et règles de sécurité.",
         "slug": "sif-plastrons",
         "content": "content/sif/plastrons.md",
-        "card": "assets/cards/sif_platrons.png"
+        "card": "assets/cards/sif_plastrons.png"
       },
       {
         "id": "Chauffeurs",
