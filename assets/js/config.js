@@ -94,6 +94,44 @@ window.CI6_RUBRIQUES = [
     "slug": "services-ecole",
     "content": "content/12-services.md",
     "card": "assets/cards/12-services.png"
+     children: [
+
+    {
+      id: "BGP",
+      title: "BGP",
+      slug: "service-bgp",
+      description: "Bureau de gestion du personnel",
+      content: "content/services/bgp.md",
+      card: "assets/cards/service_bgp.png"
+    },
+
+    {
+      id: "DIFF",
+      title: "Cellule Diffusion",
+      slug: "service-diffusion",
+      description: "Reproduction d'affiche, de document, photographies, graphismes",
+      content: "content/services/diffusion.md",
+      card: "assets/cards/service_diffusion.png"
+    },
+
+    {
+      id: "DSOLC",
+      title: "Détachement du service opérationnel de lutte contre la cybercriminalité",
+      slug: "service-dsolc",
+      description: "Dépannage informatique, Radio, Néogend",
+      content: "content/services/dsolc.md",
+      card: "assets/cards/service_dsolc.png"
+    },
+
+    {
+      id: "HAB",
+      title: "Service Habillement",
+      slug: "service-habillement",
+      description: "Essayage, commande et livraison d'effets militaires",
+      content: "content/services/habillement.md",
+      card: "assets/cards/service_habillement.png"
+    }
+  ]
   }, 
   {
     "id": "13",
@@ -128,11 +166,51 @@ window.CI6_RUBRIQUES = [
      "card": "assets/cards/16-faq.png"
   },
   {
-     "id": "SIF",
-     "title": "SIF",
-     "description": "Semaine d'initiation au fonctionnement.",
-     "slug": "SIF",
-     "content": "content/S-sif.md",
-     "card": "assets/cards/S-sif.png"
-  }
-];
+  id: "SIF",
+  title: "SIF",
+  description: "Participer au fonctionnement quotidien de l'école avec rigueur et esprit de service.",
+  slug: "sif",
+  card: "assets/cards/S-sif.png",
+  children: [
+    {
+      id: "Poste",
+      title: "Poste de sécurité",
+      description: "Accueil, surveillance et transmissions.",
+      slug: "sif-poste",
+      content: "content/sif/poste.md",
+      card: "assets/cards/sif_poste.png"
+    },
+    {
+      id: "MESS",
+      title: "Mess",
+      description: "Service au mess.",
+      slug: "sif-mess",
+      content: "content/sif/mess.md",
+      card: "assets/cards/sif_mess.png"
+    },
+    {
+      id: "Nettoyage",
+      title: "Nettoyage des salles d'instruction",
+      description: "Nettoyage des salles de cours, amphi, gymnase.",
+      slug: "sif-nettoyage",
+      content: "content/sif/nettoyage.md",
+      card: "assets/cards/sif_nettoyage.png"
+    },
+    {
+      id: "Plastrons",
+      title: "Plastrons lors des examens",
+      description: "Missions des plastrons et règles de sécurité.",
+      slug: "sif-plastrons",
+      content: "content/sif/plastrons.md",
+      card: "assets/cards/sif_plastrons.png"
+    },
+    {
+      id: "Poubelles",
+      title: "Ramassage des poubelles de l'école",
+      description: "Ramasser les poubelles, vérifier le tri, acheminer à la déchetterie.",
+      slug: "sif-poubelles",
+      content: "content/sif/poubelles.md",
+      card: "assets/cards/sif_poubelles.png"
+    }
+  ]
+};
