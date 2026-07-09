@@ -401,4 +401,19 @@ body::after{
     grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
     gap:12px !important;
   }
+  /* Affichage desktop uniquement */
+@media (min-width: 900px) {
+
+  .children-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 900px;
+    margin: 24px auto;
+  }
+
+  .child-tile {
+    max-width: 230px;
+    justify-self: center;
+  }
+
+}
 }
