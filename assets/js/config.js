@@ -208,4 +208,5 @@ window.CI6_RUBRIQUES = [
       card: "assets/cards/sif_poubelles.png"
     }
   ]
-};
+}
+];
