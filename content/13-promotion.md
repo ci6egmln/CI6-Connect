@@ -1,7 +1,7 @@
 ---
 title: "Vie de la promotion"
 description: "Traditions, cohésion et esprit de promotion."
-card: "assets/cards/13-promotion.jpg"
+card: "assets/cards/13-promotion.png"
 ---
 
 # Vie de la promotion
