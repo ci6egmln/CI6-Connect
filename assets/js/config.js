@@ -87,52 +87,47 @@ window.CI6_RUBRIQUES = [
     "content": "content/11-documents-utiles.md",
     "card": "assets/cards/11-documents-utiles.png"
   },
-  {
-    "id": "12",
-    "title": "Services de l’école",
-    "description": "Identifier les ressources utiles au quotidien.",
-    "slug": "services-ecole",
-    "content": "content/12-services.md",
-    "card": "assets/cards/12-services.png"
-     children: [
-
+{
+  "id": "12",
+  "title": "Services de l’école",
+  "description": "Identifier les ressources utiles au quotidien.",
+  "slug": "services-ecole",
+  "card": "assets/cards/12-services.png",
+  "children": [
     {
-      id: "BGP",
-      title: "BGP",
-      slug: "service-bgp",
-      description: "Bureau de gestion du personnel",
-      content: "content/services/bgp.md",
-      card: "assets/cards/service_bgp.png"
+      "id": "BGP",
+      "title": "BGP",
+      "slug": "service-bgp",
+      "description": "Bureau de gestion du personnel",
+      "content": "content/services/bgp.md",
+      "card": "assets/cards/service_bgp.png"
     },
-
     {
-      id: "DIFF",
-      title: "Cellule Diffusion",
-      slug: "service-diffusion",
-      description: "Reproduction d'affiche, de document, photographies, graphismes",
-      content: "content/services/diffusion.md",
-      card: "assets/cards/service_diffusion.png"
+      "id": "DIFF",
+      "title": "Cellule Diffusion",
+      "slug": "service-diffusion",
+      "description": "Reproduction d'affiches, documents, photographies et graphismes",
+      "content": "content/services/diffusion.md",
+      "card": "assets/cards/service_diffusion.png"
     },
-
     {
-      id: "DSOLC",
-      title: "Détachement du service opérationnel de lutte contre la cybercriminalité",
-      slug: "service-dsolc",
-      description: "Dépannage informatique, Radio, Néogend",
-      content: "content/services/dsolc.md",
-      card: "assets/cards/service_dsolc.png"
+      "id": "DSOLC",
+      "title": "DSOLC",
+      "slug": "service-dsolc",
+      "description": "Dépannage informatique, radio et Néogend",
+      "content": "content/services/dsolc.md",
+      "card": "assets/cards/service_dsolc.png"
     },
-
     {
-      id: "HAB",
-      title: "Service Habillement",
-      slug: "service-habillement",
-      description: "Essayage, commande et livraison d'effets militaires",
-      content: "content/services/habillement.md",
-      card: "assets/cards/service_habillement.png"
+      "id": "HAB",
+      "title": "Service Habillement",
+      "slug": "service-habillement",
+      "description": "Essayage, commande et livraison d'effets militaires",
+      "content": "content/services/habillement.md",
+      "card": "assets/cards/service_habillement.png"
     }
   ]
-  }, 
+},
   {
     "id": "13",
     "title": "Vie de la promotion",
