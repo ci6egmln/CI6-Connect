@@ -31,10 +31,47 @@ function renderCards(filter = "") {
   `).join("");
 
   document.querySelectorAll(".tile").forEach(tile => {
+  tile.addEventListener("click", () => {
+    const item = findItemBySlug(tile.dataset.slug);
+
+    if (item.children) {
+      renderChildren(item);
+    } else {
+      openContent(item.content);
+    }
+  });
+});
+}
+function renderChildren(parent) {
+  detailContent.innerHTML = `
+    <section class="subpage-header">
+      <h1>${parent.title}</h1>
+      <p>${parent.description}</p>
+    </section>
+
+    <section class="children-grid">
+      ${parent.children.map(child => `
+        <button class="tile child-tile" data-content="${child.content}">
+          <img class="tile-bg" src="${child.card}" alt="">
+          <span class="tile-number">${child.id}</span>
+          <span class="tile-text">
+            <strong>${child.title}</strong>
+            <em>${child.description}</em>
+          </span>
+        </button>
+      `).join("")}
+    </section>
+  `;
+
+  homeView.hidden = true;
+  detailView.hidden = false;
+
+  document.querySelectorAll(".child-tile").forEach(tile => {
     tile.addEventListener("click", () => openContent(tile.dataset.content));
   });
-}
 
+  history.pushState({ page: parent.slug }, "", "#" + parent.slug);
+}
 function markdownToHtml(markdown) {
   let html = markdown
     .replace(/^# (.*$)/gim, "<h1>$1</h1>")
