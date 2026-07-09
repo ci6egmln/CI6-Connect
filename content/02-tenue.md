@@ -1,7 +1,7 @@
 ---
 title: "Tenue et présentation"
 description: "Une tenue militaire soignée, reflet de l’exemplarité."
-card: "assets/cards/02-tenue.jpg"
+card: "assets/cards/02-tenue.png"
 ---
 
 # Tenue et présentation
