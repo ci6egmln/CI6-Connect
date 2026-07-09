@@ -1,7 +1,7 @@
 ---
 title: "Entretenir les locaux"
 description: "Des locaux propres pour un cadre sain."
-card: "assets/cards/03-locaux.jpg"
+card: "assets/cards/03-locaux.png"
 ---
 
 # Entretenir les locaux
