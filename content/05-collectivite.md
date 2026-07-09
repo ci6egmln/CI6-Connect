@@ -1,7 +1,7 @@
 ---
 title: "Vivre en collectivité"
 description: "Plusieurs camarades, cohésion et respect quotidien."
-card: "assets/cards/06-collectivite.jpg"
+card: "assets/cards/06-collectivite.png"
 ---
 
 # Vivre en collectivité
