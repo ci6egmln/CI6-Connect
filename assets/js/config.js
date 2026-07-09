@@ -126,7 +126,7 @@ window.CI6_RUBRIQUES = [
      "slug": "faq",
      "content": "content/16-faq.md",
      "card": "assets/cards/16-faq.jpg"
-  }
+  },
   {
      "id": "SIF",
      "title": "SIF",
