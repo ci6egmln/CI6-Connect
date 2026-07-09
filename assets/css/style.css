@@ -233,7 +233,7 @@ body::after{
 #cardsGrid > *::after{
   display:none;
 }
-
+/*
 .tile-number,
 .card-number,
 .numero{
@@ -247,7 +247,7 @@ body::after{
   letter-spacing:.04em !important;
   text-shadow:0 3px 8px #000 !important;
 }
-
+*/
 .tile-text,
 .card-text,
 .card-content,
