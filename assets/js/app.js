@@ -57,7 +57,7 @@ function renderCards(filter = "") {
   grid.innerHTML = rubriques.map(item => `
     <button class="tile" data-slug="${item.slug}" aria-label="${item.title}">
       <img class="tile-bg" src="${item.card}" alt="" loading="lazy">
-      <span class="tile-number">${item.id}</span>
+   // <span class="tile-number">${item.id}</span>
       <span class="tile-text">
         <strong>${item.title}</strong>
         <em>${item.description || ""}</em>
