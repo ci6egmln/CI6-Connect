@@ -696,3 +696,16 @@ body::after{
     border-radius: 16px;
   }
 }
+/* Pages de navigation avec sous-cartes : pas de cadre autour */
+.detail:has(.children-grid) {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+@media (max-width:760px){
+  .detail:has(.children-grid) {
+    padding: 0;
+  }
+}
