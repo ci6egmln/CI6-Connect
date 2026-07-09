@@ -20,8 +20,7 @@ function renderCards(filter = "") {
   );
 
   grid.innerHTML = rubriques.map(item => `
-    <button class="tile" data-content="${item.content}" aria-label="${item.title}">
-      <img class="tile-bg" src="${item.card}" alt="" loading="lazy">
+      <button class="tile" data-id="${item.id}" aria-label="${item.title}">      <img class="tile-bg" src="${item.card}" alt="" loading="lazy">
       <span class="tile-number">${item.id}</span>
       <span class="tile-text">
         <strong>${item.title}</strong>
@@ -30,16 +29,26 @@ function renderCards(filter = "") {
     </button>
   `).join("");
 
-  document.querySelectorAll(".tile").forEach(tile => {
+ document.querySelectorAll(".tile").forEach(tile => {
+
   tile.addEventListener("click", () => {
-    const item = findItemBySlug(tile.dataset.slug);
+
+    const item = window.CI6_RUBRIQUES.find(r => r.id === tile.dataset.id);
+
+    if (!item) return;
 
     if (item.children) {
+
       renderChildren(item);
+
     } else {
+
       openContent(item.content);
+
     }
+
   });
+
 });
 }
 function renderChildren(parent) {
@@ -142,9 +151,13 @@ function openFromHash() {
     homeView.hidden = true;
     detailView.hidden = false;
     return;
-  }
+    }
 
-  openContent(rubrique.content, false);
+  if (rubrique.children) {
+    renderChildren(rubrique);
+    } else {
+    openContent(rubrique.content, false);
+   }
 }
 
 backBtn.addEventListener("click", () => {
