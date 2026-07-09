@@ -127,4 +127,12 @@ window.CI6_RUBRIQUES = [
      "content": "content/16-faq.md",
      "card": "assets/cards/16-faq.jpg"
   }
+  {
+     "id": "SIF",
+     "title": "SIF",
+     "description": "Semaine d'initiation au fonctionnement.",
+     "slug": "SIF",
+     "content": "content/S-sif.md",
+     "card": "assets/cards/S-sif.jpg"
+  }
 ];
