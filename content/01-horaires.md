@@ -1,7 +1,7 @@
 ---
 title: "Respecter les horaires"
 description: "Horloge dorée, symbole de ponctualité."
-card: "assets/cards/01-horaires.jpg"
+card: "assets/cards/01-horaires.png"
 ---
 
 # Respecter les horaires
