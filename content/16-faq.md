@@ -1,7 +1,7 @@
 ---
 title: "Foire aux questions"
 description: "Répondre aux questions que tout le monde se pose."
-card: "assets/cards/15-services.jpg"
+card: "assets/cards/16-faq.png"
 ---
 
 # FAQ
