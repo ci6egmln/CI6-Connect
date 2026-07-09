@@ -1,7 +1,7 @@
 ---
 title: "Services de l’école"
 description: "Les ressources utiles au quotidien."
-card: "assets/cards/15-services.jpg"
+card: "assets/cards/12-services.png"
 ---
 
 # Services de l’école
