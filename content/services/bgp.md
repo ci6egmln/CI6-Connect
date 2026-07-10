@@ -1,3 +1,0 @@
-# BGP
-
-Fiche à compléter.
