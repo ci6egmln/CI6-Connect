@@ -177,26 +177,39 @@ function parseFrontMatter(markdown) {
 }
 
 function basicMarkdownToHtml(markdown) {
+  const htmlBlocks = [];
+
+  markdown = markdown.replace(/<section[\s\S]*?<\/section>/gim, match => {
+    const token = `@@HTML_BLOCK_${htmlBlocks.length}@@`;
+    htmlBlocks.push(match);
+    return `\n\n${token}\n\n`;
+  });
+
   const blocks = markdown
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
     .map(block => block.trim())
     .filter(Boolean);
 
-  return blocks.map(block => {
-    if (/^###\s+/m.test(block)) {
+  const html = blocks.map(block => {
+    const htmlTokenMatch = block.match(/^@@HTML_BLOCK_(\d+)@@$/);
+    if (htmlTokenMatch) {
+      return htmlBlocks[Number(htmlTokenMatch[1])] || "";
+    }
+
+    if (/^###\s+/.test(block)) {
       return `<h3>${formatInline(block.replace(/^###\s+/, ""))}</h3>`;
     }
 
-    if (/^##\s+/m.test(block)) {
+    if (/^##\s+/.test(block)) {
       return `<h2>${formatInline(block.replace(/^##\s+/, ""))}</h2>`;
     }
 
-    if (/^#\s+/m.test(block)) {
+    if (/^#\s+/.test(block)) {
       return `<h1>${formatInline(block.replace(/^#\s+/, ""))}</h1>`;
     }
 
-    if (/^[-*]\s+/m.test(block)) {
+    if (/^[-*]\s+/.test(block)) {
       const items = block
         .split("\n")
         .map(line => line.trim())
@@ -209,6 +222,8 @@ function basicMarkdownToHtml(markdown) {
 
     return `<p>${formatInline(block).replace(/\n/g, "<br>")}</p>`;
   }).join("\n");
+
+  return html;
 }
 
 /* =========================
