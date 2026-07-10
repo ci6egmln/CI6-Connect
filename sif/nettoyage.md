@@ -1,3 +1,0 @@
-# Nettoyage
-
-Fiche à compléter.
