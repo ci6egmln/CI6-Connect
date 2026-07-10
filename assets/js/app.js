@@ -47,11 +47,15 @@ function setDetailView() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+/* =========================
+   ACCUEIL
+========================= */
+
 function renderCards(filter = "") {
   const query = normalizeText(filter);
 
   const rubriques = getRubriques().filter(item =>
-    normalizeText(`${item.id} ${item.title} ${item.description}`).includes(query)
+    normalizeText(`${item.id || ""} ${item.title || ""} ${item.description || ""}`).includes(query)
   );
 
   grid.innerHTML = rubriques.map(item => `
@@ -78,6 +82,10 @@ function renderCards(filter = "") {
   });
 }
 
+/* =========================
+   SOUS-RUBRIQUES
+========================= */
+
 function renderChildren(parent, addHistory = true) {
   currentParent = parent;
 
@@ -89,7 +97,7 @@ function renderChildren(parent, addHistory = true) {
     </section>
 
     <section class="children-grid" aria-label="Sous-rubriques ${parent.title}">
-      ${parent.children.map(child => `
+      ${(parent.children || []).map(child => `
         <button class="child-nav-tile" data-slug="${child.slug}" aria-label="${child.title}">
           <img class="child-nav-img" src="${child.card}" alt="" loading="lazy">
           <span class="child-nav-title">${child.title}</span>
@@ -118,6 +126,10 @@ function renderChildren(parent, addHistory = true) {
   }
 }
 
+/* =========================
+   OUTILS MARKDOWN
+========================= */
+
 function escapeHtml(value) {
   return (value || "")
     .replace(/&/g, "&amp;")
@@ -125,14 +137,6 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-function normalizeBlockType(type) {
-  return normalizeText(type)
-    .replace(/autorisee?/g, "autorise")
-    .replace(/documents?/g, "document")
-    .replace(/ressources?/g, "document")
-    .replace(/infos?/g, "info");
 }
 
 function formatInline(text) {
@@ -143,7 +147,36 @@ function formatInline(text) {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
-function renderBasicMarkdown(markdown) {
+function parseFrontMatter(markdown) {
+  const match = markdown.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);
+
+  if (!match) {
+    return {
+      meta: {},
+      body: markdown
+    };
+  }
+
+  const meta = {};
+
+  match[1].split("\n").forEach(line => {
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex === -1) return;
+
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1).trim();
+
+    value = value.replace(/^["']|["']$/g, "");
+    meta[key] = value;
+  });
+
+  return {
+    meta,
+    body: markdown.slice(match[0].length)
+  };
+}
+
+function basicMarkdownToHtml(markdown) {
   const blocks = markdown
     .replace(/\r\n/g, "\n")
     .split(/\n{2,}/)
@@ -178,47 +211,147 @@ function renderBasicMarkdown(markdown) {
   }).join("\n");
 }
 
-function renderCallout(type, content) {
-  const normalized = normalizeBlockType(type);
+/* =========================
+   BLOCS PREMIUM
+========================= */
 
-  const labels = {
-    autorise: { icon: "✓", title: "Autorisé" },
-    interdit: { icon: "×", title: "Interdit" },
-    conseil: { icon: "!", title: "Conseil" },
-    document: { icon: "↓", title: "Documents" },
-    info: { icon: "i", title: "Information" }
-  };
+function getDownloadIcon(path) {
+  const lower = (path || "").toLowerCase();
 
-  const meta = labels[normalized] || labels.info;
+  if (lower.endsWith(".pdf")) return "📄";
+  if (lower.endsWith(".doc") || lower.endsWith(".docx")) return "📝";
+  if (lower.endsWith(".xls") || lower.endsWith(".xlsx")) return "📊";
+  if (lower.endsWith(".ppt") || lower.endsWith(".pptx")) return "📽️";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp")) return "🖼️";
+  if (lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".webm")) return "🎥";
+  if (lower.endsWith(".zip") || lower.endsWith(".rar") || lower.endsWith(".7z")) return "🗂️";
+  if (lower.startsWith("http")) return "🌐";
+
+  return "📎";
+}
+
+function renderDownloadBlock(content) {
+  const items = content
+    .split("\n")
+    .map(line => line.trim())
+    .filter(line => line.startsWith("-"))
+    .map(line => line.replace(/^-/, "").trim());
 
   return `
-    <section class="fiche-card fiche-card-${normalized}">
+    <section class="fiche-card fiche-card-download">
       <div class="fiche-card-head">
-        <span class="fiche-card-icon">${meta.icon}</span>
-        <strong>${meta.title}</strong>
+        <span class="fiche-card-icon">⬇️</span>
+        <strong>Documents à télécharger</strong>
       </div>
-      <div class="fiche-card-body">
-        ${renderBasicMarkdown(content.trim())}
+
+      <div class="download-list">
+        ${items.map(item => {
+          const [label, url] = item.split("|").map(part => part.trim());
+          const icon = getDownloadIcon(url || "");
+
+          return `
+            <a class="download-item" href="${url}" target="_blank" rel="noopener noreferrer">
+              <span>${icon}</span>
+              <strong>${label}</strong>
+              <em>Ouvrir</em>
+            </a>
+          `;
+        }).join("")}
       </div>
     </section>
   `;
 }
 
-function markdownToHtml(markdown) {
-  const callouts = [];
+function renderCustomBlocks(markdown) {
+  const blockTypes = {
+    conseil: {
+      className: "fiche-card-conseil",
+      icon: "💡",
+      title: "Conseil"
+    },
+    attention: {
+      className: "fiche-card-attention",
+      icon: "⚠️",
+      title: "Point de vigilance"
+    },
+    autorise: {
+      className: "fiche-card-autorise",
+      icon: "✅",
+      title: "Autorisé"
+    },
+    interdit: {
+      className: "fiche-card-interdit",
+      icon: "⛔",
+      title: "Interdit"
+    },
+    documents: {
+      className: "fiche-card-document",
+      icon: "📘",
+      title: "Documents utiles"
+    },
+    retenir: {
+      className: "fiche-card-info",
+      icon: "⭐",
+      title: "À retenir"
+    }
+  };
 
-  const withoutCallouts = markdown
-    .replace(/\r\n/g, "\n")
-    .replace(/^:::\s*([a-zA-ZÀ-ÿ_-]+)\s*\n([\s\S]*?)\n:::\s*$/gm, (_, type, content) => {
-      const token = `@@CALLOUT_${callouts.length}@@`;
-      callouts.push(renderCallout(type, content));
-      return `\n\n${token}\n\n`;
+  markdown = markdown.replace(/:::telechargements\s*\n([\s\S]*?)\n:::/gim, (_, content) => {
+    return renderDownloadBlock(content);
+  });
+
+  Object.keys(blockTypes).forEach(type => {
+    const config = blockTypes[type];
+    const regex = new RegExp(`:::${type}\\s*\\n([\\s\\S]*?)\\n:::`, "gim");
+
+    markdown = markdown.replace(regex, (_, content) => {
+      return `
+        <section class="fiche-card ${config.className}">
+          <div class="fiche-card-head">
+            <span class="fiche-card-icon">${config.icon}</span>
+            <strong>${config.title}</strong>
+          </div>
+
+          <div class="fiche-card-body">
+            ${basicMarkdownToHtml(content.trim())}
+          </div>
+        </section>
+      `;
     });
+  });
 
-  const html = renderBasicMarkdown(withoutCallouts);
-
-  return html.replace(/<p>@@CALLOUT_(\d+)@@<\/p>/g, (_, index) => callouts[Number(index)] || "");
+  return markdown;
 }
+
+function markdownToHtml(markdown) {
+  const parsed = parseFrontMatter(markdown);
+  const bodyWithBlocks = renderCustomBlocks(parsed.body);
+  const content = basicMarkdownToHtml(bodyWithBlocks);
+
+  const title = parsed.meta.title || "";
+  const icon = parsed.meta.icon || "";
+  const quote = parsed.meta.quote || "";
+
+  return `
+    <article class="fiche">
+      ${title ? `
+        <section class="fiche-hero">
+          ${icon ? `<img class="fiche-hero-img" src="${icon}" alt="">` : ""}
+          <h1>${formatInline(title)}</h1>
+          ${quote ? `<p class="fiche-quote">« ${formatInline(quote)} »</p>` : ""}
+        </section>
+      ` : ""}
+
+      <section class="fiche-content">
+        ${content}
+      </section>
+    </article>
+  `;
+}
+
+/* =========================
+   OUVERTURE DES FICHES
+========================= */
 
 async function openContent(path, addHistory = true) {
   currentParent = null;
@@ -231,10 +364,19 @@ async function openContent(path, addHistory = true) {
     }
 
     const markdown = await response.text();
-    detailContent.innerHTML = `<article class="fiche">${markdownToHtml(markdown)}</article>`;
+    detailContent.innerHTML = markdownToHtml(markdown);
+
   } catch (error) {
-    detailContent.innerHTML =
-      "<h1>Fiche indisponible</h1><p>Le contenu de cette fiche n’a pas pu être chargé.</p>";
+    console.error(error);
+
+    detailContent.innerHTML = `
+      <article class="fiche">
+        <section class="fiche-content">
+          <h1>Fiche indisponible</h1>
+          <p>Le contenu de cette fiche n’a pas pu être chargé.</p>
+        </section>
+      </article>
+    `;
   }
 
   setDetailView();
@@ -251,6 +393,10 @@ async function openContent(path, addHistory = true) {
   }
 }
 
+/* =========================
+   ROUTAGE
+========================= */
+
 function openFromHash() {
   const hash = location.hash.replace("#", "");
 
@@ -262,8 +408,15 @@ function openFromHash() {
   const item = findItemBySlug(hash);
 
   if (!item) {
-    detailContent.innerHTML =
-      "<h1>Fiche introuvable</h1><p>Cette rubrique n’existe pas ou son lien est incorrect.</p>";
+    detailContent.innerHTML = `
+      <article class="fiche">
+        <section class="fiche-content">
+          <h1>Fiche introuvable</h1>
+          <p>Cette rubrique n’existe pas ou son lien est incorrect.</p>
+        </section>
+      </article>
+    `;
+
     setDetailView();
     return;
   }
@@ -278,12 +431,23 @@ function openFromHash() {
   }
 }
 
+/* =========================
+   RETOUR
+========================= */
+
 backBtn.addEventListener("click", () => {
   const hash = location.hash.replace("#", "");
   const item = findItemBySlug(hash);
 
-  const parent = getRubriques().find(r =>
-    Array.isArray(r.children) && r.children.some(child => child.slug === hash)
+  if (!item) {
+    history.pushState({ type: "home" }, "", location.pathname);
+    setHomeView();
+    return;
+  }
+
+  const parent = flattenItems().find(possibleParent =>
+    Array.isArray(possibleParent.children) &&
+    possibleParent.children.some(child => child.slug === item.slug)
   );
 
   if (parent) {
@@ -295,6 +459,10 @@ backBtn.addEventListener("click", () => {
   history.pushState({ type: "home" }, "", location.pathname);
   setHomeView();
 });
+
+/* =========================
+   INITIALISATION
+========================= */
 
 if (searchInput) {
   searchInput.addEventListener("input", event => renderCards(event.target.value));

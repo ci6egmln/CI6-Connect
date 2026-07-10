@@ -2,7 +2,7 @@ window.CI6_RUBRIQUES = [
   {
     "id": "01",
     "title": "Respecter les horaires",
-    "description": "Horloge dorée, symbole de ponctualité.",
+    "description": "La ponctualité est la première marque de respect.",
     "slug": "respecter-les-horaires",
     "content": "content/01-horaires.md",
     "card": "assets/cards/01-horaires.png"
@@ -117,6 +117,22 @@ window.CI6_RUBRIQUES = [
       "description": "Dépannage informatique, radio et Néogend",
       "content": "content/services/dsolc.md",
       "card": "assets/cards/service_dsolc.png"
+    },
+    {
+      "id": "HOT",
+      "title": "Hôtel Coutelot",
+      "slug": "service-hotel",
+      "description": "Réservation de chambre, hôtel Coutelot",
+      "content": "content/services/hotel.md",
+      "card": "assets/cards/service_hotel.png"
+    },
+    {
+      "id": "VAG",
+      "title": "Vaguemestre",
+      "slug": "service-vaguemestre",
+      "description": "Courrier et réception de colis",
+      "content": "content/services/vaguemestre.md",
+      "card": "assets/cards/service_vaguemestre.png"
     },
     {
       "id": "HAB",

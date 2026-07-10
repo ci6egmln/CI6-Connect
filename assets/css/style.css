@@ -709,3 +709,229 @@ body::after{
     padding: 0;
   }
 }
+/* ==========================================================
+   CI6 CONNECT - GUIDE PREMIUM
+   ========================================================== */
+
+.fiche {
+    max-width: 900px;
+    margin: auto;
+}
+
+/* ---------- En-tête ---------- */
+
+.fiche-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 35px;
+    padding: 40px 30px;
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg,
+            rgba(255,255,255,.03),
+            rgba(255,255,255,.01)),
+        rgba(8,10,12,.92);
+
+    border: 1px solid rgba(214,173,58,.35);
+    text-align: center;
+    box-shadow: 0 20px 45px rgba(0,0,0,.45);
+}
+
+.fiche-hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:url("../img/dragon-filigrane.png") center center / 70% no-repeat;
+    opacity:.05;
+    pointer-events:none;
+}
+
+.fiche-hero-img{
+    position:relative;
+    z-index:2;
+    width:180px;
+    max-width:55%;
+    margin-bottom:20px;
+    filter:drop-shadow(0 12px 24px rgba(0,0,0,.5));
+}
+
+.fiche-hero h1{
+    position:relative;
+    z-index:2;
+    margin:0;
+    color:var(--gold-light);
+    text-transform:uppercase;
+    font-size:clamp(30px,6vw,52px);
+    letter-spacing:.05em;
+}
+
+.fiche-quote{
+    position:relative;
+    z-index:2;
+    margin:22px auto 0;
+    max-width:650px;
+    color:var(--silver);
+    font-size:20px;
+    font-style:italic;
+    line-height:1.6;
+}
+
+/* ---------- Contenu ---------- */
+
+.fiche-content{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+/* ---------- Cartes ---------- */
+
+.fiche-card{
+    overflow:hidden;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.03);
+    box-shadow:0 14px 35px rgba(0,0,0,.28);
+}
+
+.fiche-card-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 20px;
+    font-size:18px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+
+.fiche-card-icon{
+    font-size:24px;
+}
+
+.fiche-card-body{
+    padding:0 20px 18px;
+}
+
+.fiche-card-body p{
+    margin:10px 0;
+    line-height:1.7;
+}
+
+.fiche-card-body ul{
+    margin:10px 0;
+    padding-left:22px;
+}
+
+.fiche-card-body li{
+    margin:8px 0;
+}
+
+/* ---------- Couleurs ---------- */
+
+.fiche-card-conseil{
+    border-left:6px solid #f6b94a;
+}
+
+.fiche-card-conseil .fiche-card-head{
+    background:rgba(245,158,11,.16);
+}
+
+.fiche-card-attention{
+    border-left:6px solid #ffd23f;
+}
+
+.fiche-card-attention .fiche-card-head{
+    background:rgba(255,210,63,.15);
+}
+
+.fiche-card-autorise{
+    border-left:6px solid #42d77d;
+}
+
+.fiche-card-autorise .fiche-card-head{
+    background:rgba(66,215,125,.14);
+}
+
+.fiche-card-interdit{
+    border-left:6px solid #ff6b63;
+}
+
+.fiche-card-interdit .fiche-card-head{
+    background:rgba(255,107,99,.14);
+}
+
+.fiche-card-document{
+    border-left:6px solid #60a5fa;
+}
+
+.fiche-card-document .fiche-card-head{
+    background:rgba(96,165,250,.14);
+}
+
+.fiche-card-info{
+    border-left:6px solid var(--gold);
+}
+
+.fiche-card-info .fiche-card-head{
+    background:rgba(214,173,58,.12);
+}
+
+/* ---------- Téléchargements ---------- */
+
+.download-list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    padding:20px;
+}
+
+.download-item{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:16px 18px;
+    border-radius:14px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    color:white;
+    text-decoration:none;
+    transition:.2s;
+}
+
+.download-item:hover{
+    transform:translateY(-2px);
+    border-color:var(--gold);
+}
+
+.download-item span{
+    font-size:28px;
+}
+
+.download-item strong{
+    flex:1;
+}
+
+.download-item em{
+    color:var(--gold-light);
+    font-style:normal;
+}
+
+/* ---------- Smartphone ---------- */
+
+@media(max-width:760px){
+.fiche-hero{
+padding:28px 18px;
+}
+
+.fiche-hero-img{
+width:140px;
+}
+
+.fiche-quote{
+font-size:17px;
+}
+.download-item{
+padding:14px;
+}
+}
