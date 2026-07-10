@@ -953,4 +953,23 @@ font-size:17px;
 .download-item{
 padding:14px;
 }
+.fiche-content h1,
+.fiche-content h2,
+.fiche-content h3{
+  color: var(--gold);
+}
+
+.fiche-content h1{
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.fiche-content h2{
+  border-bottom: 1px solid rgba(184,131,24,.45);
+  padding-bottom: 8px;
+}
+
+.fiche-content h3{
+  color: var(--gold-light);
+}
 }
