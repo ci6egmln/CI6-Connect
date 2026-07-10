@@ -345,35 +345,39 @@ body::after{
 }
 
 /* Bandeau titre en haut */
-.child-nav-title {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.child-nav-title{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
 
-  padding: 12px 10px;
+    padding:12px 8px;
 
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,.92),
-    rgba(0,0,0,.45)
-  );
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid rgba(184,131,24,.55);
+    min-height:52px;
 
-  color: #fff;
-  font-size: .95rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-align: center;
-  line-height: 1.2;
-  letter-spacing: .06em;
+    background:linear-gradient(
+        to bottom,
+        rgba(0,0,0,.88),
+        rgba(0,0,0,.15)
+    );
 
-  z-index: 3;
+    color:#fff;
+    font-size:.90rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    text-align:center;
+
+    z-index:5;
+
+    text-shadow:0 2px 6px rgba(0,0,0,.9);
 }
 
-.child-nav-tile::after {
+/*.child-nav-tile::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -384,7 +388,7 @@ body::after{
     rgba(0,0,0,.25)
   );
   pointer-events: none;
-}
+}*/
 
 
 
