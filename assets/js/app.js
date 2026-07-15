@@ -279,37 +279,36 @@ function renderDownloadBlock(content) {
 
 function renderCustomBlocks(markdown) {
   const blockTypes = {
-    conseil: {
-      className: "fiche-card-conseil",
-      icon: "💡",
-      title: "Conseil"
-    },
-    attention: {
-      className: "fiche-card-attention",
-      icon: "⚠️",
-      title: "Point de vigilance"
-    },
-    autorise: {
-      className: "fiche-card-autorise",
-      icon: "✅",
-      title: "Autorisé"
-    },
-    interdit: {
-      className: "fiche-card-interdit",
-      icon: "⛔",
-      title: "Interdit"
-    },
-    documents: {
-      className: "fiche-card-document",
-      icon: "📘",
-      title: "Documents utiles"
-    },
-    retenir: {
-      className: "fiche-card-info",
-      icon: "⭐",
-      title: "À retenir"
-    }
-  };
+  directives: {
+    className: "fiche-card-directives",
+    icon: "📘",
+    title: "Directives"
+  },
+
+  autorise: {
+    className: "fiche-card-autorise",
+    icon: "✅",
+    title: "Autorisé"
+  },
+
+  interdit: {
+    className: "fiche-card-interdit",
+    icon: "⛔",
+    title: "Interdit"
+  },
+
+  conseil: {
+    className: "fiche-card-conseil",
+    icon: "💬",
+    title: "Conseil du cadre"
+  },
+
+  attention: {
+    className: "fiche-card-attention",
+    icon: "⚠️",
+    title: "Point de vigilance"
+  }
+};
 
   markdown = markdown.replace(/:::telechargements\s*\n([\s\S]*?)\n:::/gim, (_, content) => {
     return renderDownloadBlock(content);
