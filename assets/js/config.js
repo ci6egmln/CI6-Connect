@@ -62,8 +62,29 @@ window.CI6_RUBRIQUES = [
     title: "Tenue et présentation",
     description: "Une tenue militaire soignée, reflet de l’exemplarité.",
     slug: "tenue-presentation",
-    content: "content/02-tenue.md",
-    card: "assets/cards/02-tenue.png"
+    card: "assets/cards/02-tenue.png",
+   children: [ {
+        id: "tenue",
+        title: "Port de la tenue",
+        slug: "tenue-tenue",
+        description: "Porter la tenue réglementaire",
+        content: "content/tenue/tenue.md",
+        card: "assets/cards/tenue_tenue.png"
+    }, {
+        id: "presentation",
+        title: "Savoir se présenter",
+        slug: "tenue-presentation",
+        description: "Savoir se présentare à un cadre à l'extérieur, au bureau, au téléphone",
+        content: "content/tenue/presentation.md",
+        card: "assets/cards/tenue_presentation.png"
+    }, {
+      id: "comportement",
+        title: "Savoir se comporter",
+        slug: "tenue-comportement",
+        description: "Se comporter comme un sous-officier, en et hors service",
+        content: "content/tenue/comportement.md",
+        card: "assets/cards/tenue_comportement.png"
+    } ]    
 }, 
     {
     id: "03",
