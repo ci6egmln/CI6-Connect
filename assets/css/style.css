@@ -980,3 +980,25 @@ padding:14px;
   color: var(--gold-light);
 }
 }
+/* Directives */
+.fiche-card-directives{
+  border-left:6px solid var(--silver);
+}
+
+.fiche-card-directives .fiche-card-head{
+  background:rgba(223,227,232,.10);
+}
+
+/* Bloc informatif générique */
+.fiche-card-bloc{
+  border-left:6px solid var(--gold);
+}
+
+.fiche-card-bloc .fiche-card-head{
+  background:rgba(184,131,24,.14);
+  color:var(--gold-light);
+}
+
+.fiche-card-bloc .fiche-card-icon{
+  color:var(--gold-light);
+}
