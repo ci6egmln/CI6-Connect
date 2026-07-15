@@ -145,11 +145,57 @@ function renderCustomBlocks(markdown) {
             title: "Point de vigilance"
         }
     };
-    return markdown = (markdown = markdown.replace(/:::telechargements\s*\n([\s\S]*?)\n:::/gim, (_, content) => renderDownloadBlock(content))).replace(/:::bloc\s+([^\n]+)\n([\s\S]*?)\n:::/gim, (_, title, content) => `\n        <section class="fiche-card fiche-card-bloc">\n          <div class="fiche-card-head">\n            <span class="fiche-card-icon">◆</span>\n            <strong>${formatInline(title.trim())}</strong>\n          </div>\n\n          <div class="fiche-card-body">\n            ${basicMarkdownToHtml(content.trim())}\n          </div>\n        </section>\n      `), 
+
+    markdown = markdown.replace(
+        /:::telechargements\s*\n([\s\S]*?)\n:::/gim,
+        (_, content) => renderDownloadBlock(content)
+    );
+
+    markdown = markdown.replace(
+        /:::bloc\s+([^\n]+)\n([\s\S]*?)\n:::/gim,
+        (_, title, content) => `
+        <section class="fiche-card fiche-card-bloc">
+          <div class="fiche-card-head">
+            <span class="fiche-card-icon">◆</span>
+            <strong>${formatInline(title.trim())}</strong>
+          </div>
+
+          <div class="fiche-card-body">
+            ${basicMarkdownToHtml(content.trim())}
+          </div>
+        </section>
+      `
+    );
+
     Object.keys(blockTypes).forEach(type => {
-        const config = blockTypes[type], regex = new RegExp(`:::${type}\\s*\\n([\\s\\S]*?)\\n:::`, "gim");
-        markdown = markdown.replace(regex, (_, content) => `\n        <section class="fiche-card ${config.className}">\n          <div class="fiche-card-head">\n            <span class="fiche-card-icon">${config.icon}</span>\n            <strong>${config.title}</strong>\n          </div>\n\n          <div class="fiche-card-body">\n            ${basicMarkdownToHtml(content.trim())}\n          </div>\n        </section>\n      `);
-    }), markdown;
+        const config = blockTypes[type];
+
+        const regex = new RegExp(
+            `^:::${type}(?:[ \\t]+([^\\r\\n]+))?[ \\t]*\\r?\\n([\\s\\S]*?)\\r?\\n:::[ \\t]*$`,
+            "gim"
+        );
+
+        markdown = markdown.replace(regex, (_, customTitle, content) => {
+            const displayedTitle = customTitle
+                ? customTitle.trim()
+                : config.title;
+
+            return `
+        <section class="fiche-card ${config.className}">
+          <div class="fiche-card-head">
+            <span class="fiche-card-icon">${config.icon}</span>
+            <strong>${formatInline(displayedTitle)}</strong>
+          </div>
+
+          <div class="fiche-card-body">
+            ${basicMarkdownToHtml(content.trim())}
+          </div>
+        </section>
+      `;
+        });
+    });
+
+    return markdown;
 }
 
 function markdownToHtml(markdown) {
