@@ -895,6 +895,13 @@ body::after{
 .fiche-card-info .fiche-card-head{
     background:rgba(214,173,58,.12);
 }
+.fiche-card-directives{
+    border-left:6px solid var(--silver);
+}
+
+.fiche-card-directives .fiche-card-head{
+    background:rgba(223,227,232,.10);
+}
 
 /* ---------- Téléchargements ---------- */
 
