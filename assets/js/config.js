@@ -21,28 +21,28 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/accueil_montlucon.png"
     }, {
       id: "ecole",
-        title: "École de gendarmerie de Montluçon",
+        title: "L'école de gendarmerie",
         slug: "accueil-ecole-gendarmerie-montlucon",
         description: "L'école de gendarmerie de Montluçon",
         content: "content/accueil/ecole.md",
         card: "assets/cards/accueil_ecole.png"
     }, {
       id: "compagnie",
-        title: "6ème compagnie d'instruction",
+        title: "La 6ème compagnie",
         slug: "accueil-compagnie",
         description: "La 6ème compagnie d'instruction",
         content: "content/accueil/compagnie.md",
         card: "assets/cards/accueil_compagnie.png"
     }, {
       id: "fournitures",
-        title: "Matériel à emporter",
+        title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
         content: "content/accueil/fournitures.md",
         card: "assets/cards/accueil_fournitures.png"
     }, {
       id: "transport",
-        title: "Transports pour se rendre à Montluçon",
+        title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
         description: "Comment se rendre à Montluçon",
         content: "content/accueil/transport.md",
