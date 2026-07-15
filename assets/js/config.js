@@ -1,25 +1,37 @@
-window.CI6_RUBRIQUES = [ {
+window.CI6_RUBRIQUES = [ 
+      {
+    id: "ACC",
+    title: "Livret d'accueil",
+    description: "Toutes informations utiles avant l'incorporation.",
+    slug: "livret-d'accueil",
+    content: "content/accueil.md",
+    card: "assets/cards/17-accueil.png"
+}, 
+    {
     id: "01",
     title: "Respecter les horaires",
     description: "La ponctualité est la première marque de respect.",
     slug: "respecter-les-horaires",
     content: "content/01-horaires.md",
     card: "assets/cards/01-horaires.png"
-}, {
+}, 
+    {
     id: "02",
     title: "Tenue et présentation",
     description: "Une tenue militaire soignée, reflet de l’exemplarité.",
     slug: "tenue-presentation",
     content: "content/02-tenue.md",
     card: "assets/cards/02-tenue.png"
-}, {
+}, 
+    {
     id: "03",
     title: "Utilisation et entretien des locaux",
     description: "Des locaux propres, utilisés avec respect.",
     slug: "utilisation-entretien-locaux",
     content: "content/03-locaux.md",
     card: "assets/cards/03-locaux.png"
-}, {
+}, 
+    {
     id: "04",
     title: "Le cercle mixte",
     description: "Respecter les horaires, les lieux et les règles de vie.",
