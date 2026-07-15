@@ -515,7 +515,7 @@ body::after{
 
 /* ================================
    V3.3 - Fiches Markdown premium
-   ================================ */
+   ================================ 
 
 .fiche {
   max-width: 760px;
@@ -714,7 +714,7 @@ body::after{
     padding: 14px 14px 15px;
     border-radius: 16px;
   }
-}
+} */
 /* Pages de navigation avec sous-cartes : pas de cadre autour */
 .detail:has(.children-grid) {
   padding: 0;
