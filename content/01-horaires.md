@@ -1,7 +1,7 @@
 ---
 title: Respecter les horaires
 icon: assets/cards/01-horaires.png
-quote: "La ponctualité est une marque de respect envers ses camarades et ses formateurs."
+quote: "En école de gendarmerie, l'heure n'est pas une indication : c'est une consigne. Être ponctuel, c'est faire preuve de discipline, de respect envers les autres et de fiabilité. En école de gendarmerie, être à l'heure, c'est déjà être prêt à servir."
 ---
 
 :::directives
