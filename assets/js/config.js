@@ -4,7 +4,7 @@ window.CI6_RUBRIQUES = [
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
     slug: "livret-d'accueil",
-    card: "assets/cards/17-accueil.png"
+    card: "assets/cards/17-accueil.png",
     children: [ {
         id: "CDU",
         title: "Mot du CDU",
