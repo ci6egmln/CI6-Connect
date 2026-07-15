@@ -34,6 +34,13 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/compagnie.md",
         card: "assets/cards/accueil_compagnie.png"
     }, {
+      id: "fournitures",
+        title: "Matériel à emporter",
+        slug: "accueil-fournitures",
+        description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
+        content: "content/accueil/fournitures.md",
+        card: "assets/cards/accueil_fournitures.png"
+    }, {
       id: "transport",
         title: "Transports pour se rendre à Montluçon",
         slug: "accueil-transports",
