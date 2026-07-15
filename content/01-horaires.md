@@ -10,6 +10,10 @@ Les horaires rythment la vie militaire et garantissent le bon fonctionnement de 
 Chaque élève doit anticiper ses déplacements et être prêt avant l'heure fixée.
 :::
 
+:::directives 2
+Seconde partie des directives
+:::
+
 :::autorise
 - Arriver en avance.
 - Préparer son matériel.
