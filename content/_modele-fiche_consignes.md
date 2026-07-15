@@ -1,0 +1,38 @@
+---
+title: Respecter les horaires
+icon: assets/cards/01-horaires.png
+quote: "La ponctualité est une marque de respect envers ses camarades et ses formateurs."
+---
+
+:::directives
+Les horaires rythment la vie militaire et garantissent le bon fonctionnement de la compagnie.
+
+Chaque élève doit anticiper ses déplacements, préparer son matériel et être présent au lieu de rassemblement avant l'heure fixée.
+
+La ponctualité est une exigence permanente.
+:::
+
+:::autorise
+- Arriver en avance.
+- Préparer son matériel avant le rassemblement.
+- Prévenir un cadre en cas de difficulté.
+:::
+
+:::interdit
+- Arriver en retard.
+- Quitter un rassemblement sans autorisation.
+- Faire attendre le groupe.
+:::
+
+:::conseil
+Prévois toujours quelques minutes de marge afin de faire face aux imprévus.
+:::
+
+:::attention
+Tout retard doit être signalé immédiatement au cadre concerné.
+:::
+
+:::telechargements
+- Planning hebdomadaire|content/docs/horaires/planning.pdf
+- Règlement intérieur|content/docs/horaires/reglement.pdf
+:::
