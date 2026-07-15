@@ -10,8 +10,13 @@ Les horaires rythment la vie militaire et garantissent le bon fonctionnement de 
 Chaque élève doit anticiper ses déplacements et être prêt avant l'heure fixée.
 :::
 
-:::directives 2
+:::directives week end
 Seconde partie des directives
+horaires les vendredi 
+:::
+
+:::directives Directives : vendredi
+les horaires du vendredi 
 :::
 
 :::autorise
