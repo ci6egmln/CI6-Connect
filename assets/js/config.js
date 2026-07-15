@@ -1,11 +1,46 @@
 window.CI6_RUBRIQUES = [ 
-      {
+{
     id: "ACC",
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
     slug: "livret-d'accueil",
-    content: "content/accueil.md",
     card: "assets/cards/17-accueil.png"
+    children: [ {
+        id: "CDU",
+        title: "Mot du CDU",
+        slug: "accueil-cdu",
+        description: "Mot du commandant de la 6ème compagnie",
+        content: "content/accueil/cdu.md",
+        card: "assets/cards/accueil_cdu.png"
+    }, {
+        id: "montlucon",
+        title: "Montluçon, la ville",
+        slug: "accueil-montlucon",
+        description: "Vivre sa scolarité dans la ville de Montluçon",
+        content: "content/accueil/montlucon.md",
+        card: "assets/cards/accueil_montlucon.png"
+    }, {
+      id: "ecole",
+        title: "École de gendarmerie de Montluçon",
+        slug: "accueil-ecole-gendarmerie-montlucon",
+        description: "L'école de gendarmerie de Montluçon",
+        content: "content/accueil/ecole.md",
+        card: "assets/cards/accueil_ecole.png"
+    }, {
+      id: "compagnie",
+        title: "6ème compagnie d'instruction",
+        slug: "accueil-compagnie",
+        description: "La 6ème compagnie d'instruction",
+        content: "content/accueil/compagnie.md",
+        card: "assets/cards/accueil_compagnie.png"
+    }, {
+      id: "transport",
+        title: "Transports pour se rendre à Montluçon",
+        slug: "accueil-transports",
+        description: "Comment se rendre à Montluçon",
+        content: "content/accueil/transport.md",
+        card: "assets/cards/accueil_transport.png"
+    } ]
 }, 
     {
     id: "01",
