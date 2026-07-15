@@ -116,7 +116,142 @@ function renderDownloadBlock(content) {
         return `\n            <a class="download-item" href="${url}" target="_blank" rel="noopener noreferrer">\n              <span>${getDownloadIcon(url || "")}</span>\n              <strong>${label}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
     }).join("")}\n      </div>\n    </section>\n  `;
 }
+function renderImageBlock(title, content) {
+  const firstLine = content
+    .split("\n")
+    .map(line => line.trim())
+    .find(Boolean) || "";
 
+  const [path, captionFromLine] = firstLine
+    .split("|")
+    .map(part => part.trim());
+
+  if (!path) return "";
+
+  const caption = captionFromLine || title || "";
+  const safePath = escapeHtml(path);
+  const safeCaption = escapeHtml(caption);
+
+  return `
+    <section class="media-card media-card-image">
+      <a
+        class="media-image-link"
+        href="${safePath}"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Agrandir l’image ${safeCaption}"
+      >
+        <img
+          class="media-image"
+          src="${safePath}"
+          alt="${safeCaption}"
+          loading="lazy"
+        >
+      </a>
+
+      ${caption ? `
+        <p class="media-caption">${formatInline(caption)}</p>
+      ` : ""}
+    </section>
+  `;
+}
+
+function renderGalleryBlock(title, content) {
+  const images = content
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const [path, caption = ""] = line
+        .replace(/^-\s*/, "")
+        .split("|")
+        .map(part => part.trim());
+
+      return { path, caption };
+    })
+    .filter(item => item.path);
+
+  if (!images.length) return "";
+
+  return `
+    <section class="media-card media-gallery-card">
+      ${title ? `
+        <div class="media-card-title">
+          <span>🖼️</span>
+          <strong>${formatInline(title)}</strong>
+        </div>
+      ` : ""}
+
+      <div class="media-gallery">
+        ${images.map(image => {
+          const safePath = escapeHtml(image.path);
+          const safeCaption = escapeHtml(image.caption);
+
+          return `
+            <a
+              class="media-gallery-item"
+              href="${safePath}"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Agrandir l’image ${safeCaption}"
+            >
+              <img
+                src="${safePath}"
+                alt="${safeCaption}"
+                loading="lazy"
+              >
+
+              ${image.caption ? `
+                <span>${formatInline(image.caption)}</span>
+              ` : ""}
+            </a>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderVideoBlock(title, content) {
+  const firstLine = content
+    .split("\n")
+    .map(line => line.trim())
+    .find(Boolean) || "";
+
+  const [path, captionFromLine] = firstLine
+    .split("|")
+    .map(part => part.trim());
+
+  if (!path) return "";
+
+  const caption = captionFromLine || title || "";
+  const safePath = escapeHtml(path);
+
+  return `
+    <section class="media-card media-video-card">
+      ${title ? `
+        <div class="media-card-title">
+          <span>🎥</span>
+          <strong>${formatInline(title)}</strong>
+        </div>
+      ` : ""}
+
+      <video
+        class="media-video"
+        controls
+        preload="metadata"
+        playsinline
+      >
+        <source src="${safePath}">
+        Votre navigateur ne peut pas lire cette vidéo.
+      </video>
+
+      ${caption && caption !== title ? `
+        <p class="media-caption">${formatInline(caption)}</p>
+      ` : ""}
+    </section>
+  `;
+}
 function renderCustomBlocks(markdown) {
     const blockTypes = {
         directives: {
@@ -145,7 +280,32 @@ function renderCustomBlocks(markdown) {
             title: "Point de vigilance"
         }
     };
+    /* Image unique */
+markdown = markdown.replace(
+  /^[ \t]*:::image(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+  (_, title, content) => renderImageBlock(
+    title ? title.trim() : "",
+    content.trim()
+  )
+);
 
+/* Galerie d’images */
+markdown = markdown.replace(
+  /^[ \t]*:::galerie(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+  (_, title, content) => renderGalleryBlock(
+    title ? title.trim() : "",
+    content.trim()
+  )
+);
+
+/* Vidéo locale */
+markdown = markdown.replace(
+  /^[ \t]*:::video(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+  (_, title, content) => renderVideoBlock(
+    title ? title.trim() : "",
+    content.trim()
+  )
+);
     markdown = markdown.replace(
         /:::telechargements\s*\n([\s\S]*?)\n:::/gim,
         (_, content) => renderDownloadBlock(content)
