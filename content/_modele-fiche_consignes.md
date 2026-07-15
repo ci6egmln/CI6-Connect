@@ -29,6 +29,21 @@ Prévoir systématiquement quelques minutes de marge.
 Tout retard doit être signalé immédiatement au cadre concerné.
 :::
 
+:::image Entrée du mess
+assets/photos/mess-entree.jpg|Entrée principale du mess
+:::
+
+:::galerie Le mess
+- assets/photos/mess-entree.jpg|Entrée principale
+- assets/photos/mess-salle.jpg|Salle de restauration
+- assets/photos/mess-plateau.jpg|Zone de distribution
+- assets/photos/mess-sortie.jpg|Sortie du mess
+:::
+
+:::video Présentation du mess
+assets/videos/presentation-mess.mp4|Parcours à suivre à l’intérieur du mess
+:::
+
 :::telechargements
 - Planning hebdomadaire|content/docs/horaires/planning.pdf
 - Règlement intérieur|content/docs/horaires/reglement.pdf
