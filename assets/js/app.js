@@ -365,34 +365,6 @@ function renderCustomBlocks(markdown) {
 
   return markdown;
 }
-
-  markdown = markdown.replace(/:::telechargements\s*\n([\s\S]*?)\n:::/gim, (_, content) => {
-    return renderDownloadBlock(content);
-  });
-
-  Object.keys(blockTypes).forEach(type => {
-    const config = blockTypes[type];
-    const regex = new RegExp(`:::${type}\\s*\\n([\\s\\S]*?)\\n:::`, "gim");
-
-    markdown = markdown.replace(regex, (_, content) => {
-      return `
-        <section class="fiche-card ${config.className}">
-          <div class="fiche-card-head">
-            <span class="fiche-card-icon">${config.icon}</span>
-            <strong>${config.title}</strong>
-          </div>
-
-          <div class="fiche-card-body">
-            ${basicMarkdownToHtml(content.trim())}
-          </div>
-        </section>
-      `;
-    });
-  });
-
-  return markdown;
-}
-
 function markdownToHtml(markdown) {
   const parsed = parseFrontMatter(markdown);
   const bodyWithBlocks = renderCustomBlocks(parsed.body);
