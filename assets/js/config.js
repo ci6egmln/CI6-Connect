@@ -119,25 +119,25 @@ window.CI6_RUBRIQUES = [
         title: "Service du mess",
         slug: "cercle-mixte-mess",
         description: "Règle d'usage du mess",
-        content: "content/cercle.mess.md",
-        card: "assets/cards/cercle.mess.png"
+        content: "content/cercle-mess.md",
+        card: "assets/cards/cercle-mess.png"
     }, {
         id: "bar",
         title: "Espace détente",
         slug: "cercle-mixte-bar-detente",
         description: "Règle d'usage et d'accès à l'espace détente",
-        content: "content/cercle.detente.md",
-        card: "assets/cards/cercle.detente.png"
+        content: "content/cercle-detente.md",
+        card: "assets/cards/cercle-detente.png"
     },{
         id: "coif",
         title: "Salon de coiffure",
         slug: "cercle-mixte-coiffure",
         description: "Règle d'usage du salon de coiffure",
-        content: "content/cercle.coiffeuse.md",
-        card: "assets/cards/cercle.coiffeuse.png"
+        content: "content/cercle-coiffeuse.md",
+        card: "assets/cards/cercle-coiffeuse.png"
     },{
         id: "hot",
-        title: "Hotel Couletol",
+        title: "Hotel Couletot",
         slug: "cercle-hotel",
         description: "Réservation de l'hôtel Coutelot.",
         content: "content/cercle-hotel.md",
