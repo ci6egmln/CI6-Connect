@@ -148,7 +148,7 @@ window.CI6_RUBRIQUES = [
     title: "Vivre en collectivité",
     description: "Camaraderie, cohésion et respect mutuel.",
     slug: "vivre-collectivite",
-    card: "assets/cards/05-collectivite.png",
+    card: "assets/cards/collectivite.png",
     children: [ {
         id: "hyg",
         title: "Hygiène",
@@ -176,7 +176,7 @@ window.CI6_RUBRIQUES = [
     title: "Préparer et respecter le matériel",
     description: "Un matériel prêt, contrôlé et entretenu.",
     slug: "materiel",
-    card: "assets/cards/06-materiel.png",
+    card: "assets/cards/materiel.png",
     children: [ {
         id: "indiv",
         title: "Individuel",
