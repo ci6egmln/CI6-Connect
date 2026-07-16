@@ -59,12 +59,12 @@ window.CI6_RUBRIQUES = [
 }, 
     {
     id: "ten",
-    title: "Tenue et présentation",
+    title: "Tenue",
     description: "Une tenue militaire soignée, reflet de l’exemplarité.",
     slug: "tenue-presentation",
     card: "assets/cards/index-tenue.png",
    children: [ {
-        id: "tenue",
+        id: "port",
         title: "Port de la tenue",
         slug: "tenue-port-reglementaire-tenue",
         description: "Porter la tenue réglementaire",
