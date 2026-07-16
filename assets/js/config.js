@@ -1,12 +1,12 @@
 window.CI6_RUBRIQUES = [ 
 {
-    id: "ACC",
+    id: "accueil",
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
     slug: "livret-d'accueil",
     card: "assets/cards/17-accueil.png",
     children: [ {
-        id: "CDU",
+        id: "cdu",
         title: "Mot du CDU",
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
@@ -50,7 +50,7 @@ window.CI6_RUBRIQUES = [
     } ]
 }, 
     {
-    id: "hor",
+    id: "horaires",
     title: "Les horaires",
     description: "La ponctualité est la première marque de respect.",
     slug: "respecter-les-horaires",
@@ -58,7 +58,7 @@ window.CI6_RUBRIQUES = [
     card: "assets/cards/index-horaires.png"
 }, 
     {
-    id: "ten",
+    id: "tenues",
     title: "Tenue",
     description: "Une tenue militaire soignée, reflet de l’exemplarité.",
     slug: "tenue-presentation",
@@ -87,13 +87,13 @@ window.CI6_RUBRIQUES = [
     } ]    
 }, 
     {
-    id: "loc",
+    id: "locaux",
     title: "Utilisation et entretien des locaux",
     description: "Des locaux propres, utilisés avec respect.",
     slug: "utilisation-entretien-locaux",
     card: "assets/cards/index-locaux.png",
     children: [ {
-        id: "circ",
+        id: "circulation",
         title: "Usage des locaux, circulation",
         slug: "locaux-usage-circulation",
         description: "Usage des locaux et circulation",
@@ -109,7 +109,7 @@ window.CI6_RUBRIQUES = [
     } ]
 }, 
     {
-    id: "cerc",
+    id: "cercle",
     title: "Le cercle mixte",
     description: "Respecter les horaires, les lieux et les règles de vie.",
     slug: "cercle-mixte",
@@ -129,14 +129,14 @@ window.CI6_RUBRIQUES = [
         content: "content/cercle-detente.md",
         card: "assets/cards/cercle-detente.png"
     },{
-        id: "coif",
+        id: "coiffeuse",
         title: "Salon de coiffure",
         slug: "cercle-mixte-coiffure",
         description: "Règle d'usage du salon de coiffure",
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
     },{
-        id: "hot",
+        id: "hotel",
         title: "Hotel Couletot",
         slug: "cercle-hotel",
         description: "Réservation de l'hôtel Coutelot.",
@@ -144,7 +144,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/cercle-hotel.png"
     } ]
 }, {
-    id: "coll",
+    id: "collectivite",
     title: "Vivre en collectivité",
     description: "Camaraderie, cohésion et respect mutuel.",
     slug: "vivre-collectivite",
@@ -172,7 +172,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/collectivite-silence.png"
     } ]
 }, {
-    id: "mat",
+    id: "materiel",
     title: "Préparer et respecter le matériel",
     description: "Un matériel prêt, contrôlé et entretenu.",
     slug: "materiel",
@@ -200,7 +200,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/materiel-section.png"
     } ]
 }, {
-    id: "tph",
+    id: "telephone",
     title: "Utiliser le téléphone à bon escient",
     description: "Un outil utile, jamais une distraction.",
     slug: "telephone",
@@ -213,7 +213,7 @@ window.CI6_RUBRIQUES = [
     slug: "formation",
     card: "assets/cards/formation.png",
     children: [ {
-        id: "etu",
+        id: "etude",
         title: "Etude",
         slug: "formation-etude",
         description: "Organiser son temps de révision",
@@ -248,14 +248,14 @@ window.CI6_RUBRIQUES = [
         content: "content/vh-cadres.md",
         card: "assets/cards/vh-cadres.png"
     }, {
-        id: "hier",
+        id: "hierarchie",
         title: "Voie hiérarchique",
         slug: "vh-voie-hiérarchique",
         description: "Conaître l'organisation hiérarhique de la compagnie",
         content: "content/vh-vh.md",
         card: "assets/cards/vh-vh.png"
     },{
-        id: "cr",
+        id: "compte-rendu",
         title: "Compte rendu",
         slug: "vh-compte-rendu-cr",
         description: "Savoir rendre compte",
@@ -263,13 +263,13 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/vh-cr.png"
     } ]
 }, {
-    id: "sec",
+    id: "securite",
     title: "Sécurité incendie",
     description: "La sécurité de tous passe par la vigilance de chacun.",
     slug: "securite-incendie",
     card: "assets/cards/securite.png",
     children: [ {
-        id: "app",
+        id: "appareils",
         title: "Les branchements électriques",
         slug: "securite-appareil-electique",
         description: "Conaître les règles de sécurité électrique",
@@ -283,7 +283,7 @@ window.CI6_RUBRIQUES = [
         content: "content/securite-ssi.md",
         card: "assets/cards/securite-ssi.png"
     },{
-        id: "evac",
+        id: "evacuation",
         title: "Exercice evacuation",
         slug: "securite-evacuation-incendie",
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
@@ -298,7 +298,7 @@ window.CI6_RUBRIQUES = [
     content: "content/news.md",
     card: "assets/cards/news.png"
 }, {
-    id: "serv",
+    id: "services",
     title: "Services de l’école",
     description: "Identifier les ressources utiles au quotidien.",
     slug: "services-ecole",
@@ -311,7 +311,7 @@ window.CI6_RUBRIQUES = [
         content: "content/services/bgp.md",
         card: "assets/cards/service_bgp.png"
     }, {
-        id: "DIFF",
+        id: "diffusion",
         title: "Cellule Diffusion",
         slug: "service-diffusion",
         description: "Reproduction d'affiches, documents, photographies et graphismes",
@@ -325,21 +325,21 @@ window.CI6_RUBRIQUES = [
         content: "content/services/dsolc.md",
         card: "assets/cards/service_dsolc.png"
     }, {
-        id: "HOT",
+        id: "hotel",
         title: "Hôtel Coutelot",
         slug: "service-hotel",
         description: "Réservation de chambre, hôtel Coutelot",
         content: "content/services/hotel.md",
         card: "assets/cards/service_hotel.png"
     }, {
-        id: "VAG",
+        id: "vaguemestre",
         title: "Vaguemestre",
         slug: "service-vaguemestre",
         description: "Courrier et réception de colis",
         content: "content/services/vaguemestre.md",
         card: "assets/cards/service_vaguemestre.png"
     }, {
-        id: "HAB",
+        id: "habillement",
         title: "Service Habillement",
         slug: "service-habillement",
         description: "Essayage, commande et livraison d'effets militaires",
