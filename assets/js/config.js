@@ -106,7 +106,7 @@ window.CI6_RUBRIQUES = [
         description: "Entretenir son lieu de vie.",
         content: "content/locaux-tig.md",
         card: "assets/cards/locaux-tig.png"
-    }
+    } ]
 }, 
     {
     id: "cerc",
@@ -142,7 +142,7 @@ window.CI6_RUBRIQUES = [
         description: "Réservation de l'hôtel Coutelot.",
         content: "content/cercle-hotel.md",
         card: "assets/cards/cercle-hotel.png"
-    }
+    } ]
 }, {
     id: "05",
     title: "Vivre en collectivité",
