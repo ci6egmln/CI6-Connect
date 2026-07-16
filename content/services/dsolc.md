@@ -1,3 +1,0 @@
-# DSOLC
-
-Fiche à compléter.

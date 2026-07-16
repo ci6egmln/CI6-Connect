@@ -1,3 +1,0 @@
-# Plastrons
-
-Fiche à compléter.
