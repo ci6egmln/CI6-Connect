@@ -66,14 +66,14 @@ window.CI6_RUBRIQUES = [
    children: [ {
         id: "port",
         title: "Port de la tenue",
-        slug: "tenue-port-reglementaire-tenue",
+        slug: "tenue-port-reglementaire",
         description: "Porter la tenue réglementaire",
         content: "content/tenue-tenue.md",
         card: "assets/cards/tenue_tenue.png"
     }, {
         id: "presentation",
         title: "Savoir se présenter",
-        slug: "tenue-presentation",
+        slug: "presentation",
         description: "Savoir se présentare à un cadre à l'extérieur, au bureau, au téléphone",
         content: "content/tenue-presentation.md",
         card: "assets/cards/tenue_presentation.png"
