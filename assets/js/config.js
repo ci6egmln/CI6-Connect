@@ -91,7 +91,7 @@ window.CI6_RUBRIQUES = [
     title: "Utilisation et entretien des locaux",
     description: "Des locaux propres, utilisés avec respect.",
     slug: "utilisation-entretien-locaux",
-    card: "assets/cards/index-locaux.png"
+    card: "assets/cards/index-locaux.png",
     children: [ {
         id: "circ",
         title: "Usage des locaux, circulation",
@@ -113,7 +113,7 @@ window.CI6_RUBRIQUES = [
     title: "Le cercle mixte",
     description: "Respecter les horaires, les lieux et les règles de vie.",
     slug: "cercle-mixte",
-    card: "assets/cards/index-cercle-mixte.png"
+    card: "assets/cards/index-cercle-mixte.png",
     children: [ {
         id: "mess",
         title: "Service du mess",
