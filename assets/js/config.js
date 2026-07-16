@@ -250,7 +250,7 @@ window.CI6_RUBRIQUES = [
     }, {
         id: "hierarchie",
         title: "Voie hiérarchique",
-        slug: "vh-voie-hiérarchique",
+        slug: "vh-voie-hierarchique",
         description: "Conaître l'organisation hiérarhique de la compagnie",
         content: "content/vh-vh.md",
         card: "assets/cards/vh-vh.png"
