@@ -152,21 +152,21 @@ window.CI6_RUBRIQUES = [
     children: [ {
         id: "hyg",
         title: "Hygiène",
-        slug: "collectivié-hygiene",
+        slug: "collectivie-hygiene",
         description: "Règle de vie en collectivité",
         content: "content/collectivite-hygiene.md",
         card: "assets/cards/collectivite-hygiene.png"
     }, {
         id: "res",
         title: "Respect d'autrui",
-        slug: "collectivié-respect",
+        slug: "collectivite-respect",
         description: "Règle de vie en bonne entente avec ces camarades",
         content: "content/collectivite-respect.md",
         card: "assets/cards/collectivite-respect.png"
     },{
         id: "sil",
         title: "Silence",
-        slug: "collectivié-silence-extinction-feux",
+        slug: "collectivite-silence-extinction-feux",
         description: "Extinction des feux",
         content: "content/collectivite-silence.md",
         card: "assets/cards/collectivite-silence.png"
