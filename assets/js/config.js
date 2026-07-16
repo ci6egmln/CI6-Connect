@@ -144,60 +144,165 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/cercle-hotel.png"
     } ]
 }, {
-    id: "05",
+    id: "coll",
     title: "Vivre en collectivité",
     description: "Camaraderie, cohésion et respect mutuel.",
     slug: "vivre-collectivite",
-    content: "content/05-collectivite.md",
-    card: "assets/cards/05-collectivite.png"
+    card: "assets/cards/05-collectivite.png",
+    children: [ {
+        id: "hyg",
+        title: "Hygiène",
+        slug: "collectivié-hygiene",
+        description: "Règle de vie en collectivité",
+        content: "content/collectivite-hygiene.md",
+        card: "assets/cards/collectivite-hygiene.png"
+    }, {
+        id: "res",
+        title: "Respect d'autrui",
+        slug: "collectivié-respect",
+        description: "Règle de vie en bonne entente avec ces camarades",
+        content: "content/collectivite-respect.md",
+        card: "assets/cards/collectivite-respect.png"
+    },{
+        id: "sil",
+        title: "Silence",
+        slug: "collectivié-silence-extinction-feux",
+        description: "Extinction des feux",
+        content: "content/collectivite-silence.md",
+        card: "assets/cards/collectivite-silence.png"
+    } ]
 }, {
-    id: "06",
+    id: "mat",
     title: "Préparer et respecter le matériel",
     description: "Un matériel prêt, contrôlé et entretenu.",
     slug: "materiel",
-    content: "content/06-materiel.md",
-    card: "assets/cards/06-materiel.png"
+    card: "assets/cards/06-materiel.png",
+    children: [ {
+        id: "indiv",
+        title: "Individuel",
+        slug: "materiel-individuel",
+        description: "Fourniture du matériel individuel par la compagnie",
+        content: "content/materiel-individuel.md",
+        card: "assets/cards/materiel-individuel.png"
+    }, {
+        id: "arm",
+        title: "matériel armement",
+        slug: "materiel-armement",
+        description: "Règle de perception de l'armement individuel ou collectif",
+        content: "content/materiel-armement.md",
+        card: "assets/cards/materiel-armement.png"
+    },{
+        id: "sec",
+        title: "matériel demandé par les sections",
+        slug: "materiel-section",
+        description: "Connaître le matériel à emporter pour les cours donnés par les sections",
+        content: "content/materiel-section.md",
+        card: "assets/cards/materiel-section.png"
+    } ]
 }, {
-    id: "07",
+    id: "tph",
     title: "Utiliser le téléphone à bon escient",
     description: "Un outil utile, jamais une distraction.",
     slug: "telephone",
-    content: "content/07-telephone.md",
-    card: "assets/cards/07-telephone.png"
+    content: "content/telephone.md",
+    card: "assets/cards/telephone.png"
 }, {
-    id: "08",
+    id: "formation",
     title: "S’investir dans sa formation",
     description: "Apprendre, progresser, réussir.",
     slug: "formation",
-    content: "content/08-formation.md",
-    card: "assets/cards/08-formation.png"
+    card: "assets/cards/formation.png",
+    children: [ {
+        id: "etu",
+        title: "Etude",
+        slug: "formation-etude",
+        description: "Organiser son temps de révision",
+        content: "content/formation-etude.md",
+        card: "assets/cards/formation-etude.png"
+    }, {
+        id: "reussir",
+        title: "Réussir sa formation",
+        slug: "formation-reussir-etudier-entrainer-participer",
+        description: "Que faire pour réussir au mieux sa formation",
+        content: "content/formation-reussir.md",
+        card: "assets/cards/formation-reussir.png"
+    },{
+        id: "sport",
+        title: "Entraînement physique",
+        slug: "formation-entrainement-physique",
+        description: "S'entraîner pour ne pas subir",
+        content: "content/formation-sport.md",
+        card: "assets/cards/formation-sport.png"
+    } ]
 }, {
-    id: "09",
+    id: "VH",
     title: "VH et compte rendu",
-    description: "Transmettre clairement, rendre compte utilement.",
+    description: "Savoir à qui s'adresser, rendre compte utilement.",
     slug: "vh-compte-rendu",
-    content: "content/09-vh-compte-rendu.md",
-    card: "assets/cards/09-vh-compte-rendu.png"
+    card: "assets/cards/vh.png",
+    children: [ {
+        id: "cadres",
+        title: "Les cadres de la compagnie",
+        slug: "vh-cadres",
+        description: "Conaître le rôle des cadres",
+        content: "content/vh-cadres.md",
+        card: "assets/cards/vh-cadres.png"
+    }, {
+        id: "hier",
+        title: "Voie hiérarchique",
+        slug: "vh-voie-hiérarchique",
+        description: "Conaître l'organisation hiérarhique de la compagnie",
+        content: "content/vh-vh.md",
+        card: "assets/cards/vh-vh.png"
+    },{
+        id: "cr",
+        title: "Compte rendu",
+        slug: "vh-compte-rendu-cr",
+        description: "Savoir rendre compte",
+        content: "content/vh-cr.md",
+        card: "assets/cards/vh-cr.png"
+    } ]
 }, {
-    id: "10",
-    title: "Respecter les consignes de sécurité",
+    id: "sec",
+    title: "Sécurité incendie",
     description: "La sécurité de tous passe par la vigilance de chacun.",
-    slug: "securite",
-    content: "content/10-securite.md",
-    card: "assets/cards/10-securite.png"
+    slug: "securite-incendie",
+    card: "assets/cards/securite.png",
+    children: [ {
+        id: "app",
+        title: "Les branchements électriques",
+        slug: "securite-appareil-electique",
+        description: "Conaître les règles de sécurité électrique",
+        content: "content/securite-appareils.md",
+        card: "assets/cards/securite-appareils.png"
+    }, {
+        id: "ssi",
+        title: "Système de sécurité incendie",
+        slug: "securite-ssi-incendie",
+        description: "Savoir utiliser le SSI de la compagnie",
+        content: "content/securite-ssi.md",
+        card: "assets/cards/securite-ssi.png"
+    },{
+        id: "evac",
+        title: "Exercice evacuation",
+        slug: "securite-evacuation-incendie",
+        description: "Consignes de sécurité et d'évacuation en cas d'incendie",
+        content: "content/securite-evacuation.md",
+        card: "assets/cards/securite-evacuation.png"
+    } ]
 }, {
-    id: "11",
+    id: "news",
     title: "Dernières infos et documents utiles",
     description: "Retrouver rapidement les informations et supports utiles.",
     slug: "documents-utiles",
-    content: "content/11-documents-utiles.md",
-    card: "assets/cards/11-documents-utiles.png"
+    content: "content/news.md",
+    card: "assets/cards/news.png"
 }, {
-    id: "12",
+    id: "serv",
     title: "Services de l’école",
     description: "Identifier les ressources utiles au quotidien.",
     slug: "services-ecole",
-    card: "assets/cards/12-services.png",
+    card: "assets/cards/services.png",
     children: [ {
         id: "BGP",
         title: "BGP",
