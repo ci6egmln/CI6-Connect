@@ -24,10 +24,6 @@ Les conseils utiles.
 Point particulier
 :::
 
-:::retenir
-Points clés
-:::
-
 :::bloc À prévoir
 
 • Carte militaire
@@ -38,11 +34,11 @@ Points clés
 
 :::
 
-:::image Entrée du mess
+:::image
 assets/photos/mess-entree.jpg|Description de l'image
 :::
 
-:::galerie Le mess
+:::galerie Description du thème
 - assets/photos/mess-entree.jpg|Description de l'image
 - assets/photos/mess-salle.jpg|Description de l'image
 - assets/photos/mess-plateau.jpg|Description de l'image
