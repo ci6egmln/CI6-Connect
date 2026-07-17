@@ -1,15 +1,14 @@
+window.CI6_RUBRIQUES = [ 
 /* Les commentaires s'écrivent entre /* et *\/. Ils sont ignorés par le navigateur. */
 
 /* Pour désactiver temporairement une règle ou un bloc de code ( compris entre { et } )
    (sans le supprimer), il suffit de l'entourer d'un commentaire. */
-
-window.CI6_RUBRIQUES = [ 
 {
     id: "accueil",
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
     slug: "livret-d'accueil",
-    card: "assets/cards/17-accueil.png",
+    card: "assets/cards/accueil.png",
     children: [ {
         id: "cdu",
         title: "Mot du CDU",
