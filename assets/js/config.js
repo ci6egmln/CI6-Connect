@@ -1,5 +1,5 @@
 window.CI6_RUBRIQUES = [ 
-/* Les commentaires s'écrivent entre /* et *\/. Ils sont ignorés par le navigateur. */
+/* Les commentaires s'écrivent entre slash étoile et étoile slash. Ils sont ignorés par le navigateur. */
 
 /* Pour désactiver temporairement une règle ou un bloc de code ( compris entre { et } )
    (sans le supprimer), il suffit de l'entourer d'un commentaire. */
@@ -363,7 +363,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-bureau",
         description: "Constitution du bureau promotion et rôles",
         content: "content/promotion-bureau.md",
-        card: "assets/cards/promotion-bureau.png"
+        card: "assets/cards/promotion_bureau.png"
     }, {
         id: "commission",
         title: "Commissions promotion",
@@ -573,8 +573,8 @@ window.CI6_RUBRIQUES = [
         title: "Le grand départ",
         slug: "faq-sortie",
         description: "Cérémonies, gala, départ, mutation",
-        content: "content/faq-depart.md",
-        card: "assets/cards/faq-depart.png"
+        content: "content/faq-sortie.md",
+        card: "assets/cards/faq-sortie.png"
     } ]     
 }, {
     id: "SIF",
