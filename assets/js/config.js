@@ -7,7 +7,7 @@ window.CI6_RUBRIQUES = [
     id: "accueil",
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
-    slug: "livret-d'accueil",
+    slug: "livret-accueil",
     card: "assets/cards/accueil.png",
     children: [ {
         id: "cdu",
@@ -66,7 +66,7 @@ window.CI6_RUBRIQUES = [
     id: "tenues",
     title: "Tenue",
     description: "Une tenue militaire soignée, reflet de l’exemplarité.",
-    slug: "tenue-presentation",
+    slug: "tenue",
     card: "assets/cards/index-tenue.png",
    children: [ {
         id: "port",
@@ -76,10 +76,10 @@ window.CI6_RUBRIQUES = [
         content: "content/tenue-tenue.md",
         card: "assets/cards/tenue_tenue.png"
     }, {
-        id: "presentation",
+        id: "tenue-presentation",
         title: "Savoir se présenter",
-        slug: "presentation",
-        description: "Savoir se présentare à un cadre à l'extérieur, au bureau, au téléphone",
+        slug: "tenue-presentation",
+        description: "Savoir se présenter à un cadre à l'extérieur, au bureau, au téléphone",
         content: "content/tenue-presentation.md",
         card: "assets/cards/tenue_presentation.png"
     }, {
@@ -141,8 +141,8 @@ window.CI6_RUBRIQUES = [
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
     },{
-        id: "hotel",
-        title: "Hotel Couletot",
+        id: "cercle-hotel",
+        title: "Hôtel Couletot",
         slug: "cercle-hotel",
         description: "Réservation de l'hôtel Coutelot.",
         content: "content/cercle-hotel.md",
@@ -157,7 +157,7 @@ window.CI6_RUBRIQUES = [
     children: [ {
         id: "hyg",
         title: "Hygiène",
-        slug: "collectivie-hygiene",
+        slug: "collectivite-hygiene",
         description: "Règle de vie en collectivité",
         content: "content/collectivite-hygiene.md",
         card: "assets/cards/collectivite-hygiene.png"
@@ -165,7 +165,7 @@ window.CI6_RUBRIQUES = [
         id: "res",
         title: "Respect d'autrui",
         slug: "collectivite-respect",
-        description: "Règle de vie en bonne entente avec ces camarades",
+        description: "Règle de vie en bonne entente avec ses camarades",
         content: "content/collectivite-respect.md",
         card: "assets/cards/collectivite-respect.png"
     },{
@@ -240,7 +240,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/formation-sport.png"
     } ]
 }, {
-    id: "VH",
+    id: "vh",
     title: "VH et compte rendu",
     description: "Savoir à qui s'adresser, rendre compte utilement.",
     slug: "vh-compte-rendu",
@@ -249,14 +249,14 @@ window.CI6_RUBRIQUES = [
         id: "cadres",
         title: "Les cadres de la compagnie",
         slug: "vh-cadres",
-        description: "Conaître le rôle des cadres",
+        description: "Connaître le rôle des cadres",
         content: "content/vh-cadres.md",
         card: "assets/cards/vh-cadres.png"
     }, {
         id: "hierarchie",
         title: "Voie hiérarchique",
         slug: "vh-voie-hierarchique",
-        description: "Conaître l'organisation hiérarhique de la compagnie",
+        description: "Connaître l'organisation hiérarchique de la compagnie",
         content: "content/vh-vh.md",
         card: "assets/cards/vh-vh.png"
     },{
@@ -276,8 +276,8 @@ window.CI6_RUBRIQUES = [
     children: [ {
         id: "appareils",
         title: "Les branchements électriques",
-        slug: "securite-appareil-electique",
-        description: "Conaître les règles de sécurité électrique",
+        slug: "securite-appareil-electrique",
+        description: "Connaître les règles de sécurité électrique",
         content: "content/securite-appareils.md",
         card: "assets/cards/securite-appareils.png"
     }, {
@@ -289,7 +289,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/securite-ssi.png"
     },{
         id: "evacuation",
-        title: "Évacuation indendie",
+        title: "Évacuation incendie",
         slug: "securite-evacuation-incendie",
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
         content: "content/securite-evacuation.md",
@@ -309,7 +309,7 @@ window.CI6_RUBRIQUES = [
     slug: "services-ecole",
     card: "assets/cards/services.png",
     children: [ {
-        id: "BGP",
+        id: "service-bgp",
         title: "BGP",
         slug: "service-bgp",
         description: "Bureau de gestion du personnel",
@@ -323,21 +323,21 @@ window.CI6_RUBRIQUES = [
         content: "content/service-diffusion.md",
         card: "assets/cards/service-diffusion.png"
     }, {
-        id: "DSOLC",
+        id: "service-dsolc",
         title: "DSOLC",
         slug: "service-dsolc",
         description: "Dépannage informatique, radio et Néogend",
         content: "content/service-dsolc.md",
         card: "assets/cards/service-dsolc.png"
     }, {
-        id: "hotel",
+        id: "service-hotel",
         title: "Hôtel Coutelot",
         slug: "service-hotel",
         description: "Réservation de chambre, hôtel Coutelot",
         content: "content/service-hotel.md",
         card: "assets/cards/service-hotel.png"
     }, {
-        id: "vaguemestre",
+        id: "service-vaguemestre",
         title: "Vaguemestre",
         slug: "service-vaguemestre",
         description: "Courrier et réception de colis",
@@ -382,7 +382,7 @@ window.CI6_RUBRIQUES = [
         id: "gala",
         title: "Commission Gala",
         slug: "commission-gala",
-        description: "Organisation de la soirée de gale, choix de salle, de traiteur, des animations",
+        description: "Organisation de la soirée de gala, choix de salle, de traiteur, des animations",
         content: "content/commission-gala.md",
         card: "assets/cards/commission-gala.png"
     }, {
@@ -457,7 +457,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/commission-goodies.png"
     },{
         id: "echeancier",
-        title: "Échéance à tenir",
+        title: "Échéances à tenir",
         slug: "promotion-echeances",
         description: "Tenir les échéances, ne pas se laisser dépasser",
         content: "content/commission-echeancier.md",
@@ -471,7 +471,6 @@ window.CI6_RUBRIQUES = [
     title: "Exercice des responsabilités",
     description: "S’engager, assumer, montrer l’exemple.",
     slug: "responsabilites",
-    content: "content/responsabilites.md",
     card: "assets/cards/responsabilite.png",
     /* créer children par responsabilité */  
      children: [ {
@@ -503,8 +502,8 @@ window.CI6_RUBRIQUES = [
         content: "content/responsabilite-tam.md",
         card: "assets/cards/responsabilite-tam.png"
     }, {
-        id: "vaguemestre",
-        title: "Vaguemestre",
+        id: "responsabiite-vaguemestre",
+        title: "Vaguemestre compagnie",
         slug: "responsabilite-vaguemestre",
         description: "Courrier et réception de colis",
         content: "content/responsabilite-vaguemestre.md",
@@ -527,7 +526,7 @@ window.CI6_RUBRIQUES = [
     /* children par elves de jour, MDL BRI Peloton */
     children: [ {
         id: "mdl",
-        title: "Elèves de jour compagnie : MDL et BRI",
+        title: "Élèves de jour compagnie : MDL et BRI",
         slug: "consignes-mdl",
         description: "Responsabilité, organisation, discipline de la compagnie",
         content: "content/consignes-mdl.md",
@@ -548,17 +547,17 @@ window.CI6_RUBRIQUES = [
     card: "assets/cards/faq.png",
     /* créer children par thème : formation, fin de promotion, vie de l'unité */      
     children: [ {
-        id: "formation",
+        id: "faq-formation",
         title: "Déroulé de la formation",
         slug: "faq-formation",
         description: "Cours, entraînement physique, matériel pédagogique",
         content: "content/faq-formation.md",
         card: "assets/cards/faq-formation.png"
     }, {
-        id: "matériel",
+        id: "faq-materiel",
         title: "Matériel et tenue",
         slug: "faq-materiel",
-        description: "Question relative au matériel et au tenue",
+        description: "Question relative au matériel et à la tenue",
         content: "content/faq-materiel.md",
         card: "assets/cards/faq-materiel.png"
     },{
@@ -577,20 +576,20 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/faq-sortie.png"
     } ]     
 }, {
-    id: "SIF",
+    id: "sif",
     title: "SIF",
     description: "Participer au fonctionnement quotidien de l'école avec rigueur et esprit de service.",
     slug: "sif",
     card: "assets/cards/S-sif.png",
     children: [ {
-        id: "Poste",
+        id: "poste",
         title: "Poste sécurité",
         description: "Accueil, surveillance et transmissions.",
         slug: "sif-poste",
         content: "content/sif/poste.md",
         card: "assets/cards/sif_poste.png"
     }, {
-        id: "MESS",
+        id: "sif-mess",
         title: "Mess",
         description: "Service au mess.",
         slug: "sif-mess",
