@@ -408,7 +408,7 @@ window.CI6_RUBRIQUES = [
     id: "promotion",
     title: "Vie de la promotion",
     description: "Traditions, cohésion et esprit de promotion.",
-    slug: "vie-promotion",
+    slug: "promotion",
     card: "assets/cards/promotion.png",
     children: [ {
         id: "bureau",
@@ -508,15 +508,16 @@ window.CI6_RUBRIQUES = [
         description: "Création, achat, vente de goodies promotion ou association",
         content: "content/commission-goodies.md",
         card: "assets/cards/commission-goodies.png"
-	    },{
+	    }
+        ],
+		{
         id: "echeancier",
         title: "Échéances à tenir",
         slug: "promotion-echeances",
         description: "Tenir les échéances, ne pas se laisser dépasser",
-        content: "content/commission-echeancier.md",
-        card: "assets/cards/commission-echeancier.png"
+        content: "content/promotion-echeancier.md",
+        card: "assets/cards/promotion_echeancier.png"
  		}
-        ]
     }
 ]
 }, {
