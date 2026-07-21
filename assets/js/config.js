@@ -301,7 +301,7 @@ window.CI6_RUBRIQUES = [
     } ]
 }, {
     id: "securite",
-    title: "Sécurité incendie",
+    title: "Sécurité",
     description: "La sécurité de tous passe par la vigilance de chacun.",
     slug: "securite-incendie",
     card: "assets/cards/securite.png",
