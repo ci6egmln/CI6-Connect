@@ -62,7 +62,7 @@ window.CI6_RUBRIQUES = [
 }, 
     { 
     id: "reglement",
-    title: "Règlement intérieur de la 6ème compagnie",
+    title: "Règlement intérieur",
     description: "Les règles essentielles de vie, de discipline et d'organisation de la compagnie.",
     slug: "reglement",
     card: "assets/cards/reglement.png",
@@ -115,7 +115,7 @@ window.CI6_RUBRIQUES = [
     	  },
     	  {
   	 	 id: "telephone",
-  		  title: "7 - Utiliser le téléphone à bon escient",
+  		  title: "7 - Utilisation du téléphone",
  		  description: "Un outil utile, jamais une distraction.",
  		  slug: "reglement-telephone",
 		  content: "content/reglement-telephone.md",
@@ -132,8 +132,8 @@ window.CI6_RUBRIQUES = [
 },
     {
     id: "locaux",
-    title: "Utilisation et entretien des locaux",
-    description: "Des locaux propres, utilisés avec respect.",
+    title: "Les locaux de la compagnie",
+    description: "L'état des locaux est le miroir de ceux qui les occupent.",
     slug: "utilisation-entretien-locaux",
     card: "assets/cards/index-locaux.png",
     children: [ {
@@ -155,35 +155,35 @@ window.CI6_RUBRIQUES = [
     {
     id: "cercle",
     title: "Le cercle mixte",
-    description: "Respecter les horaires, les lieux et les règles de vie.",
+    description: "Restauration, détente et convivialité.",
     slug: "cercle-mixte",
     card: "assets/cards/index-cercle-mixte.png",
     children: [ {
         id: "mess",
         title: "Service du mess",
         slug: "cercle-mixte-mess",
-        description: "Règle d'usage du mess",
+        description: "La restauration au quotidien.",
         content: "content/cercle-mess.md",
         card: "assets/cards/cercle-mess.png"
     }, {
         id: "bar",
         title: "Espace détente",
         slug: "cercle-mixte-bar-detente",
-        description: "Règle d'usage et d'accès à l'espace détente",
+        description: "Lieu de détente et de cohésion.",
         content: "content/cercle-detente.md",
         card: "assets/cards/cercle-detente.png"
     },{
         id: "coiffeuse",
         title: "Salon de coiffure",
         slug: "cercle-mixte-coiffure",
-        description: "Règle d'usage du salon de coiffure",
+        description: "Un service de coiffure adapté aux exigences de l'école.",
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
     },{
         id: "cercle-hotel",
         title: "Hôtel Couletot",
         slug: "cercle-hotel",
-        description: "Réservation de l'hôtel Coutelot.",
+        description: "Un hébergement pratique pour vos familles et visiteurs.",
         content: "content/cercle-hotel.md",
         card: "assets/cards/cercle-hotel.png"
     } ]
@@ -197,44 +197,51 @@ window.CI6_RUBRIQUES = [
         id: "hyg",
         title: "Hygiène",
         slug: "collectivite-hygiene",
-        description: "Règle de vie en collectivité",
+        description: "L'hygiène est essentielle en collectivité",
         content: "content/collectivite-hygiene.md",
         card: "assets/cards/collectivite-hygiene.png"
     }, {
         id: "res",
         title: "Respect d'autrui",
         slug: "collectivite-respect",
-        description: "Règle de vie en bonne entente avec ses camarades",
+        description: "Favoriser une cohabitation harmonieuse entre camarades.",
         content: "content/collectivite-respect.md",
         card: "assets/cards/collectivite-respect.png"
     },{
         id: "sil",
         title: "Silence",
         slug: "collectivite-silence-extinction-feux",
-        description: "Extinction des feux",
+        description: "Le silence est une marque de considération envers tous.",
         content: "content/collectivite-silence.md",
         card: "assets/cards/collectivite-silence.png"
     } ]
 }, {
     id: "materiel",
     title: "Préparer et respecter le matériel",
-    description: "Un matériel prêt, contrôlé et entretenu.",
+    description: "Un matériel prêt, contrôlé et entretenu est le gage d'une mission réussie.",
     slug: "materiel",
     card: "assets/cards/materiel.png",
     children: [ {
         id: "individuel",
         title: "Individuel",
         slug: "materiel-individuel",
-        description: "Fourniture du matériel individuel par la compagnie",
+        description: "Perception et entretien du matériel individuel fourni par la compagnie",
         content: "content/materiel-individuel.md",
         card: "assets/cards/materiel-individuel.png"
     }, {
         id: "armement",
-        title: "matériel armement",
+        title: "matériel et armement compagnie",
         slug: "materiel-armement",
-        description: "Règle de perception de l'armement individuel ou collectif",
+        description: "Perception et entretien de l'armement individuel ou collectif de la compagnie.",
         content: "content/materiel-armement.md",
         card: "assets/cards/materiel-armement.png"
+    },{
+        id: "pret",
+        title: "matériel en prêt pour l'instruction",
+        slug: "materiel-pret",
+        description: "Perception et entretien de l'armement individuel ou collectif prêté par les services.",
+        content: "content/materiel-pret.md",
+        card: "assets/cards/materiel-pret.png"
     },{
         id: "section",
         title: "matériel demandé par les sections",
@@ -251,7 +258,7 @@ window.CI6_RUBRIQUES = [
     card: "assets/cards/formation.png",
     children: [ {
         id: "etude",
-        title: "Etude",
+        title: "Etude et révision au quotidien.",
         slug: "formation-etude",
         description: "Organiser son temps de révision",
         content: "content/formation-etude.md",
@@ -259,7 +266,7 @@ window.CI6_RUBRIQUES = [
     }, {
         id: "reussir",
         title: "Réussir sa formation",
-        slug: "formation-reussir-etudier-entrainer-participer",
+        slug: "formation-reussir",
         description: "Que faire pour réussir au mieux sa formation",
         content: "content/formation-reussir.md",
         card: "assets/cards/formation-reussir.png"
@@ -270,6 +277,13 @@ window.CI6_RUBRIQUES = [
         description: "S'entraîner pour ne pas subir",
         content: "content/formation-sport.md",
         card: "assets/cards/formation-sport.png"
+    },  {
+        id: "examen",
+        title: "Programme et examens.",
+        slug: "formation-reussir",
+        description: "Que faire pour réussir au mieux sa formation",
+        content: "content/formation-examen.md",
+        card: "assets/cards/formation-examen.png"
     } ]
 }, {
     id: "vh",
