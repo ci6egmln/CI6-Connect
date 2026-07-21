@@ -652,42 +652,42 @@ window.CI6_RUBRIQUES = [
         title: "Poste sécurité",
         description: "Accueil, surveillance et transmissions.",
         slug: "sif-poste",
-        content: "content/sif/poste.md",
+        content: "content/sif-poste.md",
         card: "assets/cards/sif_poste.png"
     }, {
         id: "sif-mess",
         title: "Mess",
         description: "Service au mess.",
         slug: "sif-mess",
-        content: "content/sif/mess.md",
+        content: "content/sif-mess.md",
         card: "assets/cards/sif_mess.png"
     }, {
         id: "Nettoyage",
         title: "Nettoyage",
         description: "Nettoyage des salles de cours, amphithéâtre et gymnase.",
         slug: "sif-nettoyage",
-        content: "content/sif/nettoyage.md",
+        content: "content/sif-nettoyage.md",
         card: "assets/cards/sif_nettoyage.png"
     }, {
         id: "Plastrons",
         title: "Plastrons",
         description: "Missions des plastrons et règles de sécurité.",
         slug: "sif-plastrons",
-        content: "content/sif/plastrons.md",
+        content: "content/sif-plastrons.md",
         card: "assets/cards/sif_plastrons.png"
     }, {
         id: "Chauffeurs",
         title: "Chauffeurs",
         description: "Consignes des chauffeurs de permanence.",
         slug: "sif-chauffeurs",
-        content: "content/sif/chauffeurs.md",
+        content: "content/sif-chauffeurs.md",
         card: "assets/cards/sif_chauffeurs.png"
     }, {
         id: "Poubelles",
         title: "Poubelles",
         description: "Collecte, tri et acheminement des déchets.",
         slug: "sif-poubelles",
-        content: "content/sif/poubelles.md",
+        content: "content/sif-poubelles.md",
         card: "assets/cards/sif_poubelles.png"
     } ]
 } ];
