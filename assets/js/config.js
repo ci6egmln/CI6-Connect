@@ -510,7 +510,7 @@ window.CI6_RUBRIQUES = [
         content: "content/commission-goodies.md",
         card: "assets/cards/commission-goodies.png"
 	    } ]
-		{
+	}, {
         id: "echeancier",
         title: "Échéances à tenir",
         slug: "promotion-echeances",
@@ -518,8 +518,7 @@ window.CI6_RUBRIQUES = [
         content: "content/promotion-echeancier.md",
         card: "assets/cards/promotion_echeancier.png"
  		}
-    }
-]
+    ]
 }, {
     id: "responsabilite",
     title: "Consignes pour l'exercice des responsabilités.",
