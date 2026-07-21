@@ -51,46 +51,85 @@ window.CI6_RUBRIQUES = [
         description: "Comment se rendre à Montluçon",
         content: "content/accueil/transport.md",
         card: "assets/cards/accueil_transport.png"
-        /* ajouter vie de la compagnie et de la promotion pour annoncer les responsabilités à tenir */
+    }, {
+      id: "roles",
+        title: "Les fonctions et responsabilités",
+        slug: "accueil-fournitures",
+        description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
+        content: "content/accueil/accueil-roles.md",
+        card: "assets/cards/accueil-roles.png"
     } ]
 }, 
-    {
-    id: "horaires",
-    title: "Les horaires",
-    description: "La ponctualité est la première marque de respect.",
-    slug: "respecter-les-horaires",
-    content: "content/horaires.md",
-    card: "assets/cards/index-horaires.png"
-}, 
-    {
-    id: "tenues",
-    title: "Tenue",
-    description: "Une tenue militaire soignée, reflet de l’exemplarité.",
-    slug: "tenue",
-    card: "assets/cards/index-tenue.png",
-   children: [ {
-        id: "port",
-        title: "Port de la tenue",
-        slug: "tenue-port-reglementaire",
-        description: "Porter la tenue réglementaire",
-        content: "content/tenue-tenue.md",
-        card: "assets/cards/tenue_tenue.png"
-    }, {
-        id: "tenue-presentation",
-        title: "Savoir se présenter",
-        slug: "tenue-presentation",
-        description: "Savoir se présenter à un cadre à l'extérieur, au bureau, au téléphone",
-        content: "content/tenue-presentation.md",
-        card: "assets/cards/tenue_presentation.png"
-    }, {
-      id: "comportement",
-        title: "Savoir se comporter",
-        slug: "tenue-comportement",
-        description: "Se comporter comme un sous-officier, en et hors service",
-        content: "content/tenue-comportement.md",
-        card: "assets/cards/tenue_comportement.png"
-    } ]    
-}, 
+    { 
+    id: "reglement",
+    title: "Règlement intérieur de la 6ème compagnie",
+    description: "Les règles essentielles de vie, de discipline et d'organisation de la compagnie.",
+    slug: "reglement",
+    card: "assets/cards/reglement.png",
+    children: [ {
+   	 id: "deplacement",
+  	 title: "1 - Les déplacements",
+  	  description: "Les déplacement doivent refléter la discipline militaire par un ordre serré, une attitude exemplaire et une parfaite cohésion.",
+ 	  slug: "reglement-deplacement",
+ 	  content: "content/reglement-deplacement.md",
+  	  card: "assets/cards/reglement-deplacement.png"
+  	  },
+  	  {
+   	  id: "horaires",
+  	  title: "2 - Les horaires",
+  	  description: "La ponctualité est la première marque de respect.",
+ 	  slug: "reglement-horaires",
+ 	  content: "content/horaires.md",
+  	  card: "assets/cards/reglement-horaires.png"
+  	  },{
+          id: "tenue",
+          title: "3 - Port de la tenue",
+          slug: "reglement-tenue",
+          description: "Porter la tenue réglementaire",
+          content: "content/reglement-tenue.md",
+          card: "assets/cards/reglement-tenue.png"
+    	  },
+    	  {
+          id: "presentation",
+          title: "4 - Saluer, se présenter",
+          slug: "reglement-presentation",
+          description: "Le salut militaire est une marque de respect, de discipline et de courtoisie. La présentation est le reflet de votre discipline et de votre professionnalisme.",
+          content: "content/reglement-presentation.md",
+          card: "assets/cards/reglement-presentation.png"
+    	  },
+    	  {
+          id: "comportement",
+          title: "5 - Comportement individuel",
+          slug: "reglement-comportement",
+          description: "Le comportement doit être exemplaire en toutes circonstances, en service comme hors service, en caserne comme à l'extérieur.",
+          content: "content/reglement-comportement.md",
+          card: "assets/cards/reglement-comportement.png"
+    	  },
+    	  {
+          id: "mixité",
+          title: "6 - La mixité",
+          slug: "reglement-comportement",
+          description: "La mixité s'inscrit dans les exigences de la vie collective. Elle nécessite une attitude exemplaire, des propos respectueux et le respect strict des espaces réservés à chacun.",
+          content: "content/reglement-mixite.md",
+          card: "assets/cards/reglement-mixite.png"
+    	  },
+    	  {
+  	  id: "telephone",
+  	  title: "7 - Utiliser le téléphone à bon escient",
+ 	  description: "Un outil utile, jamais une distraction.",
+ 	  slug: "reglement-telephone",
+	  content: "content/telephone.md",
+ 	  card: "assets/cards/telephone.png"
+	  }, 
+    	  {
+  	  id: "cigarette",
+  	  title: "8 - Usage de la cigarette",
+ 	  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
+ 	  slug: "reglement-cigarette",
+	  content: "content/reglement-cigarette.md",
+ 	  card: "assets/cards/reglement-cigarette.png"
+	  } ] 
+},
     {
     id: "locaux",
     title: "Utilisation et entretien des locaux",
@@ -205,13 +244,6 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/materiel-section.png"
     } ]
 }, {
-    id: "telephone",
-    title: "Utiliser le téléphone à bon escient",
-    description: "Un outil utile, jamais une distraction.",
-    slug: "telephone",
-    content: "content/telephone.md",
-    card: "assets/cards/telephone.png"
-}, {
     id: "formation",
     title: "S’investir dans sa formation",
     description: "Apprendre, progresser, réussir.",
@@ -274,19 +306,33 @@ window.CI6_RUBRIQUES = [
     slug: "securite-incendie",
     card: "assets/cards/securite.png",
     children: [ {
+        id: "armement",
+        title: "Sécurité de l'armement et matériel sensible",
+        slug: "securite-armement",
+        description: "Les règles de sécurité des l'armement",
+        content: "content/securite-armement.md",
+        card: "assets/cards/securite-armement.png"
+    },{
+        id: "ssi",
+        title: "Sécurité des systèmes d'information",
+        slug: "securite-ssi",
+        description: "Les règles de sécurité des systèmes d'information",
+        content: "content/securite-ssi.md",
+        card: "assets/cards/securite-ssi.png"
+    },{
         id: "appareils",
         title: "Les branchements électriques",
-        slug: "securite-appareil-electrique",
+        slug: "securite-appareils",
         description: "Connaître les règles de sécurité électrique",
         content: "content/securite-appareils.md",
         card: "assets/cards/securite-appareils.png"
     }, {
-        id: "ssi",
+        id: "incendie",
         title: "Système de sécurité incendie",
-        slug: "securite-ssi-incendie",
+        slug: "securite-incendie",
         description: "Savoir utiliser le SSI de la compagnie",
-        content: "content/securite-ssi.md",
-        card: "assets/cards/securite-ssi.png"
+        content: "content/securite-incendie.md",
+        card: "assets/cards/securite-incendie.png"
     },{
         id: "evacuation",
         title: "Évacuation incendie",
@@ -344,6 +390,13 @@ window.CI6_RUBRIQUES = [
         content: "content/service-vaguemestre.md",
         card: "assets/cards/service-vaguemestre.png"
     }, {
+        id: "service-amg",
+        title: "Antenne médicale",
+        slug: "service-amg",
+        description: "Visite périodique et consultation médicale",
+        content: "content/service-amg.md",
+        card: "assets/cards/service-amg.png"
+    },{
         id: "habillement",
         title: "Service Habillement",
         slug: "service-habillement",
@@ -468,11 +521,10 @@ window.CI6_RUBRIQUES = [
 ]
 }, {
     id: "responsabilite",
-    title: "Exercice des responsabilités",
+    title: "Consignes pour l'exercice des responsabilités.",
     description: "S’engager, assumer, montrer l’exemple.",
     slug: "responsabilites",
     card: "assets/cards/responsabilite.png",
-    /* créer children par responsabilité */  
      children: [ {
         id: "magasinier",
         title: "Magasinier",
