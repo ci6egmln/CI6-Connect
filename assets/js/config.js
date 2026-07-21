@@ -57,7 +57,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-fournitures",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
         content: "content/accueil/accueil-roles.md",
-        card: "assets/cards/accueil-roles.png"
+        card: "assets/cards/accueil_roles.png"
     } ]
 }, 
     { 
