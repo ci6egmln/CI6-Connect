@@ -321,28 +321,28 @@ window.CI6_RUBRIQUES = [
     card: "assets/cards/securite.png",
     children: [ {
         id: "armement",
-        title: "Sécurité de l'armement et matériel sensible",
+        title: "Armement et matériel sensible",
         slug: "securite-armement",
         description: "Les règles de sécurité des l'armement",
         content: "content/securite-armement.md",
         card: "assets/cards/securite-armement.png"
     },{
         id: "ssi",
-        title: "Sécurité des systèmes d'information",
+        title: "Systèmes d'information",
         slug: "securite-ssi",
         description: "Les règles de sécurité des systèmes d'information",
         content: "content/securite-ssi.md",
         card: "assets/cards/securite-ssi.png"
     },{
         id: "appareils",
-        title: "Les branchements électriques",
+        title: "Branchements électriques",
         slug: "securite-appareils",
         description: "Connaître les règles de sécurité électrique",
         content: "content/securite-appareils.md",
         card: "assets/cards/securite-appareils.png"
     }, {
         id: "incendie",
-        title: "Système de sécurité incendie",
+        title: "Sécurité incendie",
         slug: "securite-incendie",
         description: "Savoir utiliser le SSI de la compagnie",
         content: "content/securite-incendie.md",
@@ -433,7 +433,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/promotion_bureau.png"
     }, {
         id: "commission",
-        title: "Commissions promotion",
+        title: "Les commissions",
         slug: "promotion-commission",
         description: "Constitution des commissions et attendus",
         card: "assets/cards/promotion_commissions.png",
@@ -441,35 +441,35 @@ window.CI6_RUBRIQUES = [
         children: [ 
 		{
         id: "parrain",
-        title: "Commission parrain",
+        title: "parrain",
         slug: "commission-parrain",
         description: "Recherches sur la vie, la carrière, la famille du parrain et organisation de l'hommage.",
         content: "content/commission-parrain.md",
         card: "assets/cards/commission-parrain.png"
  	   }, {
         id: "gala",
-        title: "Commission Gala",
+        title: "Gala",
         slug: "commission-gala",
         description: "Organisation de la soirée de gala, choix de salle, de traiteur, des animations",
         content: "content/commission-gala.md",
         card: "assets/cards/commission-gala.png"
  	   }, {
         id: "tradition",
-        title: "Commission rendez-vous tradition",
+        title: "rendez-vous tradition",
         slug: "commission-tradition",
         description: "Organiser les sorties tradition",
         content: "content/commission-tradition.md",
         card: "assets/cards/commission-tradition.png"
  		}, {
         id: "defi",
-        title: "Commission défi social",
+        title: "défi social",
         slug: "commission-defi",
         description: "Choisir une association à soutenir et organiser le défi social",
         content: "content/commission-defi.md",
         card: "assets/cards/commission-defi.png"
 	    }, {
         id: "communication",
-        title: "Commission communication",
+        title: "communication",
         slug: "commission-communication",
         description: "Développer les outils de communication et promouvoir les activités de la promotion.",
         content: "content/commission-communication.md",
@@ -511,16 +511,16 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/commission-defense.png"
 	    }, {
         id: "design",
-        title: "Commission design",
+        title: "design",
         slug: "commission-design",
-        description: "Courrier et réception de colis",
+        description: "Créer les symboles et les supports graphiques de la promotion.",
         content: "content/commission-design.md",
         card: "assets/cards/commission-design.png"
 	    }, {
         id: "goodies",
-        title: "Commission goodies",
+        title: "goodies",
         slug: "commission-goodies",
-        description: "Création, achat, vente de goodies promotion ou association",
+        description: "Conception, achat et vente des goodies de la promotion et de l'association.",
         content: "content/commission-goodies.md",
         card: "assets/cards/commission-goodies.png"
 	    } ]
@@ -528,7 +528,7 @@ window.CI6_RUBRIQUES = [
         id: "echeancier",
         title: "Échéances à tenir",
         slug: "promotion-echeances",
-        description: "Tenir les échéances, ne pas se laisser dépasser",
+        description: "Anticiper chaque échéance afin de ne rien manquer.",
         content: "content/promotion-echeancier.md",
         card: "assets/cards/promotion_echeancier.png"
  		}
@@ -550,35 +550,35 @@ window.CI6_RUBRIQUES = [
         id: "popotier",
         title: "Popotier",
         slug: "responsabilite-popotier",
-        description: "Achat, distribution, cohésion",
+        description: "Contribuer au moral et à la cohésion du peloton.",
         content: "content/responsabilite-popotier.md",
         card: "assets/cards/responsabilite-popotier.png"
     }, {
         id: "secouriste",
         title: "Secouriste",
         slug: "responsabilite-secouriste",
-        description: "Assurer les premiers secours, traiter les blessures superficielles",
+        description: "Apporter les premiers soins avant la prise en charge médicale.",
         content: "content/responsabilite-secouriste.md",
         card: "assets/cards/responsabilite-secouriste.png"
     }, {
         id: "tam",
         title: "Tir Armement Munition",
         slug: "responsabilite-tam",
-        description: "Gestion de l'intendance des séances de tir",
+        description: "Une mission exigeante qui requiert rigueur, organisation et sens des responsabilités pour assurer la gestion complète de l'armement d'instruction.",
         content: "content/responsabilite-tam.md",
         card: "assets/cards/responsabilite-tam.png"
     }, {
         id: "responsabiite-vaguemestre",
         title: "Vaguemestre compagnie",
         slug: "responsabilite-vaguemestre",
-        description: "Courrier et réception de colis",
+        description: "Assurer la réception et la distribution du courrier et des colis.",
         content: "content/responsabilite-vaguemestre.md",
         card: "assets/cards/responsabilite-vaguemestre.png"
     }, {
         id: "tri",
         title: "Tri sélectif",
         slug: "responsabilite-tri",
-        description: "Faire assurer le tri des déchets et contrôler",
+        description: "Sensibiliser et veiller au bon tri des déchets par l'ensemble des élèves.",
         content: "content/responsabilite-tri.md",
         card: "assets/cards/responsabilite-tri.png"
     } ]
@@ -594,14 +594,14 @@ window.CI6_RUBRIQUES = [
         id: "mdl",
         title: "Élèves de jour compagnie : MDL et BRI",
         slug: "consignes-mdl",
-        description: "Responsabilité, organisation, discipline de la compagnie",
+        description: "Assurer la continuité du commandement et le bon ordre de la compagnie.",
         content: "content/consignes-mdl.md",
         card: "assets/cards/consignes-mdl.png"
     }, {
         id: "peloton",
         title: "Élèves de jour peloton",
         slug: "consignes-peloton",
-        description: "Responsabilité, discipline du peloton",
+        description: "Veiller à la ponctualité, à la présentation et au bon ordre du peloton.",
         content: "content/consignes-eleve-peloton.md",
         card: "assets/cards/consignes-eleve-peloton.png"
     } ]      
