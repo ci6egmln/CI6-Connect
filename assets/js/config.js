@@ -114,21 +114,21 @@ window.CI6_RUBRIQUES = [
           card: "assets/cards/reglement-mixite.png"
     	  },
     	  {
-  	  id: "telephone",
-  	  title: "7 - Utiliser le téléphone à bon escient",
- 	  description: "Un outil utile, jamais une distraction.",
- 	  slug: "reglement-telephone",
-	  content: "content/telephone.md",
- 	  card: "assets/cards/telephone.png"
-	  }, 
+  	 	 id: "telephone",
+  		  title: "7 - Utiliser le téléphone à bon escient",
+ 		  description: "Un outil utile, jamais une distraction.",
+ 		  slug: "reglement-telephone",
+		  content: "content/reglement-telephone.md",
+ 		  card: "assets/cards/reglement-telephone.png"
+		  }, 
     	  {
-  	  id: "cigarette",
-  	  title: "8 - Usage de la cigarette",
- 	  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
- 	  slug: "reglement-cigarette",
-	  content: "content/reglement-cigarette.md",
- 	  card: "assets/cards/reglement-cigarette.png"
-	  } ] 
+  		  id: "cigarette",
+  		  title: "8 - Usage de la cigarette",
+ 		  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
+ 		  slug: "reglement-cigarette",
+		  content: "content/reglement-cigarette.md",
+ 		  card: "assets/cards/reglement-cigarette.png"
+		  } ] 
 },
     {
     id: "locaux",
