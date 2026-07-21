@@ -422,7 +422,7 @@ window.CI6_RUBRIQUES = [
         title: "Commissions promotion",
         slug: "promotion-commission",
         description: "Constitution des commissions et attendus",
-        card: "assets/cards/securite-ssi.png",
+        card: "assets/cards/promotion-commissions.png",
         /* children par commission */
         children: [ {
         id: "parrain",
@@ -431,91 +431,91 @@ window.CI6_RUBRIQUES = [
         description: "Recherches sur la vie, la carrière, la famille du parrain et organisation de l'hommage.",
         content: "content/commission-parrain.md",
         card: "assets/cards/commission-parrain.png"
-    }, {
+ 	   }, {
         id: "gala",
         title: "Commission Gala",
         slug: "commission-gala",
         description: "Organisation de la soirée de gala, choix de salle, de traiteur, des animations",
         content: "content/commission-gala.md",
         card: "assets/cards/commission-gala.png"
-    }, {
+ 	   }, {
         id: "tradition",
         title: "Commission rendez-vous tradition",
         slug: "commission-tradition",
         description: "Organiser les sorties tradition",
         content: "content/commission-tradition.md",
         card: "assets/cards/commission-tradition.png"
-    }, {
+ 		}, {
         id: "defi",
         title: "Commission défi social",
         slug: "commission-defi",
         description: "Choisir une association à soutenir et organiser le défi social",
         content: "content/commission-defi.md",
         card: "assets/cards/commission-defi.png"
-    },{
+	    },{
         id: "communication",
         title: "Commission communication",
         slug: "commission-communication",
         description: "Développer les outils de communication et promouvoir les activités de la promotion.",
         content: "content/commission-communication.md",
         card: "assets/cards/commission-communication.png"
-    },{
+	    },{
         id: "chant",
         title: "Chant parrain",
         slug: "commission-chant",
         description: "Créer parole et musique pour un chant parrain",
         content: "content/commission-chant.md",
         card: "assets/cards/commission-chant.png"
-    },{
+	    },{
         id: "genevieve",
         title: "Sainte Geneviève",
         slug: "commission-genevieve",
         description: "Organiser la participation de la promotion aux compétitions de la Sainte-Geneviève : constitution des équipes, coordination logistique et animation des groupes de supporters.",
         content: "content/commission-genevieve.md",
         card: "assets/cards/commission-genevieve.png"
-    },{
+	    },{
         id: "messe",
         title: "Cérémonie religieuse",
         slug: "commission-messe",
         description: "Préparation de la cérémonie religieuse de fin de promotion",
         content: "content/commission-messe.md",
         card: "assets/cards/commission-messe.png"
-    },{
+	    },{
         id: "communes",
         title: "Partenariat communes",
         slug: "commission-communes",
         description: "Proposer des actions avec les municipalités partenaires",
         content: "content/commission-communes.md",
         card: "assets/cards/commission-communes.png"
-    },{
+	    },{
         id: "defense",
         title: "Partenariat classe défense",
         slug: "commission-defense",
         description: "Proposer des actions avec les lycées de la classe défense",
         content: "content/commission-defense.md",
         card: "assets/cards/commission-defense.png"
-    },{
+	    },{
         id: "design",
         title: "Commission design",
         slug: "commission-design",
         description: "Courrier et réception de colis",
         content: "content/commission-design.md",
         card: "assets/cards/commission-design.png"
-    },{
+	    },{
         id: "goodies",
         title: "Commission goodies",
         slug: "commission-goodies",
         description: "Création, achat, vente de goodies promotion ou association",
         content: "content/commission-goodies.md",
         card: "assets/cards/commission-goodies.png"
-    },{
+	    },{
         id: "echeancier",
         title: "Échéances à tenir",
         slug: "promotion-echeances",
         description: "Tenir les échéances, ne pas se laisser dépasser",
         content: "content/commission-echeancier.md",
         card: "assets/cards/commission-echeancier.png"
-   }
+ 		}
         ]
     }
 ]
