@@ -42,14 +42,14 @@ window.CI6_RUBRIQUES = [
         title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
-        content: "content/accueil/fournitures.md",
+        content: "content/accueil/accueil-fournitures.md",
         card: "assets/cards/accueil_fournitures.png"
     }, {
       id: "transport",
         title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
         description: "Comment se rendre à Montluçon",
-        content: "content/accueil/transport.md",
+        content: "content/accueil/accueil-transport.md",
         card: "assets/cards/accueil_transport.png"
     }, {
       id: "roles",
@@ -79,7 +79,7 @@ window.CI6_RUBRIQUES = [
   	  title: "2 - Les horaires",
   	  description: "La ponctualité est la première marque de respect.",
  	  slug: "reglement-horaires",
- 	  content: "content/horaires.md",
+ 	  content: "content/reglement-horaires.md",
   	  card: "assets/cards/reglement-horaires.png"
   	  },{
           id: "tenue",
