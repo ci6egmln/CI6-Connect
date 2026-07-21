@@ -422,7 +422,7 @@ window.CI6_RUBRIQUES = [
         title: "Commissions promotion",
         slug: "promotion-commission",
         description: "Constitution des commissions et attendus",
-        card: "assets/cards/promotion-commissions.png",
+        card: "assets/cards/promotion_commissions.png",
         /* children par commission */
         children: [ 
 		{
