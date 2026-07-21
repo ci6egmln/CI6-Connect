@@ -303,7 +303,7 @@ window.CI6_RUBRIQUES = [
     id: "securite",
     title: "Sécurité",
     description: "La sécurité de tous passe par la vigilance de chacun.",
-    slug: "securite-incendie",
+    slug: "securite",
     card: "assets/cards/securite.png",
     children: [ {
         id: "armement",
@@ -336,7 +336,7 @@ window.CI6_RUBRIQUES = [
     },{
         id: "evacuation",
         title: "Évacuation incendie",
-        slug: "securite-evacuation-incendie",
+        slug: "securite-evacuation",
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
         content: "content/securite-evacuation.md",
         card: "assets/cards/securite-evacuation.png"
