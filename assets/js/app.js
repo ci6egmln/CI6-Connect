@@ -282,110 +282,120 @@ function renderVideoBlock(title, content) {
     </section>
   `;
 }
+
 function renderCustomBlocks(markdown) {
-    const blockTypes = {
-        directives: {
-            className: "fiche-card-directives",
-            icon: "📘",
-            title: "Directives"
-        },
-        autorise: {
-            className: "fiche-card-autorise",
-            icon: "✅",
-            title: "Autorisé"
-        },
-        interdit: {
-            className: "fiche-card-interdit",
-            icon: "⛔",
-            title: "Interdit"
-        },
-        conseil: {
-            className: "fiche-card-conseil",
-            icon: "💬",
-            title: "Conseil du cadre"
-        },
-        attention: {
-            className: "fiche-card-attention",
-            icon: "⚠️",
-            title: "Point de vigilance"
-        }
-    };
-    /* Image unique */
-markdown = markdown.replace(
-  /^[ \t]*:::image(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-  (_, title, content) => renderImageBlock(
-    title ? title.trim() : "",
-    content.trim()
-  )
-);
 
-/* Galerie d’images */
-markdown = markdown.replace(
-  /^[ \t]*:::galerie(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-  (_, title, content) => renderGalleryBlock(
-    title ? title.trim() : "",
-    content.trim()
-  )
-);
-
-/* Vidéo locale */
-markdown = markdown.replace(
-  /^[ \t]*:::video(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-  (_, title, content) => renderVideoBlock(
-    title ? title.trim() : "",
-    content.trim()
-  )
-);
+    /*
+     * IMAGE UNIQUE
+     *
+     * :::image Titre facultatif
+     * assets/photos/photo.jpg | Légende facultative
+     * :::
+     */
     markdown = markdown.replace(
-        /:::telechargements\s*\n([\s\S]*?)\n:::/gim,
-        (_, content) => renderDownloadBlock(content)
+        /^[ \t]*:::image(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, title, content) => renderImageBlock(
+            title ? title.trim() : "",
+            content.trim()
+        )
     );
 
-    markdown = markdown.replace(
-        /:::bloc\s+([^\n]+)\n([\s\S]*?)\n:::/gim,
-        (_, title, content) => `
-        <section class="fiche-card fiche-card-bloc">
-          <div class="fiche-card-head">
-            <span class="fiche-card-icon">◆</span>
-            <strong>${formatInline(title.trim())}</strong>
-          </div>
 
-          <div class="fiche-card-body">
-            ${basicMarkdownToHtml(content.trim())}
-          </div>
-        </section>
-      `
+    /*
+     * GALERIE DE PHOTOS
+     *
+     * :::galerie Titre facultatif
+     * assets/photos/photo1.jpg | Légende 1
+     * assets/photos/photo2.jpg | Légende 2
+     * :::
+     */
+    markdown = markdown.replace(
+        /^[ \t]*:::galerie(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, title, content) => renderGalleryBlock(
+            title ? title.trim() : "",
+            content.trim()
+        )
     );
 
-    Object.keys(blockTypes).forEach(type => {
-        const config = blockTypes[type];
 
-        const regex = new RegExp(
-            `^:::${type}(?:[ \\t]+([^\\r\\n]+))?[ \\t]*\\r?\\n([\\s\\S]*?)\\r?\\n:::[ \\t]*$`,
-            "gim"
-        );
+    /*
+     * VIDÉO LOCALE
+     *
+     * :::video Titre facultatif
+     * assets/videos/video.mp4 | Légende facultative
+     * :::
+     */
+    markdown = markdown.replace(
+        /^[ \t]*:::video(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, title, content) => renderVideoBlock(
+            title ? title.trim() : "",
+            content.trim()
+        )
+    );
 
-        markdown = markdown.replace(regex, (_, customTitle, content) => {
-            const displayedTitle = customTitle
-                ? customTitle.trim()
-                : config.title;
+
+    /*
+     * DOCUMENTS À TÉLÉCHARGER
+     *
+     * :::telechargements
+     * - Nom du document | assets/documents/document.pdf
+     * :::
+     */
+    markdown = markdown.replace(
+        /^[ \t]*:::telechargements[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, content) => renderDownloadBlock(content.trim())
+    );
+
+
+    /*
+     * BLOC PERSONNALISABLE
+     *
+     * :::bloc couleur | Titre | Icône
+     * Contenu du bloc
+     * :::
+     */
+    markdown = markdown.replace(
+        /^[ \t]*:::bloc(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, options, content) => {
+
+            const parts = (options || "")
+                .split("|")
+                .map(part => part.trim());
+
+            const requestedColor = normalizeText(parts[0] || "gris");
+            const title = parts[1] || "Information";
+            const icon = parts[2] || "ℹ️";
+
+            const allowedColors = [
+                "bleu",
+                "vert",
+                "rouge",
+                "orange",
+                "jaune",
+                "gris"
+            ];
+
+            const color = allowedColors.includes(requestedColor)
+                ? requestedColor
+                : "gris";
 
             return `
-        <section class="fiche-card ${config.className}">
-          <div class="fiche-card-head">
-            <span class="fiche-card-icon">${config.icon}</span>
-            <strong>${formatInline(displayedTitle)}</strong>
-          </div>
+                <section class="fiche-card fiche-card-${color}">
+                    <div class="fiche-card-head">
+                        <span class="fiche-card-icon">${formatInline(icon)}</span>
+                        <strong>${formatInline(title)}</strong>
+                    </div>
 
-          <div class="fiche-card-body">
-            ${basicMarkdownToHtml(content.trim())}
-          </div>
-        </section>
-      `;
-        });
-    });
+                    <div class="fiche-card-body">
+                        ${basicMarkdownToHtml(content.trim())}
+                    </div>
+                </section>
+            `;
+        }
+    );
 
     return markdown;
+}    
 }
 
 function markdownToHtml(markdown) {
