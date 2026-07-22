@@ -3,6 +3,10 @@ title: Les horaires
 icon: assets/cards/01-horaires.png
 quote: "En école de gendarmerie, l'heure n'est pas une indication : c'est une consigne. Être ponctuel, c'est faire preuve de discipline, de respect envers les autres et de fiabilité. En école de gendarmerie, être à l'heure, c'est déjà être prêt à servir."
 ---
+:::interdit
+- Arriver en retard.
+- Quitter un rassemblement sans autorisation.
+:::
 
 :::directives
 Les horaires rythment la vie militaire et garantissent le bon fonctionnement de la compagnie.
@@ -25,10 +29,7 @@ les horaires du vendredi
 - Prévenir un cadre en cas de difficulté.
 :::
 
-:::interdit
-- Arriver en retard.
-- Quitter un rassemblement sans autorisation.
-:::
+
 
 :::conseil
 Prévoir systématiquement plusieurs minutes de marge.
