@@ -78,6 +78,7 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil-roles.md",
         card: "assets/cards/accueil_roles.png"
     } ]
+	}
 }, 
     /*****************************************************************************************/
 	/************************** RÈGLEMENT INTÉRIEUR DE LA COMPAGNE ***************************/
