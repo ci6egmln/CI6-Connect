@@ -67,20 +67,10 @@ function escapeHtml(value) {
 function formatInline(text) {
     return escapeHtml(text)
 
-        /* Images Markdown : ![légende](chemin/image.jpg) */
+        /* Images Markdown */
         .replace(
             /!\[([^\]]*)\]\(([^)]+)\)/g,
-            `
-            <a class="fiche-inline-image-link"
-               href="$2"
-               target="_blank"
-               rel="noopener noreferrer">
-                <img class="fiche-inline-image"
-                     src="$2"
-                     alt="$1"
-                     loading="lazy">
-            </a>
-            `
+            '<a class="fiche-inline-image-link" href="$2" target="_blank" rel="noopener noreferrer"><img class="fiche-inline-image" src="$2" alt="$1" loading="lazy"></a>'
         )
 
         /* Code */
