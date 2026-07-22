@@ -4,6 +4,13 @@ icon: assets/cards/01-horaires.png
 quote: "Ici une formule d'accroche description, citation, ..."
 ---
 
+<!-- Il es possible d'insérer des photos pour illustrer chaque bloc 
+      les photos sont indtroduites de cette manière : description entre corchets et chemin d'accès et nom de l'image entre parenthèses
+      expl :
+      ![description du contenu de la photo](assets/photos/domaine-nom1.jpg)
+      ![description du contenu de la deuxième photo](assets/photos/domaine-nom2.jpg)
+-->
+
 :::directives
 Les directives.
 :::
