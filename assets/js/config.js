@@ -7,7 +7,7 @@ window.CI6_RUBRIQUES = [
 	/*****************************************************************************************/
 	/********************************** LIVRET D'ACCUEIL *************************************/
 	/*****************************************************************************************/
-/*
+
 	{
     id: "accueil",
     title: "Livret d'accueil",
@@ -17,7 +17,7 @@ window.CI6_RUBRIQUES = [
     children: [ 
 		/* MOT DU CDU */
 		{
-  /*      id: "cdu",
+        id: "cdu",
         title: "Mot du CDU",
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
@@ -26,7 +26,7 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
 		{
-  /*      id: "montlucon",
+        id: "montlucon",
         title: "Montluçon, la ville",
         slug: "accueil-montlucon",
         description: "Vivre sa scolarité dans la ville de Montluçon",
@@ -35,7 +35,7 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* PRÉSENTATION DE L'ÉCOLE ET SES SERVICES SANS LES DÉTAILLER */
 		{
-  /*    id: "ecole",
+      id: "ecole",
         title: "L'école de gendarmerie",
         slug: "accueil-ecole-gendarmerie-montlucon",
         description: "L'école de gendarmerie de Montluçon",
@@ -44,7 +44,7 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* PRÉSENTATION DE LA COMPAGNIE AU SEIN DE L'ÉCOLE */
 		{
-  /*    id: "compagnie",
+      id: "compagnie",
         title: "La 6ème compagnie",
         slug: "accueil-compagnie",
         description: "La 6ème compagnie d'instruction",
@@ -53,7 +53,7 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
-  /*    id: "fournitures",
+      id: "fournitures",
         title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
@@ -61,7 +61,7 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/accueil_fournitures.png"
     }, 
 		/* COMMENT SE RENDRE À L'ÉCOLE, TRAIN, COVOITURAGE */
-/*		{
+		{
       id: "transport",
         title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
@@ -71,7 +71,7 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* PRÉSENTATION RAPIDE DES ROLES, FONCTIONS ET RESPONSABILITÉS POUR LESQUELLES LES EG DEVRONT SE PORTER VOLONTAIRES */
 		{
- /*     id: "roles",
+      id: "roles",
         title: "Les fonctions et responsabilités",
         slug: "accueil-fournitures",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
