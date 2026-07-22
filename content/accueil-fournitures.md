@@ -1,8 +1,9 @@
 ---
-title: Ici le titre
-icon: assets/cards/01-horaires.png
+title: Matériel, accessoire, vêtement à emporter
+icon: assets/cards/accueil-fournitures.png
 quote: "Ici une formule d'accroche description, citation, ..."
 ---
+<!-- CECI EST UN COMMENTAIRE, IL NE SERA PAS AFFICHÉ -->
 
 :::directives
 Les directives.
