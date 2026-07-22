@@ -65,7 +65,47 @@ function escapeHtml(value) {
 }
 
 function formatInline(text) {
-    return escapeHtml(text).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\*(.*?)\*/g, "<em>$1</em>").replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    return escapeHtml(text)
+
+        /* Images Markdown : ![légende](chemin/image.jpg) */
+        .replace(
+            /!\[([^\]]*)\]\(([^)]+)\)/g,
+            `
+            <a class="fiche-inline-image-link"
+               href="$2"
+               target="_blank"
+               rel="noopener noreferrer">
+                <img class="fiche-inline-image"
+                     src="$2"
+                     alt="$1"
+                     loading="lazy">
+            </a>
+            `
+        )
+
+        /* Code */
+        .replace(
+            /`([^`]+)`/g,
+            "<code>$1</code>"
+        )
+
+        /* Texte en gras */
+        .replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+        )
+
+        /* Texte en italique */
+        .replace(
+            /\*(.*?)\*/g,
+            "<em>$1</em>"
+        )
+
+        /* Liens */
+        .replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+        );
 }
 
 function parseFrontMatter(markdown) {
