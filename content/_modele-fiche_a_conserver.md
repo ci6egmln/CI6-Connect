@@ -12,11 +12,15 @@ quote: "Ici une formule d'accroche description, citation, ..."
 -->
 
 :::directives
-Les directives.
+- Les directives.
+
+- Suite des directives.
+ ![description du contenu de la photo](assets/photos/domaine-nom1.jpg) 
 :::
 
 :::autorise
 - ce qui est autorisé.
+- Suite
 :::
 
 :::interdit
@@ -24,40 +28,45 @@ Les directives.
 :::
 
 :::conseil
-Les conseils utiles.
+- Les conseils utiles.
 :::
 
 :::attention
-Point particulier
+- Point particulier
 :::
 
-:::bloc À prévoir
+:::bloc À prévoir  <!-- le nom du bloc "À prévoir" peut-être personnalisé -->
 
 • Carte militaire
-
 • Carnet d'habillement
-
 • Effets propres
 
 :::
 
 :::image
+<!-- suivre l'exemple ci-dessous
 assets/photos/mess-entree.jpg|Description de l'image
+ -->
 :::
 
 :::galerie Description du thème
+<!-- suivre l'exemple ci-dessous : 
 - assets/photos/mess-entree.jpg|Description de l'image
 - assets/photos/mess-salle.jpg|Description de l'image
 - assets/photos/mess-plateau.jpg|Description de l'image
 - assets/photos/mess-sortie.jpg|Description de l'image
+-->
 :::
 
-:::video Présentation du mess
-assets/videos/presentation-mess.mp4|Description de la vidéo
+:::video Nom de la vidéo
+<!-- assets/videos/presentation-mess.mp4|Description de la vidéo -->
 :::
 
 :::telechargements
-- Planning hebdomadaire|content/docs/horaires/planning.pdf
-- Règlement intérieur|content/docs/horaires/reglement.pdf
+<!-- les documents à télécharger doivent être disposés dans le dossiers documents de content
+expl : 
+- Planning hebdomadaire|content/docs/horaires-planning.pdf
+- Règlement intérieur|content/docs/horaires-reglement.pdf
+-->
 :::
 
