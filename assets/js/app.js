@@ -396,7 +396,6 @@ function renderCustomBlocks(markdown) {
 
     return markdown;
 }    
-}
 
 function markdownToHtml(markdown) {
 
