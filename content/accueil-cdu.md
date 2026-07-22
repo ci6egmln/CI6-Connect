@@ -1,6 +1,6 @@
 ---
 title: Mot d'accueil du commandant d'unité
-icon: assets/cards/accueil-cdu.png
+icon: assets/cards/accueil_cdu.png
 quote: "Le mot d'accueil du CDU vous marquera à vie"
 ---
 
