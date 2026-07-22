@@ -7,7 +7,7 @@ window.CI6_RUBRIQUES = [
 	/*****************************************************************************************/
 	/********************************** LIVRET D'ACCUEIL *************************************/
 	/*****************************************************************************************/
-
+/*
 	{
     id: "accueil",
     title: "Livret d'accueil",
@@ -15,8 +15,8 @@ window.CI6_RUBRIQUES = [
     slug: "livret-accueil",
     card: "assets/cards/accueil.png",
     children: [ 
-		/* MOT DU CDU */
-		{
+*/		/* MOT DU CDU */
+	/*	{
         id: "cdu",
         title: "Mot du CDU",
         slug: "accueil-cdu",
@@ -24,8 +24,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/cdu.md",
         card: "assets/cards/accueil_cdu.png"
     }, 
-		/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
-		{
+	*/	/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
+	/*	{
         id: "montlucon",
         title: "Montluçon, la ville",
         slug: "accueil-montlucon",
@@ -33,8 +33,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/montlucon.md",
         card: "assets/cards/accueil_montlucon.png"
     }, 
-		/* PRÉSENTATION DE L'ÉCOLE ET SES SERVICES SANS LES DÉTAILLER */
-		{
+	*/	/* PRÉSENTATION DE L'ÉCOLE ET SES SERVICES SANS LES DÉTAILLER */
+	/*	{
       id: "ecole",
         title: "L'école de gendarmerie",
         slug: "accueil-ecole-gendarmerie-montlucon",
@@ -42,8 +42,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/ecole.md",
         card: "assets/cards/accueil_ecole.png"
     }, 
-		/* PRÉSENTATION DE LA COMPAGNIE AU SEIN DE L'ÉCOLE */
-		{
+	*/	/* PRÉSENTATION DE LA COMPAGNIE AU SEIN DE L'ÉCOLE */
+	/*	{
       id: "compagnie",
         title: "La 6ème compagnie",
         slug: "accueil-compagnie",
@@ -51,8 +51,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/compagnie.md",
         card: "assets/cards/accueil_compagnie.png"
     }, 
-		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
-		{
+	*/	/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
+	/*	{
       id: "fournitures",
         title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
@@ -60,8 +60,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/accueil-fournitures.md",
         card: "assets/cards/accueil_fournitures.png"
     }, 
-		/* COMMENT SE RENDRE À L'ÉCOLE, TRAIN, COVOITURAGE */
-		{
+	*/	/* COMMENT SE RENDRE À L'ÉCOLE, TRAIN, COVOITURAGE */
+	/*	{
       id: "transport",
         title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
@@ -69,8 +69,8 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/accueil-transport.md",
         card: "assets/cards/accueil_transport.png"
     }, 
-		/* PRÉSENTATION RAPIDE DES ROLES, FONCTIONS ET RESPONSABILITÉS POUR LESQUELLES LES EG DEVRONT SE PORTER VOLONTAIRES */
-		{
+	*/	/* PRÉSENTATION RAPIDE DES ROLES, FONCTIONS ET RESPONSABILITÉS POUR LESQUELLES LES EG DEVRONT SE PORTER VOLONTAIRES */
+	/*	{
       id: "roles",
         title: "Les fonctions et responsabilités",
         slug: "accueil-fournitures",
@@ -78,7 +78,7 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil/accueil-roles.md",
         card: "assets/cards/accueil_roles.png"
     } ]
-}, 
+}, */
     /*****************************************************************************************/
 	/************************** RÈGLEMENT INTÉRIEUR DE LA COMPAGNE ***************************/
 	/*****************************************************************************************/
@@ -472,14 +472,14 @@ window.CI6_RUBRIQUES = [
 	/*****************************************************************************************/
 	/************************ DERNIÈRES INFOS ET DOCUMENTS UTILES ****************************/
 	/*****************************************************************************************/
-/*	{
+	{
     id: "news",
     title: "Dernières infos et documents utiles",
     description: "Retrouver rapidement les informations et supports utiles.",
     slug: "documents-utiles",
     content: "content/news.md",
     card: "assets/cards/news.png"
-}, */
+}, 
 	/*****************************************************************************************/
 	/*********************** PRÉSENTATION DES SERVICES DE L'ÉCOLE ****************************/
 	/*****************************************************************************************/
