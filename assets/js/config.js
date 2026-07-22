@@ -468,17 +468,18 @@ window.CI6_RUBRIQUES = [
         card: "assets/cards/securite-evacuation.png"
     } ]
 }, 
+	
 	/*****************************************************************************************/
 	/************************ DERNIÈRES INFOS ET DOCUMENTS UTILES ****************************/
 	/*****************************************************************************************/
-	{
+/*	{
     id: "news",
     title: "Dernières infos et documents utiles",
     description: "Retrouver rapidement les informations et supports utiles.",
     slug: "documents-utiles",
     content: "content/news.md",
     card: "assets/cards/news.png"
-}, 
+}, */
 	/*****************************************************************************************/
 	/*********************** PRÉSENTATION DES SERVICES DE L'ÉCOLE ****************************/
 	/*****************************************************************************************/
