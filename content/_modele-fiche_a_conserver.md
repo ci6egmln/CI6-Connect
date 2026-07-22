@@ -7,15 +7,15 @@ quote: "Ici une formule d'accroche description, citation, ..."
 <!-- Il es possible d'insérer des photos pour illustrer chaque bloc 
       les photos sont indtroduites de cette manière : description entre corchets et chemin d'accès et nom de l'image entre parenthèses
       expl :
-      ![description du contenu de la photo](assets/photos/domaine-nom1.jpg)
-      ![description du contenu de la deuxième photo](assets/photos/domaine-nom2.jpg)
+      ![description du contenu de la photo](assets/photos/domaine-nom1.png)
+      ![description du contenu de la deuxième photo](assets/photos/domaine-nom2.png)
 -->
 
 :::directives
 - Les directives.
 
 - Suite des directives.
- ![description du contenu de la photo] (assets/photos/domaine-nom1.jpg)
+ ![description du contenu de la photo] (assets/photos/domaine-nom1.png)
 :::
 
 :::autorise
@@ -45,16 +45,16 @@ quote: "Ici une formule d'accroche description, citation, ..."
 
 :::image
 <!-- suivre l'exemple ci-dessous
-assets/photos/mess-entree.jpg|Description de l'image
+assets/photos/mess-entree.png|Description de l'image
  -->
 :::
 
 :::galerie Description du thème
 <!-- suivre l'exemple ci-dessous : 
-- assets/photos/mess-entree.jpg|Description de l'image
-- assets/photos/mess-salle.jpg|Description de l'image
-- assets/photos/mess-plateau.jpg|Description de l'image
-- assets/photos/mess-sortie.jpg|Description de l'image
+- assets/photos/mess-entree.png|Description de l'image
+- assets/photos/mess-salle.png|Description de l'image
+- assets/photos/mess-plateau.png|Description de l'image
+- assets/photos/mess-sortie.png|Description de l'image
 -->
 :::
 
