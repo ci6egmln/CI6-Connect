@@ -232,6 +232,15 @@ window.CI6_RUBRIQUES = [
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
     },
+		/* COMPTOIR DES VENTES */
+		{
+        id: "comptoir",
+        title: "Comptoir des ventes",
+        slug: "cercle-comptoir-vente",
+        description: "La boutique de l'école, tenues, nécessaires, cadeaux.",
+        content: "content/cercle-comptoir.md",
+        card: "assets/cards/cercle-comptoir.png"
+    },
 		/* HOTEL COUTELOT - RÉSERATION PAR LES ÉLÈVES */
 		{
         id: "cercle-hotel",
