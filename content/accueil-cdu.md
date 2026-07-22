@@ -16,8 +16,8 @@ blablabla
 :::bloc vert | Ce que j'attends de vous : | ✔️
 - attendu 1
 - attendu 2
-- attentu 3
-- pas plus, de toute façon ils ne les retiendront pas
+- attentu 3.
+pas plus, de toute façon ils ne les retiendront pas
 :::
 
 :::bloc rouge | Ce que je ne veux pas voir : | ❌
