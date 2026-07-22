@@ -1,3 +1,0 @@
-#Habillement
-
-Fiche à compléter.
