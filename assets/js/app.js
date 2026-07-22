@@ -359,8 +359,38 @@ markdown = markdown.replace(
 }
 
 function markdownToHtml(markdown) {
-    const parsed = parseFrontMatter(markdown), content = basicMarkdownToHtml(renderCustomBlocks(parsed.body)), title = parsed.meta.title || "", icon = parsed.meta.icon || "", quote = parsed.meta.quote || "";
-    return `\n    <article class="fiche">\n      ${title ? `\n        <section class="fiche-hero">\n          ${icon ? `<img class="fiche-hero-img" src="${icon}" alt="">` : ""}\n          <h1>${formatInline(title)}</h1>\n          ${quote ? `<p class="fiche-quote">« ${formatInline(quote)} »</p>` : ""}\n        </section>\n      ` : ""}\n\n      <section class="fiche-content">\n        ${content}\n      </section>\n    </article>\n  `;
+
+    // Supprime les commentaires HTML : <!-- ... -->
+    markdown = markdown.replace(
+        /<!--[\s\S]*?-->/g,
+        ""
+    );
+
+    const parsed = parseFrontMatter(markdown);
+
+    const content = basicMarkdownToHtml(
+        renderCustomBlocks(parsed.body)
+    );
+
+    const title = parsed.meta.title || "";
+    const icon = parsed.meta.icon || "";
+    const quote = parsed.meta.quote || "";
+
+    return `
+        <article class="fiche">
+            ${title ? `
+                <section class="fiche-hero">
+                    ${icon ? `<img class="fiche-hero-img" src="${icon}" alt="">` : ""}
+                    <h1>${formatInline(title)}</h1>
+                    ${quote ? `<p class="fiche-quote">« ${formatInline(quote)} »</p>` : ""}
+                </section>
+            ` : ""}
+
+            <section class="fiche-content">
+                ${content}
+            </section>
+        </article>
+    `;
 }
 
 async function openContent(path, addHistory = !0) {
