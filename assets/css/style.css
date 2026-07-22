@@ -583,63 +583,74 @@ input[type=search]:focus {
   font-size: 16px;
   line-height: 1.6
 }
-.fiche-card-directives {
-  border-left-color: var(--silver)
-}
-.fiche-card-directives .fiche-card-head {
-  background: rgba(223,227,232,.1)
-}
-.fiche-card-autorise {
-  border-left-color: #42d77d
-}
-.fiche-card-autorise .fiche-card-head {
-  background: rgba(66,215,125,.14)
-}
-.fiche-card-interdit {
-  border-left-color: #ff6b63
-}
-.fiche-card-interdit .fiche-card-head {
-  background: rgba(255,107,99,.14)
-}
-.fiche-card-conseil {
-  border-left-color: #f6b94a
-}
-.fiche-card-conseil .fiche-card-head {
-  background: rgba(245,158,11,.16)
-}
-.fiche-card-attention {
-  border-left-color: #ffd23f
-}
-.fiche-card-attention .fiche-card-head {
-  background: rgba(255,210,63,.15)
-}
 .fiche-card-document {
   border-left-color: #60a5fa
 }
 .fiche-card-document .fiche-card-head {
   background: rgba(96,165,250,.14)
 }
-.fiche-card-info {
-  border-left-color: var(--gold)
-}
-.fiche-card-info .fiche-card-head {
-  background: rgba(214,173,58,.12)
-}
-.fiche-card-bloc {
-  border-left-color: var(--gold)
-}
-.fiche-card-bloc .fiche-card-head {
-  background: rgba(184,131,24,.14);
-  color: var(--gold-light)
-}
-.fiche-card-bloc .fiche-card-icon {
-  color: var(--gold-light)
-}
+
 .fiche-card-download {
   border-left-color: #60a5fa
 }
 .fiche-card-download .fiche-card-head {
   background: rgba(96,165,250,.14)
+}
+/* ==========================================================
+   BLOCS PERSONNALISABLES
+   ========================================================== */
+
+.fiche-card-bleu {
+    border-left-color: #4ea7e8;
+}
+
+.fiche-card-bleu .fiche-card-head {
+    background: rgba(45, 125, 185, 0.18);
+}
+
+
+.fiche-card-vert {
+    border-left-color: #45c978;
+}
+
+.fiche-card-vert .fiche-card-head {
+    background: rgba(45, 155, 85, 0.18);
+}
+
+
+.fiche-card-rouge {
+    border-left-color: #e75b57;
+}
+
+.fiche-card-rouge .fiche-card-head {
+    background: rgba(190, 55, 50, 0.18);
+}
+
+
+.fiche-card-orange {
+    border-left-color: #ee9c3b;
+}
+
+.fiche-card-orange .fiche-card-head {
+    background: rgba(190, 105, 30, 0.18);
+}
+
+
+.fiche-card-jaune {
+    border-left-color: #ddc64a;
+}
+
+.fiche-card-jaune .fiche-card-head {
+    background: rgba(180, 150, 35, 0.18);
+}
+
+
+.fiche-card-gris {
+    border-left-color: #aeb5bd;
+}
+
+.fiche-card-gris .fiche-card-head {
+    background: rgba(130, 140, 150, 0.16);
 }
 .download-list {
   display: flex;
