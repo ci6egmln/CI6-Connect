@@ -6,7 +6,7 @@ quote: "Ici une formule d'accroche description, citation, ..."
 
 :::directives
 Les directives.
-![Capitaine, commandant la 6ème compagnie] (assets/photos/accueil-cdu.png)
+![Capitaine, commandant la 6ème compagnie](assets/photos/accueil-cdu.png)
 :::
 
 :::autorise
