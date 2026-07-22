@@ -500,6 +500,15 @@ window.CI6_RUBRIQUES = [
         content: "content/service-bgp.md",
         card: "assets/cards/service-bgp.png"
     }, 
+		{
+        /* SECTION PLANIFICATION PROGRAMMATION EXAMEN */
+		id: "service-sppe",
+        title: "SPPE",
+        slug: "service-sppe",
+        description: "SECTION PLANIFICATION PROGRAMMATION EXAMEN",
+        content: "content/service-sppe.md",
+        card: "assets/cards/service-sppe.png"
+    }, 
 		/* CELLULE DIFFUSION */
 		{
         id: "diffusion",
