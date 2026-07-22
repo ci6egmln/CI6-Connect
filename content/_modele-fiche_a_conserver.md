@@ -9,13 +9,15 @@ quote: "Ici une formule d'accroche description, citation, ..."
       expl :
       ![description du contenu de la photo](assets/photos/domaine-nom1.png)
       ![description du contenu de la deuxième photo](assets/photos/domaine-nom2.png)
+      ATTENTION : ne pas mettre d'espace entre ! et ] 
+      ne pas mettre d'espace entre ] et ( sinon la photo ne s'affichera pas
 -->
 
 :::directives
 - Les directives.
 
 - Suite des directives.
- ![description du contenu de la photo] (assets/photos/domaine-nom1.png)
+ ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
 
 :::autorise
