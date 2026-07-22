@@ -997,3 +997,40 @@ input[type=search]:focus {
     font-size:11px;
   }
 }
+/* ==========================================================
+   IMAGES INSÉRÉES DANS LES BLOCS DES FICHES
+   ========================================================== */
+
+.fiche-inline-image-link {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  margin: 16px 0;
+  border: 1px solid rgba(214,173,58,.28) !important;
+  border-radius: 14px;
+  background: #030405;
+  box-shadow: 0 10px 24px rgba(0,0,0,.28);
+}
+
+.fiche-inline-image {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  background: #030405;
+  transition: transform .25s ease;
+}
+
+.fiche-inline-image-link:hover .fiche-inline-image {
+  transform: scale(1.015);
+}
+@media (max-width:760px) {
+  .fiche-inline-image-link {
+    margin: 12px 0;
+    border-radius: 11px;
+  }
+
+  .fiche-inline-image {
+    max-height: 420px;
+  }
+}
