@@ -538,20 +538,24 @@ input[type=search]:focus {
   color: var(--gold-light)
 }
 .fiche-card {
+   --card-color: rgba(255,255,255,.25);
+  --card-header: rgba(255,255,255,.05);
+
   position: relative;
   overflow: hidden;
   margin: 0;
   border: 1px solid rgba(255,255,255,.1);
-  border-left-width: 6px;
+  border-left: 6px solid var(--card-color);
   border-radius: 18px;
   background: rgba(255,255,255,.03);
-  box-shadow: 0 14px 35px rgba(0,0,0,.28)
+  box-shadow: 0 14px 35px rgba(0,0,0,.28);
 }
 .fiche-card-head {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
+  background: var(--card-header);
   color: #fff;
   font-size: 18px;
   font-weight: 700;
@@ -583,75 +587,45 @@ input[type=search]:focus {
   font-size: 16px;
   line-height: 1.6
 }
-.fiche-card-document {
-  border-left-color: #60a5fa
-}
-.fiche-card-document .fiche-card-head {
-  background: rgba(96,165,250,.14)
-}
 
-.fiche-card-download {
-  border-left-color: #60a5fa
-}
-.fiche-card-download .fiche-card-head {
-  background: rgba(96,165,250,.14)
-}
 /* ==========================================================
    BLOCS PERSONNALISABLES
    ========================================================== */
-
 .fiche-card-bleu {
-    border-left-color: #4ea7e8;
+  --card-color: #4ea7e8;
+  --card-header: rgba(45,125,185,.18);
 }
-
-.fiche-card-bleu .fiche-card-head {
-    background: rgba(45, 125, 185, 0.18);
-}
-
 
 .fiche-card-vert {
-    border-left-color: #45c978;
+  --card-color: #45c978;
+  --card-header: rgba(45,155,85,.18);
 }
-
-.fiche-card-vert .fiche-card-head {
-    background: rgba(45, 155, 85, 0.18);
-}
-
 
 .fiche-card-rouge {
-    border-left-color: #e75b57;
+  --card-color: #e75b57;
+  --card-header: rgba(190,55,50,.18);
 }
-
-.fiche-card-rouge .fiche-card-head {
-    background: rgba(190, 55, 50, 0.18);
-}
-
 
 .fiche-card-orange {
-    border-left-color: #ee9c3b;
+  --card-color: #ee9c3b;
+  --card-header: rgba(190,105,30,.18);
 }
-
-.fiche-card-orange .fiche-card-head {
-    background: rgba(190, 105, 30, 0.18);
-}
-
 
 .fiche-card-jaune {
-    border-left-color: #ddc64a;
+  --card-color: #ddc64a;
+  --card-header: rgba(180,150,35,.18);
 }
-
-.fiche-card-jaune .fiche-card-head {
-    background: rgba(180, 150, 35, 0.18);
-}
-
 
 .fiche-card-gris {
-    border-left-color: #aeb5bd;
+  --card-color: #aeb5bd;
+  --card-header: rgba(130,140,150,.16);
 }
 
-.fiche-card-gris .fiche-card-head {
-    background: rgba(130, 140, 150, 0.16);
+.fiche-card-download {
+  --card-color: #60a5fa;
+  --card-header: rgba(96,165,250,.14);
 }
+
 .download-list {
   display: flex;
   flex-direction: column;
