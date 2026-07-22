@@ -73,7 +73,7 @@ window.CI6_RUBRIQUES = [
 		{
       id: "roles",
         title: "Les fonctions et responsabilités",
-        slug: "accueil-fournitures",
+        slug: "accueil-roles",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
         content: "content/accueil-roles.md",
         card: "assets/cards/accueil_roles.png"
