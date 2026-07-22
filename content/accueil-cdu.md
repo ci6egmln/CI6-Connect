@@ -1,11 +1,12 @@
 ---
 title: Ici le titre
-icon: assets/cards/01-horaires.png
+icon: assets/cards/accueil-cdu.png
 quote: "Ici une formule d'accroche description, citation, ..."
 ---
 
 :::directives
 Les directives.
+![Capitaine, commandant la 6ème compagnie] (assets/photos/accueil-cdu.png)
 :::
 
 :::autorise
