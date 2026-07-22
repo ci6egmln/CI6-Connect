@@ -22,7 +22,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
         content: "content/accueil-cdu.md",
-        card: "assets/cards/accueil_cdu.png"
+        card: "assets/cards/accueil-cdu.png"
     }, 
 		/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
 	    {
@@ -31,7 +31,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-montlucon",
         description: "Vivre sa scolarité dans la ville de Montluçon",
         content: "content/accueil-montlucon.md",
-        card: "assets/cards/accueil_montlucon.png"
+        card: "assets/cards/accueil-montlucon.png"
     }, 
 		/* PRÉSENTATION DE L'ÉCOLE ET SES SERVICES SANS LES DÉTAILLER */
 		{
@@ -40,7 +40,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-ecole-gendarmerie-montlucon",
         description: "L'école de gendarmerie de Montluçon",
         content: "content/accueil-ecole.md",
-        card: "assets/cards/accueil_ecole.png"
+        card: "assets/cards/accueil-ecole.png"
     }, 
 		/* PRÉSENTATION DE LA COMPAGNIE AU SEIN DE L'ÉCOLE */
 		{
@@ -49,7 +49,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-compagnie",
         description: "La 6ème compagnie d'instruction",
         content: "content/accueil-compagnie.md",
-        card: "assets/cards/accueil_compagnie.png"
+        card: "assets/cards/accueil-compagnie.png"
     }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
@@ -58,7 +58,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
         content: "content/accueil-fournitures.md",
-        card: "assets/cards/accueil_fournitures.png"
+        card: "assets/cards/accueil-fournitures.png"
     }, 
 		/* COMMENT SE RENDRE À L'ÉCOLE, TRAIN, COVOITURAGE */
 		{
@@ -67,7 +67,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-transports",
         description: "Comment se rendre à Montluçon",
         content: "content/accueil-transport.md",
-        card: "assets/cards/accueil_transport.png"
+        card: "assets/cards/accueil-transport.png"
     }, 
 		/* PRÉSENTATION RAPIDE DES ROLES, FONCTIONS ET RESPONSABILITÉS POUR LESQUELLES LES EG DEVRONT SE PORTER VOLONTAIRES */
 		{
@@ -76,7 +76,7 @@ window.CI6_RUBRIQUES = [
         slug: "accueil-fournitures",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
         content: "content/accueil-roles.md",
-        card: "assets/cards/accueil_roles.png"
+        card: "assets/cards/accueil-roles.png"
     } ]
 }, 
     /*****************************************************************************************/
@@ -590,7 +590,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-bureau",
         description: "Constitution du bureau promotion et rôles",
         content: "content/promotion-bureau.md",
-        card: "assets/cards/promotion_bureau.png"
+        card: "assets/cards/promotion-bureau.png"
     }, 
 		/* LA TRADITION AU SEIN DE L'ÉCOLE */
 		{
@@ -607,7 +607,7 @@ window.CI6_RUBRIQUES = [
         title: "Les commissions",
         slug: "promotion-commission",
         description: "Constitution des commissions et attendus",
-        card: "assets/cards/promotion_commissions.png",
+        card: "assets/cards/promotion-commissions.png",
         children: [ 
 		/* COMMISSION PARRAIN */
 			{
@@ -725,7 +725,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-echeances",
         description: "Anticiper chaque échéance afin de ne rien manquer.",
         content: "content/promotion-echeancier.md",
-        card: "assets/cards/promotion_echeancier.png"
+        card: "assets/cards/promotion-echeancier.png"
  		}
     ]
 }, 
@@ -876,7 +876,7 @@ window.CI6_RUBRIQUES = [
         description: "Accueil, surveillance et transmissions.",
         slug: "sif-poste",
         content: "content/sif-poste.md",
-        card: "assets/cards/sif_poste.png"
+        card: "assets/cards/sif-poste.png"
     }, 
 		/* MESS */
 		{
@@ -885,7 +885,7 @@ window.CI6_RUBRIQUES = [
         description: "Service au mess.",
         slug: "sif-mess",
         content: "content/sif-mess.md",
-        card: "assets/cards/sif_mess.png"
+        card: "assets/cards/sif-mess.png"
     }, 
 		/* NETTOYAGE BATIMENT, SALLES D'INSTRUCTIONS, AMPHI */
 		{
@@ -894,7 +894,7 @@ window.CI6_RUBRIQUES = [
         description: "Nettoyage des salles de cours, amphithéâtre et gymnase.",
         slug: "sif-nettoyage",
         content: "content/sif-nettoyage.md",
-        card: "assets/cards/sif_nettoyage.png"
+        card: "assets/cards/sif-nettoyage.png"
     }, 
 		/* CONSIGNES PLASTRONS */
 		{
@@ -903,7 +903,7 @@ window.CI6_RUBRIQUES = [
         description: "Missions des plastrons et règles de sécurité.",
         slug: "sif-plastrons",
         content: "content/sif-plastrons.md",
-        card: "assets/cards/sif_plastrons.png"
+        card: "assets/cards/sif-plastrons.png"
     }, 
 		/* CHAUFFEURS DE PERMANENCE */
 		{
@@ -912,7 +912,7 @@ window.CI6_RUBRIQUES = [
         description: "Consignes des chauffeurs de permanence.",
         slug: "sif-chauffeurs",
         content: "content/sif-chauffeurs.md",
-        card: "assets/cards/sif_chauffeurs.png"
+        card: "assets/cards/sif-chauffeurs.png"
     }, 
 		/* RAMASSAGE DES POUBELLES DE L'ÉCOLE */
 		{
@@ -921,6 +921,6 @@ window.CI6_RUBRIQUES = [
         description: "Collecte, tri et acheminement des déchets.",
         slug: "sif-poubelles",
         content: "content/sif-poubelles.md",
-        card: "assets/cards/sif_poubelles.png"
+        card: "assets/cards/sif-poubelles.png"
     } ]
 } ];
