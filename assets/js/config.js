@@ -592,6 +592,15 @@ window.CI6_RUBRIQUES = [
         content: "content/promotion-bureau.md",
         card: "assets/cards/promotion_bureau.png"
     }, 
+		/* LA TRADITION AU SEIN DE L'ÉCOLE */
+		{
+        id: "tradition",
+        title: "Tradition militaire en école",
+        slug: "promotion-tradition",
+        description: "La tradition au sein de l'école",
+        content: "content/promotion-tradition.md",
+        card: "assets/cards/promotion-tradition.png"
+    }, 
 		/* LES COMMISSIONS */
 		{
         id: "commission",
@@ -620,12 +629,12 @@ window.CI6_RUBRIQUES = [
  	   }, 
 			/* COMMISSION RENDEZ-VOUS TRADITION */
 			{
-        id: "tradition",
+        id: "rdv",
         title: "rendez-vous tradition",
-        slug: "commission-tradition",
+        slug: "commission-rdv",
         description: "Organiser les sorties tradition",
-        content: "content/commission-tradition.md",
-        card: "assets/cards/commission-tradition.png"
+        content: "content/commission-rdv.md",
+        card: "assets/cards/commission-rdv.png"
  		}, 
 			/* COMMISSION DÉFI SOCIAL */
 			{
