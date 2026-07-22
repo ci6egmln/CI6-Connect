@@ -15,7 +15,7 @@ quote: "Ici une formule d'accroche description, citation, ..."
 - Les directives.
 
 - Suite des directives.
- ![description du contenu de la photo](assets/photos/domaine-nom1.jpg) 
+ ![description du contenu de la photo] (assets/photos/domaine-nom1.jpg)
 :::
 
 :::autorise
