@@ -877,10 +877,31 @@ input[type=search]:focus {
     border-radius: 15px;
   }
 
-  .fiche-hero-cover {
-    width: calc(100% + 28px);
-    margin-right: -14px;
-    margin-left: -14px;
+   .fiche-hero.fiche-hero-cover {
+    min-height: 230px;
+    padding: 30px 18px 20px;
+
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(0,0,0,.10) 0%,
+        rgba(0,0,0,.18) 28%,
+        rgba(0,0,0,.48) 62%,
+        rgba(5,6,7,.92) 100%
+      ),
+      var(--fiche-cover);
+
+    background-position:
+      center center,
+      center center;
+
+    background-size:
+      cover,
+      cover;
+
+    background-repeat:
+      no-repeat,
+      no-repeat;
   }
 
   .fiche-hero-img {
