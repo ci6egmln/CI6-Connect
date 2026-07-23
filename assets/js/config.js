@@ -830,6 +830,13 @@ window.CI6_RUBRIQUES = [
     card: "assets/cards/faq.png",
     /* créer children par thème : formation, fin de promotion, vie de l'unité */      
     children: [ {
+        id: "faq-incorpo",
+        title: "L'incorporation",
+        slug: "faq-incorpo",
+        description: "Toutes les questions sur votre arrivée à l'école de Montluçon",
+        content: "content/faq-incorpo.md",
+        card: "assets/cards/faq-incorpo.png"
+    },{
         id: "faq-formation",
         title: "Déroulé de la formation",
         slug: "faq-formation",
