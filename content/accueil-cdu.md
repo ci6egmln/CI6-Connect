@@ -1,6 +1,7 @@
 ---
 title: Mot d'accueil du commandant d'unité
 icon: assets/cards/accueil-cdu.png
+cover: assets/cards/accueil-cdu.png
 quote: "Exigence, bienveillance, autonomie et responsabilité : les quatre valeurs qui guideront votre formation au sein de la 6ᵉ compagnie."
 ---
 
