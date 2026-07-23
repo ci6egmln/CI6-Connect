@@ -415,18 +415,25 @@ function markdownToHtml(markdown) {
     const icon = parsed.meta.icon || "";
     const cover = parsed.meta.cover || "";
     const quote = parsed.meta.quote || "";
-
+    
+    const coverUrl = cover
+        ? new URL(cover, document.baseURI).href
+        : "";
+    
     return `
         <article class="fiche">
 
             ${title ? `
                 <section
-                    class="fiche-hero ${cover ? "fiche-hero-cover" : ""}"
-                    ${cover ? `style="--fiche-cover:url('${cover}');"` : ""}
+                    class="fiche-hero ${coverUrl ? "fiche-hero-cover" : ""}"
+                    ${coverUrl
+                        ? `style="--fiche-cover:url('${coverUrl}');"`
+                        : ""
+                    }
                 >
                     <div class="fiche-hero-content">
 
-                        ${icon && !cover ? `
+                        ${icon && !coverUrl ? `
                             <img
                                 class="fiche-hero-img"
                                 src="${icon}"
