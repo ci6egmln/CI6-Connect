@@ -63,23 +63,17 @@ Autre document | assets/documents/autre-document.pdf
 
 =========================================================== -->
 
-:::bloc bleu | P1 | ℹ️
-- Les magasiniers du P1 :
-
+:::bloc bleu | Les popotiers du P1 | ℹ️
 - Les noms.
  ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
 
-:::bloc rouge | P2 | ℹ️
-- Les magasiniers du P2 :
-
+:::bloc rouge | Les popotiers du P2 | ℹ️
 - Les noms.
  ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
 
-:::bloc jaune | P3 | ℹ️
-- Les magasiniers du P3 :
-
+:::bloc jaune | Les popotiers du P3 | ℹ️
 - Les noms.
  ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
