@@ -413,21 +413,43 @@ function markdownToHtml(markdown) {
 
     const title = parsed.meta.title || "";
     const icon = parsed.meta.icon || "";
+    const cover = parsed.meta.cover || "";
     const quote = parsed.meta.quote || "";
 
     return `
         <article class="fiche">
+
             ${title ? `
-                <section class="fiche-hero">
-                    ${icon ? `<img class="fiche-hero-img" src="${icon}" alt="">` : ""}
-                    <h1>${formatInline(title)}</h1>
-                    ${quote ? `<p class="fiche-quote">« ${formatInline(quote)} »</p>` : ""}
+                <section
+                    class="fiche-hero ${cover ? "fiche-hero-cover" : ""}"
+                    ${cover ? `style="--fiche-cover:url('${cover}');"` : ""}
+                >
+                    <div class="fiche-hero-content">
+
+                        ${icon && !cover ? `
+                            <img
+                                class="fiche-hero-img"
+                                src="${icon}"
+                                alt=""
+                            >
+                        ` : ""}
+
+                        <h1>${formatInline(title)}</h1>
+
+                        ${quote ? `
+                            <p class="fiche-quote">
+                                « ${formatInline(quote)} »
+                            </p>
+                        ` : ""}
+
+                    </div>
                 </section>
             ` : ""}
 
             <section class="fiche-content">
                 ${content}
             </section>
+
         </article>
     `;
 }
