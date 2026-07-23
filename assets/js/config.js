@@ -169,7 +169,7 @@ window.CI6_RUBRIQUES = [
 	/*****************************************************************************************/
 	{
     id: "locaux",
-    title: "Les locaux de la compagnie",
+    title: "Usage et entretien des locaux de la compagnie",
     description: "L'état des locaux est le miroir de ceux qui les occupent.",
     slug: "utilisation-entretien-locaux",
     card: "assets/cards/index-locaux.png",
