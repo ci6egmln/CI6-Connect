@@ -1,7 +1,7 @@
 ---
-title: Ici le titre
-icon: assets/cards/nomdufichiertuile.png
-quote: "Ici une formule d'accroche description, citation, ..."
+title: Les popotiers
+icon: assets/cards/responsabilite-popotier.png
+quote: "Les popotiers contribuent à la cohésion du peloton par leur organisation, leur anticipation et leur sens du service."
 ---
 
 <!-- ===========================================================
@@ -63,10 +63,24 @@ Autre document | assets/documents/autre-document.pdf
 
 =========================================================== -->
 
-:::directives
-- Les directives.
+:::bloc bleu | P1 | ℹ️
+- Les magasiniers du P1 :
 
-- Suite des directives.
+- Les noms.
+ ![description du contenu de la photo](assets/photos/domaine-nom1.png)
+:::
+
+:::bloc rouge | P2 | ℹ️
+- Les magasiniers du P2 :
+
+- Les noms.
+ ![description du contenu de la photo](assets/photos/domaine-nom1.png)
+:::
+
+:::bloc jaune | P3 | ℹ️
+- Les magasiniers du P3 :
+
+- Les noms.
  ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
 
