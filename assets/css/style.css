@@ -546,19 +546,19 @@ input[type=search]:focus {
   align-items: flex-end;
   justify-content: center;
 
-  min-height: 320px;
-
-  padding: 48px 32px 30px;
+  min-height: 520px;
+  padding: 48px 32px 34px;
 
   background:
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, .10) 0%,
-      rgba(0, 0, 0, .18) 28%,
-      rgba(0, 0, 0, .48) 62%,
-      rgba(5, 6, 7, .92) 100%
+      rgba(0,0,0,.08) 0%,
+      rgba(0,0,0,.12) 35%,
+      rgba(0,0,0,.42) 70%,
+      rgba(5,6,7,.92) 100%
     ),
-    var(--fiche-cover) center center / cover no-repeat;
+    var(--fiche-cover) center center / contain no-repeat,
+    #030405;
 }
 
 .fiche-hero-cover::before {
