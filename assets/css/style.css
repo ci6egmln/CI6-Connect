@@ -878,9 +878,9 @@ input[type=search]:focus {
   }
 
   .fiche-hero-cover {
-    min-height: 230px;
-    padding: 30px 18px 20px;
-    background-position: center center;
+    width: calc(100% + 28px);
+    margin-right: -14px;
+    margin-left: -14px;
   }
 
   .fiche-hero-img {
@@ -898,7 +898,16 @@ input[type=search]:focus {
     font-size: 16px;
     line-height: 1.45;
   }
+	  .fiche-inline-image-link {
+    margin: 12px 0;
+    border-radius: 11px;
+  }
+
+  .fiche-inline-image {
+    max-height: 420px;
+  }
 }
+
 @media (max-width:420px) {
  .brand-title,
 	h1.site-title {
@@ -1121,13 +1130,5 @@ input[type=search]:focus {
 .fiche-inline-image-link:hover .fiche-inline-image {
   transform: scale(1.015);
 }
-@media (max-width:760px) {
-  .fiche-inline-image-link {
-    margin: 12px 0;
-    border-radius: 11px;
-  }
 
-  .fiche-inline-image {
-    max-height: 420px;
-  }
-}
+
