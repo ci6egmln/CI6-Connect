@@ -1,0 +1,21 @@
+</p>
+  </main>
+
+  <script>
+    const parameters = new URLSearchParams(window.location.search);
+    const destination = parameters.get("next");
+
+    if (
+      destination &&
+      destination.startsWith("/") &&
+      !destination.startsWith("//")
+    ) {
+      document.getElementById("nextPage").value = destination;
+    }
+
+    if (parameters.get("error") === "1") {
+      document.getElementById("loginError").hidden = false;
+    }
+  </script>
+</body>
+</html>
