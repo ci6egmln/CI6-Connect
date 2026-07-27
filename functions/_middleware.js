@@ -219,7 +219,7 @@ export async function onRequest(context) {
    * avant l’authentification.
    */
   if (
-    path === "/login.html" &&
+    path === "/login" &&
     request.method === "GET"
   ) {
     const response = await context.next();
@@ -250,7 +250,7 @@ export async function onRequest(context) {
       password !== context.env.SITE_PASSWORD
     ) {
       const loginUrl = new URL(
-        "/login.html",
+        "/login",
         request.url
       );
 
@@ -289,7 +289,7 @@ export async function onRequest(context) {
   if (path === "/logout") {
     return redirectResponse(
       request,
-      "/login.html",
+      "/login",
       303,
       {
         "Set-Cookie":
@@ -313,7 +313,7 @@ export async function onRequest(context) {
     );
 
     const loginUrl = new URL(
-      "/login.html",
+      "/login",
       request.url
     );
 
