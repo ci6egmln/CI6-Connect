@@ -591,22 +591,14 @@ if (
         );
       }
     
-      const headers = new Headers(request.headers);
-    
-      headers.set(
-        "X-CI6-Admin-Username",
-        session.username
-      );
-    
-      const adminRequest = new Request(
-        request,
-        { headers }
-      );
-    
-      const response = await context.next(adminRequest);
-    
+      context.data.adminUsername = session.username;
+      context.data.adminRole = session.role;
+      
+      const response = await context.next();
+      
       return noStoreResponse(response);
-}
+      }
+
   let formData;
 
   try {
