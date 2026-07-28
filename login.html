@@ -236,6 +236,37 @@
       position: relative;
       z-index: 1;
     }
+    .password-field {
+  position: relative;
+}
+
+    .password-field input {
+      margin-bottom: 20px;
+      padding-right: 100px;
+    }
+    
+    .toggle-password {
+      position: absolute;
+      top: 6px;
+      right: 7px;
+      width: auto;
+      min-height: 37px;
+      margin: 0;
+      padding: 0 12px;
+      color: var(--gold-light);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: none;
+      border: 1px solid rgba(214, 173, 58, 0.55);
+      border-radius: 6px;
+      background: #111417;
+    }
+    .toggle-password:hover {
+      color: #050607;
+      background: var(--gold-light);
+      filter: none;
+    }
   </style>
 </head>
 
@@ -324,6 +355,28 @@
     if (parameters.get("error") === "1") {
       document.getElementById("loginError").hidden = false;
     }
+    const passwordInput = document.getElementById("password");
+    const togglePasswordButton =
+      document.getElementById("togglePassword");
+    
+    togglePasswordButton.addEventListener("click", () => {
+      const isVisible = passwordInput.type === "text";
+    
+      passwordInput.type =
+        isVisible ? "password" : "text";
+    
+      togglePasswordButton.textContent =
+        isVisible ? "Afficher" : "Masquer";
+    
+      togglePasswordButton.setAttribute(
+        "aria-label",
+        isVisible
+          ? "Afficher le mot de passe"
+          : "Masquer le mot de passe"
+      );
+    
+      passwordInput.focus();
+    });
   </script>
 </body>
 </html>
