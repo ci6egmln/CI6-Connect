@@ -68,22 +68,22 @@
     }
     .success-message,
     .error-message {
-      display: flex;
-      gap: 14px;
       margin-top: 22px;
-      padding: 18px;
-      border-radius: 10px;
-      line-height: 1.5;
+      padding: 16px;
+      border-radius: 12px;
+      line-height: 1.45;
     }
     
     .success-message {
       color: #eaffea;
+      text-align: center;
       border: 1px solid rgba(70, 190, 100, 0.65);
       background: rgba(25, 90, 45, 0.28);
     }
     
     .error-message {
       color: #ffdada;
+      text-align: center;
       border: 1px solid rgba(255, 90, 90, 0.6);
       background: rgba(110, 20, 20, 0.3);
     }
@@ -91,11 +91,11 @@
     .success-icon {
       display: grid;
       place-items: center;
-      flex: 0 0 34px;
-      width: 34px;
-      height: 34px;
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 14px;
       color: #071009;
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       border-radius: 50%;
       background: #72d487;
@@ -104,19 +104,19 @@
     .success-message strong,
     .error-message strong {
       display: block;
-      margin-bottom: 6px;
-      font-size: 17px;
+      margin-bottom: 12px;
+      font-size: 18px;
     }
     
     .success-message p,
     .error-message p {
-      margin: 4px 0 0;
+      margin: 7px 0;
     }
     
     .success-message span {
       color: var(--gold-light, #f4d77a);
       font-weight: 700;
-    }
+}
   </style>
 </head>
 
@@ -204,26 +204,24 @@
 
       if (response.ok) {
         result.innerHTML = `
-          <div class="success-message">
-            <div class="success-icon">✓</div>
+        <div class="success-message">
+          <div class="success-icon">✓</div>
       
-            <div>
-              <strong>Compte créé avec succès</strong>
+          <strong>Compte créé avec succès</strong>
       
-              <p>
-                L’identifiant
-                <span>${data.username}</span>
-                a été ajouté avec le rôle
-                <span>${data.role === "cadre" ? "Cadre" : "Élève"}</span>.
-              </p>
+          <p>
+            L’identifiant
+            <span>${data.username}</span>
+            a été ajouté avec le rôle
+            <span>${data.role === "cadre" ? "Cadre" : "Élève"}</span>.
+          </p>
       
-              <p>
-                Le changement du mot de passe sera obligatoire
-                lors de la première connexion.
-              </p>
-            </div>
-          </div>
-        `;
+          <p>
+            Le changement du mot de passe sera obligatoire
+            lors de la première connexion.
+          </p>
+        </div>
+      `;
       
         form.reset();
       
