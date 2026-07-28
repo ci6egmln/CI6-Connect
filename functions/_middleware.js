@@ -290,6 +290,7 @@ async function readValidSession(request, environment) {
       type: "user",
       username: user.username,
       role: user.role,
+      sessionVersion: Number(user.session_version),
       mustChangePassword:
         Number(user.must_change_password) === 1
     };
@@ -538,7 +539,143 @@ export async function onRequest(context) {
       }
     );
   }
+/*
+ * Enregistrement du nouveau mot de passe personnel.
+ */
+if (
+  path === "/change-password" &&
+  request.method === "POST"
+) {
+  const session = await readValidSession(
+    request,
+    context.env
+  );
 
+  if (!session || session.type !== "user") {
+    return redirectResponse(
+      request,
+      "/login?error=1",
+      303,
+      {
+        "Set-Cookie":
+          `${COOKIE_NAME}=; ` +
+          "Path=/; Max-Age=0; " +
+          "HttpOnly; Secure; SameSite=Lax"
+      }
+    );
+  }
+
+  let formData;
+
+  try {
+    formData = await request.formData();
+  } catch {
+    return redirectResponse(
+      request,
+      "/change-password?error=update"
+    );
+  }
+
+  const newPassword =
+    String(formData.get("newPassword") || "");
+
+  const confirmation =
+    String(formData.get("confirmation") || "");
+
+  if (newPassword.length < 12) {
+    return redirectResponse(
+      request,
+      "/change-password?error=length"
+    );
+  }
+
+  if (newPassword !== confirmation) {
+    return redirectResponse(
+      request,
+      "/change-password?error=mismatch"
+    );
+  }
+
+  try {
+    const salt =
+      crypto.getRandomValues(new Uint8Array(16));
+
+    const passwordHash =
+      await hashPassword(newPassword, salt);
+
+    await context.env.DB
+      .prepare(`
+        UPDATE users
+        SET
+          password_hash = ?,
+          password_salt = ?,
+          must_change_password = 0,
+          session_version = session_version + 1,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE username = ?
+          AND active = 1
+      `)
+      .bind(
+        passwordHash,
+        bytesToBase64(salt),
+        session.username
+      )
+      .run();
+
+    const updatedUser = await context.env.DB
+      .prepare(`
+        SELECT
+          username,
+          role,
+          active,
+          session_version
+        FROM users
+        WHERE username = ?
+        LIMIT 1
+      `)
+      .bind(session.username)
+      .first();
+
+    if (
+      !updatedUser ||
+      Number(updatedUser.active) !== 1
+    ) {
+      return redirectResponse(
+        request,
+        "/login?error=1"
+      );
+    }
+
+    const token = await createSessionToken(
+      context.env,
+      {
+        type: "user",
+        username: updatedUser.username,
+        role: updatedUser.role,
+        session_version:
+          Number(updatedUser.session_version)
+      }
+    );
+
+    return redirectResponse(
+      request,
+      "/",
+      303,
+      {
+        "Set-Cookie":
+          `${COOKIE_NAME}=${token}; ` +
+          `Path=/; ` +
+          `Max-Age=${SESSION_DURATION}; ` +
+          "HttpOnly; Secure; SameSite=Lax"
+      }
+    );
+  } catch {
+    return redirectResponse(
+      request,
+      "/change-password?error=update"
+    );
+  }
+}
   /*
    * Déconnexion.
    */
@@ -585,7 +722,42 @@ export async function onRequest(context) {
       302
     );
   }
+  /*
+   * Un utilisateur utilisant encore son mot de passe provisoire
+   * ne peut consulter que la page de changement de mot de passe.
+   */
+  if (
+    session.type === "user" &&
+    session.mustChangePassword
+  ) {
+    if (
+      path === "/change-password" &&
+      request.method === "GET"
+    ) {
+      const response = await context.next();
+      return noStoreResponse(response);
+    }
 
+  return redirectResponse(
+    request,
+    "/change-password",
+    302
+  );
+}
+
+  /*
+   * Une fois le mot de passe modifié, la page n’est plus utile.
+   */
+  if (
+    path === "/change-password" &&
+    request.method === "GET"
+  ) {
+    return redirectResponse(
+      request,
+      "/",
+      302
+  );
+}
   const response = await context.next();
 
   return noStoreResponse(response);
