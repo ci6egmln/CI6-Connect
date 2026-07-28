@@ -219,12 +219,15 @@ export async function onRequest(context) {
    * avant l’authentification.
    */
   if (
-    path === "/login" &&
-    request.method === "GET"
-  ) {
-    const response = await context.next();
-    return noStoreResponse(response);
-  }
+  (
+    path === "/login" ||
+    path === "/assets/img/dragon-filigrane.png"
+  ) &&
+  request.method === "GET"
+) {
+  const response = await context.next();
+  return noStoreResponse(response);
+}
 
   /*
    * Traitement du formulaire de connexion.
