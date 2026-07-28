@@ -17,7 +17,7 @@ export async function onRequestGet(context) {
    * dans cette requête.
    */
   const adminUsername =
-    context.request.headers.get("X-CI6-Admin-Username");
+    context.data?.adminUsername;
 
   if (!adminUsername) {
     return jsonResponse(
