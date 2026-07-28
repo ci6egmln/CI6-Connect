@@ -2,6 +2,7 @@ const COOKIE_NAME = "ci6_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60;
 const encoder = new TextEncoder();
 // Base utilisateur pour contrôle d'accès liée sous le nom DB sur le site CloudFLare //
+// compte administrateur créé //
 function bytesToBase64Url(bytes) {
   let binary = "";
 
