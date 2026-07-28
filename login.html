@@ -49,6 +49,7 @@
       background: rgba(7, 9, 11, 0.93);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.58);
     }
+  /* 
     .login-card::before {
       content: "";
       position: absolute;
@@ -67,6 +68,7 @@
         contrast(1.15)
         drop-shadow(0 0 20px rgba(184, 131, 24, 0.35));
     }
+    */
     .login-card > * {
       position: relative;
       z-index: 1;
@@ -217,11 +219,34 @@
         padding: 43px 24px 30px;
       }
     }
+    .dragon-background {
+      position: absolute;
+      z-index: 0;
+      top: 50%;
+      left: 50%;
+      width: 85%;
+      height: auto;
+      opacity: 0.45;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      object-fit: contain;
+    }
+
+    .login-card > *:not(.dragon-background) {
+      position: relative;
+      z-index: 1;
+    }
   </style>
 </head>
 
 <body>
   <main class="login-card">
+    <img
+      class="dragon-background"
+      src="/assets/img/dragon-filigrane.png"
+      alt=""
+      aria-hidden="true"
+    >
     <div class="origami-corner" aria-hidden="true"></div>
 
     <h1 class="brand">CI6 <span>CONNECT</span></h1>
