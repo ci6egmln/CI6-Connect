@@ -401,7 +401,35 @@ export async function onRequest(context) {
       path.startsWith("/assets/img/")
     ) &&
     request.method === "GET"
+  ) 
+  /*
+ * Espace réservé aux administrateurs.
+ */
+if (
+  path === "/administration" &&
+  request.method === "GET"
+) {
+  if (
+    session.type !== "user" ||
+    session.role !== "admin"
   ) {
+    return new Response(
+      "Accès réservé aux administrateurs.",
+      {
+        status: 403,
+        headers: {
+          "Content-Type":
+            "text/plain; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  }
+
+  const response = await context.next();
+  return noStoreResponse(response);
+}
+  {
     const response = await context.next();
     return noStoreResponse(response);
   }
