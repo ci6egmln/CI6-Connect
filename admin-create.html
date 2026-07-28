@@ -113,42 +113,55 @@
   </main>
 
   <script>
-    const form = document.getElementById("createUserForm");
-    const result = document.getElementById("result");
+  const form = document.getElementById("createUserForm");
+  const result = document.getElementById("result");
 
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
 
-      result.textContent = "Création en cours…";
+    result.textContent = "Création en cours…";
+
+    try {
+      const response = await fetch("/admin/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Secret":
+            document.getElementById("adminSecret").value
+        },
+        body: JSON.stringify({
+          username:
+            document.getElementById("username").value.trim(),
+          password:
+            document.getElementById("password").value,
+          role:
+            document.getElementById("role").value
+        })
+      });
+
+      const responseText = await response.text();
+
+      let displayedResponse;
 
       try {
-        const response = await fetch("/admin/create-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Admin-Secret":
-              document.getElementById("adminSecret").value
-          },
-          body: JSON.stringify({
-            username:
-              document.getElementById("username").value.trim(),
-            password:
-              document.getElementById("password").value,
-            role:
-              document.getElementById("role").value
-          })
-        });
-
-        const data = await response.json();
-
-        result.textContent =
-          `Statut : ${response.status}\n\n` +
-          JSON.stringify(data, null, 2);
-      } catch (error) {
-        result.textContent =
-          "Erreur : " + error.message;
+        displayedResponse = JSON.stringify(
+          JSON.parse(responseText),
+          null,
+          2
+        );
+      } catch {
+        displayedResponse = responseText;
       }
-    });
-  </script>
+
+      result.textContent =
+        `Statut : ${response.status}\n\n` +
+        displayedResponse;
+
+    } catch (error) {
+      result.textContent =
+        "Erreur : " + error.message;
+    }
+  });
+</script>
 </body>
 </html>
