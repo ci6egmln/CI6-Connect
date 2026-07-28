@@ -326,6 +326,62 @@
       flex-direction: column;
     }
   }
+   .account-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    
+    .account-action-button {
+      min-height: 44px;
+      padding: 9px 16px;
+      cursor: pointer;
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      border: 1px solid rgba(255, 90, 90, 0.65);
+      border-radius: 8px;
+      background: rgba(125, 25, 25, 0.75);
+    }
+    
+    .account-action-button:hover {
+      background: rgba(165, 35, 35, 0.9);
+    }
+    
+    .account-action-button.activate {
+      color: #eaffea;
+      border-color: rgba(70, 190, 100, 0.7);
+      background: rgba(25, 100, 48, 0.75);
+    }
+    
+    .account-action-button.activate:hover {
+      background: rgba(35, 135, 63, 0.9);
+    }
+    
+    .account-action-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+    
+    .action-success,
+    .action-error {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+    
+    .action-success {
+      color: #eaffea;
+      border: 1px solid rgba(70, 190, 100, 0.65);
+      background: rgba(25, 90, 45, 0.3);
+    }
+    
+    .action-error {
+      color: #ffdada;
+      border: 1px solid rgba(255, 90, 90, 0.6);
+      background: rgba(110, 20, 20, 0.3);
+    } 
   </style>
 </head>
 
@@ -407,6 +463,18 @@
             <dd id="resultCreatedAt"></dd>
           </div>
         </dl>
+        
+        <div class="account-actions">
+          <button
+            id="toggleActiveButton"
+            class="account-action-button"
+            type="button"
+          >
+            Désactiver le compte
+          </button>
+        </div>
+        
+        <div id="actionMessage"></div>
       </article>
     </section>
     <section class="dashboard">
@@ -475,6 +543,14 @@
 
   const userResult =
     document.getElementById("userResult");
+
+    const toggleActiveButton =
+  document.getElementById("toggleActiveButton");
+
+const actionMessage =
+  document.getElementById("actionMessage");
+
+let currentUser = null;
 
   function formatRole(role) {
     const roles = {
@@ -546,6 +622,10 @@
 
         const user = data.user;
 
+        currentUser = user;
+          actionMessage.textContent = "";
+          actionMessage.className = "";
+        
         document.getElementById(
           "resultUsername"
         ).textContent = user.username;
@@ -585,6 +665,33 @@
 
         searchMessage.textContent = "";
         searchMessage.className = "";
+        if (user.role === "admin") {
+            toggleActiveButton.textContent =
+              "Compte administrateur protégé";
+          
+            toggleActiveButton.className =
+              "account-action-button";
+          
+            toggleActiveButton.disabled = true;
+          
+          } else if (user.active) {
+            toggleActiveButton.textContent =
+              "Désactiver le compte";
+          
+            toggleActiveButton.className =
+              "account-action-button";
+          
+            toggleActiveButton.disabled = false;
+          
+          } else {
+            toggleActiveButton.textContent =
+              "Réactiver le compte";
+          
+            toggleActiveButton.className =
+              "account-action-button activate";
+          
+            toggleActiveButton.disabled = false;
+          }
         userResult.hidden = false;
 
       } catch (error) {
@@ -593,6 +700,113 @@
       }
     }
   );
+    toggleActiveButton.addEventListener(
+  "click",
+  async () => {
+    if (!currentUser) {
+      return;
+    }
+
+    const newActiveState = !currentUser.active;
+
+    const confirmationMessage =
+      newActiveState
+        ? `Réactiver le compte ${currentUser.username} ?`
+        : `Désactiver le compte ${currentUser.username} et révoquer immédiatement ses sessions ?`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    toggleActiveButton.disabled = true;
+
+    actionMessage.className = "search-info";
+    actionMessage.textContent =
+      newActiveState
+        ? "Réactivation en cours…"
+        : "Désactivation en cours…";
+
+    try {
+      const response = await fetch(
+        "/admin/toggle-active",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            username: currentUser.username,
+            active: newActiveState
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La modification du compte a échoué."
+        );
+      }
+
+      currentUser = data.user;
+
+      const status =
+        document.getElementById("resultStatus");
+
+      status.textContent =
+        currentUser.active
+          ? "Actif"
+          : "Désactivé";
+
+      status.className =
+        "status-badge " +
+        (
+          currentUser.active
+            ? "status-active"
+            : "status-disabled"
+        );
+
+      document.getElementById(
+        "resultSessionVersion"
+      ).textContent =
+        currentUser.sessionVersion;
+
+      if (currentUser.active) {
+        toggleActiveButton.textContent =
+          "Désactiver le compte";
+
+        toggleActiveButton.className =
+          "account-action-button";
+      } else {
+        toggleActiveButton.textContent =
+          "Réactiver le compte";
+
+        toggleActiveButton.className =
+          "account-action-button activate";
+      }
+
+      toggleActiveButton.disabled = false;
+
+      actionMessage.className =
+        "action-success";
+
+      actionMessage.textContent =
+        data.message;
+
+    } catch (error) {
+      toggleActiveButton.disabled = false;
+
+      actionMessage.className =
+        "action-error";
+
+      actionMessage.textContent =
+        error.message;
+    }
+  }
+);
 </script>
 </body>
 </html>
