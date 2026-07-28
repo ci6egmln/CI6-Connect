@@ -459,6 +459,28 @@
         font-size: 13px;
         line-height: 1.5;
       }
+    /* Gestion du rôle */
+      .account-action-button.change-role {
+        color: #e9f1ff;
+        border-color: rgba(100, 155, 235, 0.75);
+        background: rgba(35, 75, 135, 0.85);
+      }
+      
+      .account-action-button.change-role:hover {
+        color: #ffffff;
+        background: rgba(45, 105, 185, 0.98);
+        transform: translateY(-1px);
+      }
+      
+      .account-action-button.change-role.remove-admin {
+        color: #fff1d7;
+        border-color: rgba(225, 145, 55, 0.75);
+        background: rgba(135, 75, 25, 0.88);
+      }
+      
+      .account-action-button.change-role.remove-admin:hover {
+        background: rgba(185, 100, 30, 0.98);
+      }
   </style>
 </head>
 
@@ -558,6 +580,14 @@
           >
             Réinitialiser le mot de passe
         </button>
+
+        <button
+            id="changeRoleButton"
+            class="account-action-button change-role"
+            type="button"
+          >
+            Passer administrateur
+          </button>
         
         <div id="actionMessage"></div>
       </article>
@@ -636,6 +666,11 @@
     document.getElementById(
       "resetPasswordButton"
     );
+
+    const changeRoleButton =
+  document.getElementById(
+    "changeRoleButton"
+  );
     
   const actionMessage =
     document.getElementById("actionMessage");
@@ -783,6 +818,26 @@
           
             toggleActiveButton.disabled = false;
           }
+          if (user.role === "cadre") {
+            changeRoleButton.hidden = false;
+            changeRoleButton.disabled = false;
+            changeRoleButton.textContent =
+              "Passer administrateur";
+            changeRoleButton.className =
+              "account-action-button change-role";
+          
+          } else if (user.role === "admin") {
+            changeRoleButton.hidden = false;
+            changeRoleButton.disabled = false;
+            changeRoleButton.textContent =
+              "Revenir cadre";
+            changeRoleButton.className =
+              "account-action-button change-role remove-admin";
+          
+          } else {
+            changeRoleButton.hidden = true;
+          }
+        
         userResult.hidden = false;
 
       } catch (error) {
@@ -1024,6 +1079,141 @@
         error.message;
 
     } finally {
+      resetPasswordButton.disabled = false;
+
+      if (
+        currentUser &&
+        currentUser.role !== "admin"
+      ) {
+        toggleActiveButton.disabled = false;
+      }
+    }
+  }
+);
+
+    changeRoleButton.addEventListener(
+  "click",
+  async () => {
+    if (!currentUser) {
+      return;
+    }
+
+    if (
+      currentUser.role !== "cadre" &&
+      currentUser.role !== "admin"
+    ) {
+      return;
+    }
+
+    const newRole =
+      currentUser.role === "cadre"
+        ? "admin"
+        : "cadre";
+
+    const confirmationMessage =
+      newRole === "admin"
+        ? `Donner les droits administrateur au compte ${currentUser.username} ?`
+        : `Retirer les droits administrateur du compte ${currentUser.username} ?`;
+
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    changeRoleButton.disabled = true;
+    toggleActiveButton.disabled = true;
+    resetPasswordButton.disabled = true;
+
+    actionMessage.className = "search-info";
+    actionMessage.textContent =
+      "Modification du rôle en cours…";
+
+    try {
+      const response = await fetch(
+        "/admin/change-role",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            username: currentUser.username,
+            role: newRole
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La modification du rôle a échoué."
+        );
+      }
+
+      currentUser = data.user;
+
+      document.getElementById(
+        "resultRole"
+      ).textContent =
+        formatRole(currentUser.role);
+
+      document.getElementById(
+        "resultSessionVersion"
+      ).textContent =
+        currentUser.sessionVersion;
+
+      if (currentUser.role === "admin") {
+        changeRoleButton.textContent =
+          "Revenir cadre";
+
+        changeRoleButton.className =
+          "account-action-button change-role remove-admin";
+
+        toggleActiveButton.textContent =
+          "Compte administrateur protégé";
+
+        toggleActiveButton.className =
+          "account-action-button";
+
+        toggleActiveButton.disabled = true;
+
+      } else {
+        changeRoleButton.textContent =
+          "Passer administrateur";
+
+        changeRoleButton.className =
+          "account-action-button change-role";
+
+        toggleActiveButton.textContent =
+          currentUser.active
+            ? "Désactiver le compte"
+            : "Réactiver le compte";
+
+        toggleActiveButton.className =
+          currentUser.active
+            ? "account-action-button"
+            : "account-action-button activate";
+
+        toggleActiveButton.disabled = false;
+      }
+
+      actionMessage.className =
+        "action-success";
+
+      actionMessage.textContent =
+        data.message;
+
+    } catch (error) {
+      actionMessage.className =
+        "action-error";
+
+      actionMessage.textContent =
+        error.message;
+
+    } finally {
+      changeRoleButton.disabled = false;
       resetPasswordButton.disabled = false;
 
       if (
