@@ -277,13 +277,25 @@
       >
 
       <label for="password">Mot de passe</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        autocomplete="current-password"
-        required
-      >
+
+      <div class="password-field">
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+      
+        <button
+          id="togglePassword"
+          class="toggle-password"
+          type="button"
+          aria-label="Afficher le mot de passe"
+        >
+          Afficher
+        </button>
+      </div>
 
       <button type="submit">Se connecter</button>
     </form>
