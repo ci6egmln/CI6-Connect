@@ -330,18 +330,28 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 22px;
 }
 
 .account-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: auto;
   min-height: 44px;
-  padding: 9px 16px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  white-space: nowrap;
+  border-radius: 8px;
 }
     
     .account-action-button:hover {
-      background: rgba(165, 35, 35, 0.9);
+      background: rgba(180, 35, 35, 0.95);
+      transform: translateY(-1px);
+      transition: background 0.2s ease, transform 0.2s ease;
     }
     
     .account-action-button.activate {
@@ -379,17 +389,24 @@
     } 
     .account-action-button.reset-password {
         color: #101113;
-        border-color: rgba(244, 215, 122, 0.75);
-        background:
-          linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-          );
+        border: 1px solid rgba(244, 215, 122, 0.75);
+        background: linear-gradient(
+          135deg,
+          var(--gold-light),
+          var(--gold)
+        );
+        transition: background 0.2s ease, transform 0.2s ease, filter 0.2s ease;
       }
       
       .account-action-button.reset-password:hover {
-        filter: brightness(1.08);
+        color: #090a0b;
+        background: linear-gradient(
+          135deg,
+          #ffe79a,
+          #d9a427
+        );
+        filter: none;
+        transform: translateY(-1px);
       }
       
       .temporary-password-box {
