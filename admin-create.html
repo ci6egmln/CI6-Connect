@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Création compte test</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      color: #f5f5f5;
+      font-family: Arial, sans-serif;
+      background: #050607;
+    }
+
+    main {
+      width: min(100%, 440px);
+      padding: 28px;
+      border: 1px solid #b88318;
+      border-radius: 12px;
+      background: #0a0c0e;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #f4d77a;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      min-height: 44px;
+      box-sizing: border-box;
+      padding: 10px;
+      font: inherit;
+      border-radius: 7px;
+    }
+
+    input,
+    select {
+      color: white;
+      border: 1px solid #b88318;
+      background: #020304;
+    }
+
+    button {
+      margin-top: 22px;
+      cursor: pointer;
+      font-weight: bold;
+      border: 0;
+      background: #f4d77a;
+    }
+
+    #result {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Créer un compte test</h1>
+
+    <form id="createUserForm">
+      <label for="adminSecret">Secret administrateur</label>
+      <input
+        id="adminSecret"
+        type="password"
+        required
+      >
+
+      <label for="username">Identifiant à 6 chiffres</label>
+      <input
+        id="username"
+        type="text"
+        inputmode="numeric"
+        pattern="[0-9]{6}"
+        value="123456"
+        required
+      >
+
+      <label for="password">Mot de passe provisoire</label>
+      <input
+        id="password"
+        type="text"
+        value="Dragon-Test-2026"
+        minlength="12"
+        required
+      >
+
+      <label for="role">Rôle</label>
+      <select id="role">
+        <option value="eleve">Élève</option>
+        <option value="cadre">Cadre</option>
+      </select>
+
+      <button type="submit">Créer le compte</button>
+    </form>
+
+    <div id="result"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById("createUserForm");
+    const result = document.getElementById("result");
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      result.textContent = "Création en cours…";
+
+      try {
+        const response = await fetch("/admin/create-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Admin-Secret":
+              document.getElementById("adminSecret").value
+          },
+          body: JSON.stringify({
+            username:
+              document.getElementById("username").value.trim(),
+            password:
+              document.getElementById("password").value,
+            role:
+              document.getElementById("role").value
+          })
+        });
+
+        const data = await response.json();
+
+        result.textContent =
+          `Statut : ${response.status}\n\n` +
+          JSON.stringify(data, null, 2);
+      } catch (error) {
+        result.textContent =
+          "Erreur : " + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
