@@ -382,6 +382,71 @@
       border: 1px solid rgba(255, 90, 90, 0.6);
       background: rgba(110, 20, 20, 0.3);
     } 
+    .account-action-button.reset-password {
+        color: #101113;
+        border-color: rgba(244, 215, 122, 0.75);
+        background:
+          linear-gradient(
+            135deg,
+            var(--gold-light),
+            var(--gold)
+          );
+      }
+      
+      .account-action-button.reset-password:hover {
+        filter: brightness(1.08);
+      }
+      
+      .temporary-password-box {
+        margin-top: 15px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid rgba(244, 215, 122, 0.75);
+        border-radius: 10px;
+        background: rgba(184, 131, 24, 0.14);
+      }
+      
+      .temporary-password-box strong {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--gold-light);
+      }
+      
+      .temporary-password-value {
+        display: block;
+        margin: 10px 0;
+        padding: 12px;
+        color: #ffffff;
+        font-family:
+          Consolas,
+          "Courier New",
+          monospace;
+        font-size: 19px;
+        font-weight: 800;
+        word-break: break-all;
+        border: 1px dashed rgba(244, 215, 122, 0.65);
+        border-radius: 7px;
+        background: #020304;
+      }
+      
+      .copy-password-button {
+        min-height: 40px;
+        padding: 8px 14px;
+        cursor: pointer;
+        color: #090a0b;
+        font: inherit;
+        font-weight: 800;
+        border: 0;
+        border-radius: 7px;
+        background: var(--gold-light);
+      }
+      
+      .temporary-password-warning {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
   </style>
 </head>
 
@@ -473,6 +538,14 @@
             Désactiver le compte
           </button>
         </div>
+
+          <button
+            id="resetPasswordButton"
+            class="account-action-button reset-password"
+            type="button"
+          >
+            Réinitialiser le mot de passe
+        </button>
         
         <div id="actionMessage"></div>
       </article>
@@ -544,13 +617,18 @@
   const userResult =
     document.getElementById("userResult");
 
-    const toggleActiveButton =
-  document.getElementById("toggleActiveButton");
+  const toggleActiveButton =
+    document.getElementById("toggleActiveButton");
 
-const actionMessage =
-  document.getElementById("actionMessage");
+  const resetPasswordButton =
+    document.getElementById(
+      "resetPasswordButton"
+    );
+    
+  const actionMessage =
+    document.getElementById("actionMessage");
 
-let currentUser = null;
+  let currentUser = null;
 
   function formatRole(role) {
     const roles = {
@@ -625,6 +703,7 @@ let currentUser = null;
         currentUser = user;
           actionMessage.textContent = "";
           actionMessage.className = "";
+          resetPasswordButton.disabled = false;
         
         document.getElementById(
           "resultUsername"
@@ -807,6 +886,144 @@ let currentUser = null;
     }
   }
 );
+
+    resetPasswordButton.addEventListener(
+  "click",
+  async () => {
+    if (!currentUser) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Réinitialiser le mot de passe du compte ${currentUser.username} ?\n\n` +
+      "Ses sessions actuelles seront immédiatement révoquées."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    resetPasswordButton.disabled = true;
+    toggleActiveButton.disabled = true;
+
+    actionMessage.className = "search-info";
+    actionMessage.textContent =
+      "Réinitialisation en cours…";
+
+    try {
+      const response = await fetch(
+        "/admin/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            username: currentUser.username
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La réinitialisation a échoué."
+        );
+      }
+
+      currentUser = data.user;
+
+      document.getElementById(
+        "resultPasswordState"
+      ).textContent =
+        "Changement obligatoire";
+
+      document.getElementById(
+        "resultSessionVersion"
+      ).textContent =
+        currentUser.sessionVersion;
+
+      actionMessage.className = "";
+      actionMessage.innerHTML = `
+        <div class="temporary-password-box">
+          <strong>
+            Nouveau mot de passe provisoire
+          </strong>
+
+          <span
+            id="temporaryPasswordValue"
+            class="temporary-password-value"
+          ></span>
+
+          <button
+            id="copyTemporaryPassword"
+            class="copy-password-button"
+            type="button"
+          >
+            Copier le mot de passe
+          </button>
+
+          <p class="temporary-password-warning">
+            Ce mot de passe n’est affiché qu’ici.
+            Remettez-le individuellement à l’utilisateur.
+            Il devra le modifier lors de sa prochaine connexion.
+          </p>
+        </div>
+      `;
+
+      const passwordValue =
+        document.getElementById(
+          "temporaryPasswordValue"
+        );
+
+      passwordValue.textContent =
+        data.temporaryPassword;
+
+      document
+        .getElementById(
+          "copyTemporaryPassword"
+        )
+        .addEventListener(
+          "click",
+          async event => {
+            try {
+              await navigator.clipboard.writeText(
+                data.temporaryPassword
+              );
+
+              event.currentTarget.textContent =
+                "Mot de passe copié ✓";
+
+            } catch {
+              event.currentTarget.textContent =
+                "Sélectionnez et copiez manuellement";
+            }
+          }
+        );
+
+    } catch (error) {
+      actionMessage.className =
+        "action-error";
+
+      actionMessage.textContent =
+        error.message;
+
+    } finally {
+      resetPasswordButton.disabled = false;
+
+      if (
+        currentUser &&
+        currentUser.role !== "admin"
+      ) {
+        toggleActiveButton.disabled = false;
+      }
+    }
+  }
+);
+    
 </script>
 </body>
 </html>
