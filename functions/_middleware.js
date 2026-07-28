@@ -590,10 +590,7 @@ if (
           }
         );
       }
-    
-      context.data.adminUsername = session.username;
-      context.data.adminRole = session.role;
-      
+              
       const response = await context.next();
       
       return noStoreResponse(response);
