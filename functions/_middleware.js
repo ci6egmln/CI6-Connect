@@ -221,14 +221,20 @@ export async function onRequest(context) {
    */
   if (
   (
-    path === "/login" ||
-    path.startsWith("/assets/img/")
-  ) &&
-  request.method === "GET"
-) {
-  const response = await context.next();
-  return noStoreResponse(response);
-}
+      (
+        path === "/login" ||
+        path.startsWith("/assets/img/")
+      ) &&
+      request.method === "GET"
+    ) ||
+    (
+      path === "/admin/create-user" &&
+      request.method === "POST"
+    )
+  ) {
+    const response = await context.next();
+    return noStoreResponse(response);
+  }
 
   /*
    * Traitement du formulaire de connexion.
