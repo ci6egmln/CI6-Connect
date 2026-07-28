@@ -12,20 +12,6 @@ function jsonResponse(data, status = 200) {
 }
 
 export async function onRequestGet(context) {
-  /*
-   * Le middleware ajoutera l’identité de l’administrateur
-   * dans cette requête.
-   */
-  const adminUsername =
-    context.data?.adminUsername;
-
-  if (!adminUsername) {
-    return jsonResponse(
-      { error: "Accès administrateur requis." },
-      403
-    );
-  }
-
   const url = new URL(context.request.url);
   const username =
     String(url.searchParams.get("username") || "").trim();
