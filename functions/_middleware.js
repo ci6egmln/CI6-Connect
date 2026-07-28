@@ -1,16 +1,31 @@
 const COOKIE_NAME = "ci6_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60;
+const PBKDF2_ITERATIONS = 100000;
 const encoder = new TextEncoder();
-// Base utilisateur pour contrôle d'accès liée sous le nom DB sur le site CloudFLare //
-// compte administrateur créé //
-function bytesToBase64Url(bytes) {
+
+/* ---------- Encodage ---------- */
+
+function bytesToBase64(bytes) {
   let binary = "";
 
   for (const byte of bytes) {
     binary += String.fromCharCode(byte);
   }
 
-  return btoa(binary)
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  const binary = atob(value);
+
+  return Uint8Array.from(
+    binary,
+    character => character.charCodeAt(0)
+  );
+}
+
+function bytesToBase64Url(bytes) {
+  return bytesToBase64(bytes)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/g, "");
@@ -24,13 +39,83 @@ function base64UrlToBytes(value) {
   const padded =
     base64 + "=".repeat((4 - (base64.length % 4)) % 4);
 
-  const binary = atob(padded);
+  return base64ToBytes(padded);
+}
 
-  return Uint8Array.from(
-    binary,
-    character => character.charCodeAt(0)
+function stringToBase64Url(value) {
+  return bytesToBase64Url(encoder.encode(value));
+}
+
+function base64UrlToString(value) {
+  return new TextDecoder().decode(
+    base64UrlToBytes(value)
   );
 }
+
+/* ---------- Vérification des mots de passe D1 ---------- */
+
+async function hashPassword(password, salt) {
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      hash: "SHA-256",
+      salt,
+      iterations: PBKDF2_ITERATIONS
+    },
+    keyMaterial,
+    256
+  );
+
+  return bytesToBase64(
+    new Uint8Array(derivedBits)
+  );
+}
+
+function constantTimeEqual(firstValue, secondValue) {
+  if (
+    typeof firstValue !== "string" ||
+    typeof secondValue !== "string" ||
+    firstValue.length !== secondValue.length
+  ) {
+    return false;
+  }
+
+  let difference = 0;
+
+  for (let index = 0; index < firstValue.length; index++) {
+    difference |=
+      firstValue.charCodeAt(index) ^
+      secondValue.charCodeAt(index);
+  }
+
+  return difference === 0;
+}
+
+async function verifyPassword(password, user) {
+  try {
+    const salt = base64ToBytes(user.password_salt);
+
+    const calculatedHash =
+      await hashPassword(password, salt);
+
+    return constantTimeEqual(
+      calculatedHash,
+      user.password_hash
+    );
+  } catch {
+    return false;
+  }
+}
+
+/* ---------- Signature des sessions ---------- */
 
 async function createHmacKey(secret) {
   return crypto.subtle.importKey(
@@ -45,7 +130,40 @@ async function createHmacKey(secret) {
   );
 }
 
-async function getPasswordVersion(password) {
+async function signPayload(payload, secret) {
+  const key = await createHmacKey(secret);
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(payload)
+  );
+
+  return bytesToBase64Url(
+    new Uint8Array(signature)
+  );
+}
+
+async function verifySignature(
+  payload,
+  signature,
+  secret
+) {
+  try {
+    const key = await createHmacKey(secret);
+
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      base64UrlToBytes(signature),
+      encoder.encode(payload)
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function collectivePasswordVersion(password) {
   const digest = await crypto.subtle.digest(
     "SHA-256",
     encoder.encode(password)
@@ -56,28 +174,30 @@ async function getPasswordVersion(password) {
   ).slice(0, 16);
 }
 
-async function createSessionToken(environment) {
-  const expiresAt =
-    Math.floor(Date.now() / 1000) + SESSION_DURATION;
+async function createSessionToken(
+  environment,
+  sessionData
+) {
+  const payloadObject = {
+    ...sessionData,
+    exp:
+      Math.floor(Date.now() / 1000) +
+      SESSION_DURATION
+  };
 
-  const passwordVersion =
-    await getPasswordVersion(environment.SITE_PASSWORD);
-
-  const payload = `${expiresAt}.${passwordVersion}`;
-
-  const key =
-    await createHmacKey(environment.SESSION_SECRET);
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    encoder.encode(payload)
+  const payload = stringToBase64Url(
+    JSON.stringify(payloadObject)
   );
 
-  return `${payload}.${bytesToBase64Url(
-    new Uint8Array(signature)
-  )}`;
+  const signature = await signPayload(
+    payload,
+    environment.SESSION_SECRET
+  );
+
+  return `${payload}.${signature}`;
 }
+
+/* ---------- Cookies ---------- */
 
 function readCookie(request, cookieName) {
   const cookieHeader =
@@ -95,57 +215,111 @@ function readCookie(request, cookieName) {
   return null;
 }
 
-async function hasValidSession(request, environment) {
+async function readValidSession(request, environment) {
   const token = readCookie(request, COOKIE_NAME);
 
   if (!token) {
-    return false;
+    return null;
   }
 
   const parts = token.split(".");
 
-  if (parts.length !== 3) {
-    return false;
+  if (parts.length !== 2) {
+    return null;
   }
 
-  const [
-    expiresAtText,
-    passwordVersion,
-    signatureText
-  ] = parts;
+  const [payload, signature] = parts;
 
-  const expiresAt = Number(expiresAtText);
+  const signatureIsValid = await verifySignature(
+    payload,
+    signature,
+    environment.SESSION_SECRET
+  );
 
-  if (
-    !Number.isFinite(expiresAt) ||
-    expiresAt <= Math.floor(Date.now() / 1000)
-  ) {
-    return false;
+  if (!signatureIsValid) {
+    return null;
   }
 
-  const currentPasswordVersion =
-    await getPasswordVersion(environment.SITE_PASSWORD);
-
-  if (passwordVersion !== currentPasswordVersion) {
-    return false;
-  }
+  let session;
 
   try {
-    const key =
-      await createHmacKey(environment.SESSION_SECRET);
-
-    return await crypto.subtle.verify(
-      "HMAC",
-      key,
-      base64UrlToBytes(signatureText),
-      encoder.encode(
-        `${expiresAtText}.${passwordVersion}`
-      )
+    session = JSON.parse(
+      base64UrlToString(payload)
     );
   } catch {
-    return false;
+    return null;
   }
+
+  if (
+    !session.exp ||
+    session.exp <= Math.floor(Date.now() / 1000)
+  ) {
+    return null;
+  }
+
+  /*
+   * Session individuelle :
+   * vérification du compte et de sa version de session.
+   */
+  if (session.type === "user") {
+    const user = await environment.DB
+      .prepare(`
+        SELECT
+          username,
+          active,
+          role,
+          must_change_password,
+          session_version
+        FROM users
+        WHERE username = ?
+        LIMIT 1
+      `)
+      .bind(session.username)
+      .first();
+
+    if (
+      !user ||
+      Number(user.active) !== 1 ||
+      Number(user.session_version) !==
+        Number(session.session_version)
+    ) {
+      return null;
+    }
+
+    return {
+      type: "user",
+      username: user.username,
+      role: user.role,
+      mustChangePassword:
+        Number(user.must_change_password) === 1
+    };
+  }
+
+  /*
+   * Accès collectif provisoire.
+   */
+  if (session.type === "collective") {
+    const currentVersion =
+      await collectivePasswordVersion(
+        environment.SITE_PASSWORD
+      );
+
+    if (session.version !== currentVersion) {
+      return null;
+    }
+
+    return {
+      type: "collective",
+      username: environment.SITE_USERNAME,
+      role: "collective",
+      mustChangePassword: false
+    };
+  }
+
+  return null;
 }
+
+/* ---------- Réponses ---------- */
 
 function safeDestination(value) {
   if (
@@ -194,15 +368,16 @@ function noStoreResponse(response) {
   });
 }
 
+/* ---------- Middleware principal ---------- */
+
 export async function onRequest(context) {
   const request = context.request;
   const url = new URL(request.url);
   const path = url.pathname;
 
   if (
-    !context.env.SITE_USERNAME ||
-    !context.env.SITE_PASSWORD ||
-    !context.env.SESSION_SECRET
+    !context.env.SESSION_SECRET ||
+    !context.env.DB
   ) {
     return new Response(
       "Configuration du contrôle d’accès incomplète.",
@@ -216,21 +391,27 @@ export async function onRequest(context) {
   }
 
   /*
-   * La page de connexion doit rester accessible
-   * avant l’authentification.
+   * La page de connexion et ses images
+   * doivent rester accessibles avant connexion.
    */
   if (
-  (
-      (
-        path === "/login" ||
-        path.startsWith("/assets/img/")
-      ) &&
-      request.method === "GET"
-    ) ||
     (
-      path === "/admin/create-user" &&
-      request.method === "POST"
-    )
+      path === "/login" ||
+      path.startsWith("/assets/img/")
+    ) &&
+    request.method === "GET"
+  ) {
+    const response = await context.next();
+    return noStoreResponse(response);
+  }
+
+  /*
+   * Route administrative de création des comptes.
+   * La fonction reste protégée par ADMIN_SECRET.
+   */
+  if (
+    path === "/admin/create-user" &&
+    request.method === "POST"
   ) {
     const response = await context.next();
     return noStoreResponse(response);
@@ -243,10 +424,19 @@ export async function onRequest(context) {
     path === "/login" &&
     request.method === "POST"
   ) {
-    const formData = await request.formData();
+    let formData;
+
+    try {
+      formData = await request.formData();
+    } catch {
+      return redirectResponse(
+        request,
+        "/login?error=1"
+      );
+    }
 
     const username =
-      String(formData.get("username") || "");
+      String(formData.get("username") || "").trim();
 
     const password =
       String(formData.get("password") || "");
@@ -255,10 +445,64 @@ export async function onRequest(context) {
       String(formData.get("next") || "/")
     );
 
+    let sessionData = null;
+
+    /*
+     * 1. Recherche d’un compte individuel dans D1.
+     */
+    if (/^\d{6}$/.test(username)) {
+      const user = await context.env.DB
+        .prepare(`
+          SELECT
+            username,
+            password_hash,
+            password_salt,
+            active,
+            role,
+            must_change_password,
+            session_version
+          FROM users
+          WHERE username = ?
+          LIMIT 1
+        `)
+        .bind(username)
+        .first();
+
+      if (
+        user &&
+        Number(user.active) === 1 &&
+        await verifyPassword(password, user)
+      ) {
+        sessionData = {
+          type: "user",
+          username: user.username,
+          role: user.role,
+          session_version:
+            Number(user.session_version)
+        };
+      }
+    }
+
+    /*
+     * 2. Accès collectif conservé temporairement.
+     */
     if (
-      username !== context.env.SITE_USERNAME ||
-      password !== context.env.SITE_PASSWORD
+      !sessionData &&
+      context.env.SITE_USERNAME &&
+      context.env.SITE_PASSWORD &&
+      username === context.env.SITE_USERNAME &&
+      password === context.env.SITE_PASSWORD
     ) {
+      sessionData = {
+        type: "collective",
+        version:
+          await collectivePasswordVersion(
+            context.env.SITE_PASSWORD
+          )
+      };
+    }
+
+    if (!sessionData) {
       const loginUrl = new URL(
         "/login",
         request.url
@@ -276,8 +520,10 @@ export async function onRequest(context) {
       );
     }
 
-    const token =
-      await createSessionToken(context.env);
+    const token = await createSessionToken(
+      context.env,
+      sessionData
+    );
 
     return redirectResponse(
       request,
@@ -294,7 +540,7 @@ export async function onRequest(context) {
   }
 
   /*
-   * Déconnexion volontaire.
+   * Déconnexion.
    */
   if (path === "/logout") {
     return redirectResponse(
@@ -311,13 +557,14 @@ export async function onRequest(context) {
   }
 
   /*
-   * Contrôle de la session avant de servir
-   * toute autre page, fiche, image ou document.
+   * Vérification de la session avant tout autre accès.
    */
-  const authenticated =
-    await hasValidSession(request, context.env);
+  const session = await readValidSession(
+    request,
+    context.env
+  );
 
-  if (!authenticated) {
+  if (!session) {
     const destination = safeDestination(
       `${url.pathname}${url.search}`
     );
