@@ -221,7 +221,7 @@ export async function onRequest(context) {
   if (
   (
     path === "/login" ||
-    path === "/assets/img/dragon-filigrane.png"
+    path.startsWith("/assets/img/")
   ) &&
   request.method === "GET"
 ) {
