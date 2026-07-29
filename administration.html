@@ -853,6 +853,60 @@
     width: 100%;
   }
 }
+   /* Export des identifiants importés */
+.export-import-actions {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(70, 190, 100, 0.55);
+  border-radius: 9px;
+  background: rgba(25, 90, 45, 0.22);
+}
+
+.download-credentials-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 17px;
+  cursor: pointer;
+  color: #071008;
+  font: inherit;
+  font-weight: 800;
+  border: 1px solid rgba(135, 225, 155, 0.8);
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    #b9efc5,
+    #57b970
+  );
+  transition:
+    filter 0.2s ease,
+    transform 0.2s ease;
+}
+
+.download-credentials-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.download-credentials-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.credentials-warning {
+  margin: 11px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 650px) {
+  .download-credentials-button {
+    width: 100%;
+  }
+} 
   </style>
 </head>
 
@@ -1138,7 +1192,25 @@
         disabled
       >
         Importer les comptes
+      </button>      
+    </div>
+    <div
+      id="exportImportActions"
+      class="export-import-actions"
+      hidden
+    >
+      <button
+        id="downloadCredentialsButton"
+        class="download-credentials-button"
+        type="button"
+      >
+        Télécharger les identifiants et mots de passe
       </button>
+    
+      <p class="credentials-warning">
+        Ce fichier contient des mots de passe provisoires.
+        Conservez-le dans un emplacement sécurisé.
+      </p>
     </div>
   </div>
 
@@ -2030,6 +2102,15 @@ const importProgressText =
 
 const importMessage =
   document.getElementById("importMessage");
+const exportImportActions =
+  document.getElementById(
+  "exportImportActions"
+  );
+
+const downloadCredentialsButton =
+  document.getElementById(
+    "downloadCredentialsButton"
+  ); 
 
 let parsedCsvUsers = [];
 let importedAccounts = [];
@@ -2100,6 +2181,7 @@ function parseCsvLine(line, separator) {
 function resetCsvImport() {
   parsedCsvUsers = [];
   importedAccounts = [];
+  exportImportActions.hidden = true;
 
   csvFile.value = "";
   csvPreview.hidden = true;
@@ -2120,6 +2202,8 @@ csvFile.addEventListener(
   "change",
   async () => {
     const file = csvFile.files[0];
+    importedAccounts = [];
+    exportImportActions.hidden = true;
 
     if (!file) {
       resetCsvImport();
@@ -2413,20 +2497,25 @@ startImportButton.addEventListener(
         importProgressText.textContent =
           `${processed} compte(s) traité(s) sur ${validUsers.length}`;
       }
+      
+      exportImportActions.hidden =
+  importedAccounts.length === 0;
 
-      importMessage.className =
-        "import-success";
-
-      importMessage.innerHTML = `
-        <strong>✓ Import terminé</strong><br>
-        ${importedAccounts.length}
-        compte(s) créé(s).<br>
-        ${existingAccounts.length}
-        compte(s) déjà existant(s).<br><br>
-        Les mots de passe provisoires sont conservés
-        dans cette page jusqu’à son actualisation.
-        L’étape suivante permettra de les exporter.
-      `;
+    importMessage.className =
+      "import-success";
+    
+    importMessage.innerHTML = `
+      <strong>✓ Import terminé</strong><br>
+      ${importedAccounts.length}
+      compte(s) créé(s).<br>
+      ${existingAccounts.length}
+      compte(s) déjà existant(s).<br><br>
+      ${
+        importedAccounts.length > 0
+          ? "Téléchargez maintenant le fichier contenant les mots de passe provisoires."
+          : "Aucun nouveau mot de passe n’a été généré."
+      }
+    `;
 
     } catch (error) {
       importMessage.className =
@@ -2441,6 +2530,129 @@ startImportButton.addEventListener(
     }
   }
 ); 
+    function escapeCsvValue(value) {
+  const text = String(value ?? "");
+
+  if (
+    text.includes(";") ||
+    text.includes('"') ||
+    text.includes("\n") ||
+    text.includes("\r")
+  ) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+
+  return text;
+}
+
+function createCredentialsCsv(accounts) {
+  const lines = [
+    [
+      "nigend",
+      "role",
+      "mot_de_passe_provisoire"
+    ].join(";")
+  ];
+
+  accounts.forEach(account => {
+    lines.push(
+      [
+        escapeCsvValue(account.username),
+        escapeCsvValue(account.role),
+        escapeCsvValue(
+          account.temporaryPassword
+        )
+      ].join(";")
+    );
+  });
+
+  /*
+   * Le caractère BOM permet à Excel et Calc
+   * de reconnaître correctement les accents.
+   */
+  return "\uFEFF" + lines.join("\r\n");
+}
+
+function createExportFileName() {
+  const now = new Date();
+
+  const year =
+    String(now.getFullYear());
+
+  const month =
+    String(now.getMonth() + 1)
+      .padStart(2, "0");
+
+  const day =
+    String(now.getDate())
+      .padStart(2, "0");
+
+  const hours =
+    String(now.getHours())
+      .padStart(2, "0");
+
+  const minutes =
+    String(now.getMinutes())
+      .padStart(2, "0");
+
+  return (
+    `comptes-ci6-${year}-${month}-${day}` +
+    `-${hours}h${minutes}.csv`
+  );
+}
+
+downloadCredentialsButton.addEventListener(
+  "click",
+  () => {
+    if (!importedAccounts.length) {
+      importMessage.className =
+        "import-error";
+
+      importMessage.textContent =
+        "Aucun mot de passe provisoire n’est disponible.";
+
+      exportImportActions.hidden = true;
+      return;
+    }
+
+    const csvContent =
+      createCredentialsCsv(
+        importedAccounts
+      );
+
+    const blob = new Blob(
+      [csvContent],
+      {
+        type:
+          "text/csv;charset=utf-8"
+      }
+    );
+
+    const downloadUrl =
+      URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download =
+      createExportFileName();
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(downloadUrl);
+
+    downloadCredentialsButton.textContent =
+      "Fichier téléchargé ✓";
+
+    window.setTimeout(() => {
+      downloadCredentialsButton.textContent =
+        "Télécharger à nouveau le fichier";
+    }, 1800);
+  }
+);
 </script>
 </body>
 </html>
