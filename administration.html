@@ -481,6 +481,202 @@
       .account-action-button.change-role.remove-admin:hover {
         background: rgba(185, 100, 30, 0.98);
       }
+      /* Création d’un compte */
+      .create-panel {
+        margin-top: 22px;
+        padding: 24px;
+        border: 1px solid rgba(214, 173, 58, 0.5);
+        border-radius: 13px;
+        background: rgba(8, 10, 12, 0.94);
+      }
+      
+      .panel-heading h2 {
+        margin: 5px 0 22px;
+        color: var(--gold-light);
+      }
+      
+      .create-account-form {
+        margin: 0;
+      }
+      
+      .form-grid {
+        display: grid;
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      
+      .form-field {
+        min-width: 0;
+      }
+      
+      .form-field-wide {
+        grid-column: 1 / -1;
+      }
+      
+      .form-field label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+      }
+      
+      .form-field input,
+      .form-field select {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 13px;
+        color: var(--text);
+        font: inherit;
+        border: 1px solid rgba(214, 173, 58, 0.7);
+        border-radius: 8px;
+        outline: none;
+        background: #020304;
+      }
+      
+      .form-field input:focus,
+      .form-field select:focus {
+        border-color: var(--gold-light);
+        box-shadow:
+          0 0 0 3px rgba(214, 173, 58, 0.14);
+      }
+      
+      .password-entry {
+        position: relative;
+      }
+      
+      .password-entry input {
+        padding-right: 105px;
+      }
+      
+      .show-field-button {
+        position: absolute;
+        top: 5px;
+        right: 6px;
+        width: auto;
+        min-height: 36px;
+        padding: 0 12px;
+        cursor: pointer;
+        color: var(--gold-light);
+        font-weight: 700;
+        border: 1px solid rgba(214, 173, 58, 0.55);
+        border-radius: 6px;
+        background: #111417;
+      }
+      
+      .show-field-button:hover {
+        color: #050607;
+        background: var(--gold-light);
+      }
+      
+      .create-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      
+      .primary-button,
+      .secondary-button {
+        min-height: 44px;
+        padding: 10px 17px;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 800;
+        border-radius: 8px;
+      }
+      
+      .primary-button {
+        color: #090a0b;
+        border: 0;
+        background:
+          linear-gradient(
+            135deg,
+            var(--gold-light),
+            var(--gold)
+          );
+      }
+      
+      .primary-button:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+      
+      .secondary-button {
+        color: #e9f1ff;
+        border: 1px solid rgba(100, 155, 235, 0.75);
+        background: rgba(35, 75, 135, 0.85);
+      }
+      
+      .secondary-button:hover {
+        background: rgba(45, 105, 185, 0.98);
+        transform: translateY(-1px);
+      }
+      
+      .primary-button:disabled,
+      .secondary-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+        transform: none;
+      }
+      
+      .create-success,
+      .create-error,
+      .create-info {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 9px;
+        line-height: 1.5;
+      }
+      
+      .create-success {
+        color: #eaffea;
+        border: 1px solid rgba(70, 190, 100, 0.65);
+        background: rgba(25, 90, 45, 0.3);
+      }
+      
+      .create-error {
+        color: #ffdada;
+        border: 1px solid rgba(255, 90, 90, 0.6);
+        background: rgba(110, 20, 20, 0.3);
+      }
+      
+      .create-info {
+        color: #dcecff;
+        border: 1px solid rgba(80, 145, 220, 0.65);
+        background: rgba(25, 65, 110, 0.28);
+      }
+      
+      .created-password {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 8px 11px;
+        color: #ffffff;
+        font-family: Consolas, "Courier New", monospace;
+        font-weight: 800;
+        border: 1px dashed rgba(244, 215, 122, 0.65);
+        border-radius: 6px;
+        background: #020304;
+      }
+      
+      @media (max-width: 650px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+      
+        .form-field-wide {
+          grid-column: auto;
+        }
+      
+        .create-actions {
+          flex-direction: column;
+        }
+      
+        .primary-button,
+        .secondary-button {
+          width: 100%;
+        }
+      }
+    
   </style>
 </head>
 
@@ -592,6 +788,96 @@
         <div id="actionMessage"></div>
       </article>
     </section>
+    
+    <section class="create-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="small-label">Nouvel utilisateur</span>
+          <h2>Créer un compte</h2>
+        </div>
+      </div>
+    
+      <form id="createAccountForm" class="create-account-form">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="createUsername">
+              Identifiant NIGEND
+            </label>
+    
+            <input
+              id="createUsername"
+              name="username"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              placeholder="6 chiffres"
+              required
+            >
+          </div>
+    
+          <div class="form-field">
+            <label for="createRole">
+              Rôle
+            </label>
+    
+            <select
+              id="createRole"
+              name="role"
+              required
+            >
+              <option value="eleve">Élève</option>
+              <option value="cadre">Cadre</option>
+            </select>
+          </div>
+    
+          <div class="form-field form-field-wide">
+            <label for="createPassword">
+              Mot de passe provisoire
+            </label>
+    
+            <div class="password-entry">
+              <input
+                id="createPassword"
+                name="password"
+                type="password"
+                minlength="12"
+                autocomplete="new-password"
+                required
+              >
+    
+              <button
+                id="showCreatePassword"
+                class="show-field-button"
+                type="button"
+              >
+                Afficher
+              </button>
+            </div>
+          </div>
+        </div>
+
+    <div class="create-actions">
+      <button
+        id="generatePasswordButton"
+        class="secondary-button"
+        type="button"
+      >
+        Générer un mot de passe
+      </button>
+
+      <button
+        id="createAccountButton"
+        class="primary-button"
+        type="submit"
+      >
+        Créer le compte
+      </button>
+    </div>
+  </form>
+
+  <div id="createAccountMessage"></div>
+</section>
     <section class="dashboard">
       <article class="card">
         <div class="icon">👤</div>
@@ -1225,7 +1511,210 @@
     }
   }
 );
-    
+    const createAccountForm =
+  document.getElementById("createAccountForm");
+
+const createUsername =
+  document.getElementById("createUsername");
+
+const createRole =
+  document.getElementById("createRole");
+
+const createPassword =
+  document.getElementById("createPassword");
+
+const createAccountButton =
+  document.getElementById("createAccountButton");
+
+const generatePasswordButton =
+  document.getElementById(
+    "generatePasswordButton"
+  );
+
+const showCreatePassword =
+  document.getElementById("showCreatePassword");
+
+const createAccountMessage =
+  document.getElementById(
+    "createAccountMessage"
+  );
+
+function randomItem(items) {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+
+  return items[values[0] % items.length];
+}
+
+function randomNumber(minimum, maximum) {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+
+  return (
+    minimum +
+    (
+      values[0] %
+      (maximum - minimum + 1)
+    )
+  );
+}
+
+function generateTemporaryPassword() {
+  const firstWords = [
+    "Dragon",
+    "Rempart",
+    "Fanion",
+    "Cobalt",
+    "Rivage",
+    "Sentinelle",
+    "Bastion",
+    "Orage",
+    "Saphir",
+    "Lynx",
+    "Aigle",
+    "Horizon"
+  ];
+
+  const secondWords = [
+    "Vaillant",
+    "Solide",
+    "Rapide",
+    "Argente",
+    "Dore",
+    "Robuste",
+    "Calme",
+    "Fidele",
+    "Brave",
+    "Victoire",
+    "Etoile",
+    "Altitude"
+  ];
+
+  return (
+    randomItem(firstWords) +
+    "-" +
+    randomItem(secondWords) +
+    "-" +
+    randomNumber(10, 99)
+  );
+}
+
+generatePasswordButton.addEventListener(
+  "click",
+  () => {
+    createPassword.value =
+      generateTemporaryPassword();
+
+    createPassword.type = "text";
+    showCreatePassword.textContent = "Masquer";
+    createPassword.focus();
+  }
+);
+
+showCreatePassword.addEventListener(
+  "click",
+  () => {
+    const visible =
+      createPassword.type === "text";
+
+    createPassword.type =
+      visible ? "password" : "text";
+
+    showCreatePassword.textContent =
+      visible ? "Afficher" : "Masquer";
+
+    createPassword.focus();
+  }
+);
+
+createAccountForm.addEventListener(
+  "submit",
+  async event => {
+    event.preventDefault();
+
+    const username =
+      createUsername.value.trim();
+
+    const password =
+      createPassword.value;
+
+    const role =
+      createRole.value;
+
+    createAccountButton.disabled = true;
+    generatePasswordButton.disabled = true;
+
+    createAccountMessage.className =
+      "create-info";
+
+    createAccountMessage.textContent =
+      "Création du compte en cours…";
+
+    try {
+      const response = await fetch(
+        "/admin/create-user",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            username,
+            password,
+            role
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La création du compte a échoué."
+        );
+      }
+
+      createAccountMessage.className =
+        "create-success";
+
+      createAccountMessage.innerHTML = `
+        <strong>✓ Compte créé avec succès</strong><br>
+        Identifiant :
+        <strong>${data.username}</strong><br>
+        Rôle :
+        <strong>
+          ${data.role === "cadre" ? "Cadre" : "Élève"}
+        </strong><br>
+        Mot de passe provisoire :
+        <span class="created-password"></span><br>
+        Le changement sera obligatoire à la première connexion.
+      `;
+
+      createAccountMessage
+        .querySelector(".created-password")
+        .textContent = password;
+
+      createAccountForm.reset();
+      createRole.value = "eleve";
+      createPassword.type = "password";
+      showCreatePassword.textContent = "Afficher";
+      createUsername.focus();
+
+    } catch (error) {
+      createAccountMessage.className =
+        "create-error";
+
+      createAccountMessage.textContent =
+        error.message;
+
+    } finally {
+      createAccountButton.disabled = false;
+      generatePasswordButton.disabled = false;
+    }
+  }
+);
 </script>
 </body>
 </html>
