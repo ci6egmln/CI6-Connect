@@ -291,44 +291,42 @@ async function readValidSession(request, environment) {
         Number(user.must_change_password) === 1
     };
   }
+if (session.type === "collective") {
+  const collectiveSetting =
+    await environment.DB
+      .prepare(`
+        SELECT value
+        FROM settings
+        WHERE key = 'collective_access_enabled'
+        LIMIT 1
+      `)
+      .first();
 
-     if (session.type === "collective") {
-      const collectiveSetting =
-        await environment.DB
-          .prepare(`
-            SELECT value
-            FROM settings
-            WHERE key = 'collective_access_enabled'
-            LIMIT 1
-          `)
-          .first();
-    
-      const collectiveAccessEnabled =
-        collectiveSetting &&
-        String(collectiveSetting.value) === "1";
-    
-      if (!collectiveAccessEnabled) {
-        return null;
-      }
-    
-      const currentVersion =
-        await collectivePasswordVersion(
-          environment.SITE_PASSWORD
-        );
-    
-      if (session.version !== currentVersion) {
-        return null;
-      }
-    
-      return {
-        type: "collective",
-        username:
-          environment.SITE_USERNAME,
-        role: "collective",
-        mustChangePassword: false
-      };
-    }
+  const collectiveAccessEnabled =
+    collectiveSetting &&
+    String(collectiveSetting.value) === "1";
 
+  if (!collectiveAccessEnabled) {
+    return null;
+  }
+
+  const currentVersion =
+    await collectivePasswordVersion(
+      environment.SITE_PASSWORD
+    );
+
+  if (session.version !== currentVersion) {
+    return null;
+  }
+
+  return {
+    type: "collective",
+    username:
+      environment.SITE_USERNAME,
+    role: "collective",
+    mustChangePassword: false
+  };
+}
   return null;
 }
 
@@ -505,15 +503,7 @@ export async function onRequest(context) {
           };
         }
       }
-      sessionData = {
-        type: "collective",
-        version:
-          await collectivePasswordVersion(
-            context.env.SITE_PASSWORD
-          )
-      };
-    }
-
+      
     if (!sessionData) {
       const loginUrl = new URL(
         "/login",
