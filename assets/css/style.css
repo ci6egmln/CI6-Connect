@@ -1256,25 +1256,26 @@ input[type=search]:focus {
 
 /* Bouton Déconnexion */
 .connected-user-logout {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   justify-content: center;
   min-height: 38px;
   padding: 8px 14px;
-  color: #ffdada;
+  color: #ffdada !important;
   font-size: 13px;
   font-weight: 800;
-  text-decoration: none;
+  text-decoration: none !important;
   border: 1px solid rgba(220, 80, 80, 0.72);
   border-radius: 7px;
-  background: rgba(105, 25, 25, 0.72);
+  background: rgba(105, 25, 25, 0.82);
   transition:
     background 0.2s ease,
     transform 0.2s ease;
 }
 
 .connected-user-logout:hover {
-  color: #ffffff;
+  color: #ffffff !important;
+  text-decoration: none !important;
   background: rgba(165, 35, 35, 0.95);
   transform: translateY(-1px);
 }
