@@ -69,18 +69,27 @@
         drop-shadow(0 0 20px rgba(184, 131, 24, 0.35));
     }
     */
-    .login-card > * {
-      position: relative;
-      z-index: 1;
-    }
-    .origami-corner {
+   .origami-corner {
       position: absolute;
       top: 0;
       right: 0;
       width: 74px;
       height: 74px;
-      clip-path: polygon(100% 0, 100% 100%, 0 0);
-      background: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, #6d4808);
+      z-index: 2;
+      pointer-events: none;
+    
+      clip-path: polygon(
+        100% 0,
+        100% 100%,
+        0 0
+      );
+    
+      background: linear-gradient(
+        135deg,
+        var(--gold-light),
+        var(--gold) 55%,
+        #6d4808
+      );
     }
 
     .brand {
@@ -232,10 +241,10 @@
       object-fit: contain;
     }
 
-    .login-card > *:not(.dragon-background) {
+    .login-card > *:not(.dragon-background):not(.origami-corner) {
       position: relative;
       z-index: 1;
-    }
+      }
     .password-field {
   position: relative;
 }
