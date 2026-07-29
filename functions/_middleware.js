@@ -404,21 +404,7 @@ export async function onRequest(context) {
     const response = await context.next();
     return noStoreResponse(response);
   }
- 
-
-  /*
-   * Route administrative de création des comptes.
-   * La fonction reste protégée par ADMIN_SECRET.
-   */
-  if (
-    path === "/admin/create-user" &&
-    request.method === "POST"
-  ) {
-    const response = await context.next();
-    return noStoreResponse(response);
-  }
-
-  /*
+   /*
    * Traitement du formulaire de connexion.
    */
   if (
@@ -568,32 +554,29 @@ if (
      * API d’administration :
      * accès uniquement avec un compte administrateur.
      */
-    if (
-      path.startsWith("/admin/") &&
-      path !== "/admin/create-user"
-    ) {
-      if (
-        session.type !== "user" ||
-        session.role !== "admin"
-      ) {
-        return new Response(
-          JSON.stringify({
-            error: "Accès administrateur requis."
-          }),
-          {
-            status: 403,
-            headers: {
-              "Content-Type":
-                "application/json; charset=utf-8",
-              "Cache-Control": "no-store"
+    if (path.startsWith("/admin/")) {
+        if (
+          session.type !== "user" ||
+          session.role !== "admin"
+        ) {
+          return new Response(
+            JSON.stringify({
+              error: "Accès administrateur requis."
+            }),
+            {
+              status: 403,
+              headers: {
+                "Content-Type":
+                  "application/json; charset=utf-8",
+                "Cache-Control": "no-store"
+              }
             }
-          }
-        );
-      }
-              
-      const response = await context.next();
-      
-      return noStoreResponse(response);
+          );
+        }
+                
+        const response = await context.next();
+        
+        return noStoreResponse(response);
       }
 
   let formData;
