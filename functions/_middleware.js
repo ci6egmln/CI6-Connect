@@ -257,10 +257,6 @@ async function readValidSession(request, environment) {
     return null;
   }
 
-  /*
-   * Session individuelle :
-   * vérification du compte et de sa version de session.
-   */
   if (session.type === "user") {
     const user = await environment.DB
       .prepare(`
@@ -296,9 +292,6 @@ async function readValidSession(request, environment) {
     };
   }
 
-  /*
-   * Accès collectif provisoire.
-   */
   if (session.type === "collective") {
     const currentVersion =
       await collectivePasswordVersion(
@@ -390,10 +383,7 @@ export async function onRequest(context) {
       }
     );
   }
-  /*
-   * La page de connexion et ses images
-   * doivent rester accessibles avant connexion.
-   */
+
   if (
     (
       path === "/login" ||
@@ -404,9 +394,7 @@ export async function onRequest(context) {
     const response = await context.next();
     return noStoreResponse(response);
   }
-   /*
-   * Traitement du formulaire de connexion.
-   */
+
   if (
     path === "/login" &&
     request.method === "POST"
@@ -434,9 +422,6 @@ export async function onRequest(context) {
 
     let sessionData = null;
 
-    /*
-     * 1. Recherche d’un compte individuel dans D1.
-     */
     if (/^\d{6}$/.test(username)) {
       const user = await context.env.DB
         .prepare(`
@@ -470,9 +455,6 @@ export async function onRequest(context) {
       }
     }
 
-    /*
-     * 2. Accès collectif conservé temporairement.
-     */
     if (
       !sessionData &&
       context.env.SITE_USERNAME &&
@@ -525,222 +507,142 @@ export async function onRequest(context) {
       }
     );
   }
-/*
- * Enregistrement du nouveau mot de passe personnel.
- */
-if (
-  path === "/change-password" &&
-  request.method === "POST"
-) {
-  const session = await readValidSession(
-    request,
-    context.env
-  );
 
-  if (!session || session.type !== "user") {
-    return redirectResponse(
+  if (
+    path === "/change-password" &&
+    request.method === "POST"
+  ) {
+    const session = await readValidSession(
       request,
-      "/login?error=1",
-      303,
-      {
-        "Set-Cookie":
-          `${COOKIE_NAME}=; ` +
-          "Path=/; Max-Age=0; " +
-          "HttpOnly; Secure; SameSite=Lax"
-      }
+      context.env
     );
-  }
-  if (path === "/me" && request.method === "GET") {
-  if (!session) {
-    return new Response(
-      JSON.stringify({
-        authenticated: false
-      }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type":
-            "application/json; charset=utf-8",
-          "Cache-Control": "no-store"
-        }
-      }
-    );
-  }
 
-  let roleLabel = "utilisateur";
-
-  if (session.type === "collective") {
-    roleLabel = "accès collectif";
-  } else if (session.role === "admin") {
-    roleLabel = "administrateur";
-  } else if (session.role === "cadre") {
-    roleLabel = "cadre";
-  } else if (session.role === "eleve") {
-    roleLabel = "élève";
-  }
-
-  return new Response(
-    JSON.stringify({
-      authenticated: true,
-      username:
-        session.username || null,
-      role:
-        session.role || null,
-      roleLabel
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type":
-          "application/json; charset=utf-8",
-        "Cache-Control": "no-store"
-      }
-    }
-  );
-}
-    /*
-     * API d’administration :
-     * accès uniquement avec un compte administrateur.
-     */
-    if (path.startsWith("/admin/")) {
-        if (
-          session.type !== "user" ||
-          session.role !== "admin"
-        ) {
-          return new Response(
-            JSON.stringify({
-              error: "Accès administrateur requis."
-            }),
-            {
-              status: 403,
-              headers: {
-                "Content-Type":
-                  "application/json; charset=utf-8",
-                "Cache-Control": "no-store"
-              }
-            }
-          );
-        }
-                
-        const response = await context.next();
-        
-        return noStoreResponse(response);
-      }
-
-  let formData;
-
-  try {
-    formData = await request.formData();
-  } catch {
-    return redirectResponse(
-      request,
-      "/change-password?error=update"
-    );
-  }
-
-  const newPassword =
-    String(formData.get("newPassword") || "");
-
-  const confirmation =
-    String(formData.get("confirmation") || "");
-
-  if (newPassword.length < 12) {
-    return redirectResponse(
-      request,
-      "/change-password?error=length"
-    );
-  }
-
-  if (newPassword !== confirmation) {
-    return redirectResponse(
-      request,
-      "/change-password?error=mismatch"
-    );
-  }
-
-  try {
-    const salt =
-      crypto.getRandomValues(new Uint8Array(16));
-
-    const passwordHash =
-      await hashPassword(newPassword, salt);
-
-    await context.env.DB
-      .prepare(`
-        UPDATE users
-        SET
-          password_hash = ?,
-          password_salt = ?,
-          must_change_password = 0,
-          session_version = session_version + 1,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE username = ?
-          AND active = 1
-      `)
-      .bind(
-        passwordHash,
-        bytesToBase64(salt),
-        session.username
-      )
-      .run();
-
-    const updatedUser = await context.env.DB
-      .prepare(`
-        SELECT
-          username,
-          role,
-          active,
-          session_version
-        FROM users
-        WHERE username = ?
-        LIMIT 1
-      `)
-      .bind(session.username)
-      .first();
-
-    if (
-      !updatedUser ||
-      Number(updatedUser.active) !== 1
-    ) {
+    if (!session || session.type !== "user") {
       return redirectResponse(
         request,
-        "/login?error=1"
+        "/login?error=1",
+        303,
+        {
+          "Set-Cookie":
+            `${COOKIE_NAME}=; ` +
+            "Path=/; Max-Age=0; " +
+            "HttpOnly; Secure; SameSite=Lax"
+        }
       );
     }
 
-    const token = await createSessionToken(
-      context.env,
-      {
-        type: "user",
-        username: updatedUser.username,
-        role: updatedUser.role,
-        session_version:
-          Number(updatedUser.session_version)
-      }
-    );
+    let formData;
 
-    return redirectResponse(
-      request,
-      "/",
-      303,
-      {
-        "Set-Cookie":
-          `${COOKIE_NAME}=${token}; ` +
-          `Path=/; ` +
-          `Max-Age=${SESSION_DURATION}; ` +
-          "HttpOnly; Secure; SameSite=Lax"
+    try {
+      formData = await request.formData();
+    } catch {
+      return redirectResponse(
+        request,
+        "/change-password?error=update"
+      );
+    }
+
+    const newPassword =
+      String(formData.get("newPassword") || "");
+
+    const confirmation =
+      String(formData.get("confirmation") || "");
+
+    if (newPassword.length < 12) {
+      return redirectResponse(
+        request,
+        "/change-password?error=length"
+      );
+    }
+
+    if (newPassword !== confirmation) {
+      return redirectResponse(
+        request,
+        "/change-password?error=mismatch"
+      );
+    }
+
+    try {
+      const salt =
+        crypto.getRandomValues(new Uint8Array(16));
+
+      const passwordHash =
+        await hashPassword(newPassword, salt);
+
+      await context.env.DB
+        .prepare(`
+          UPDATE users
+          SET
+            password_hash = ?,
+            password_salt = ?,
+            must_change_password = 0,
+            session_version = session_version + 1,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE username = ?
+            AND active = 1
+        `)
+        .bind(
+          passwordHash,
+          bytesToBase64(salt),
+          session.username
+        )
+        .run();
+
+      const updatedUser = await context.env.DB
+        .prepare(`
+          SELECT
+            username,
+            role,
+            active,
+            session_version
+          FROM users
+          WHERE username = ?
+          LIMIT 1
+        `)
+        .bind(session.username)
+        .first();
+
+      if (
+        !updatedUser ||
+        Number(updatedUser.active) !== 1
+      ) {
+        return redirectResponse(
+          request,
+          "/login?error=1"
+        );
       }
-    );
-  } catch {
-    return redirectResponse(
-      request,
-      "/change-password?error=update"
-    );
+
+      const token = await createSessionToken(
+        context.env,
+        {
+          type: "user",
+          username: updatedUser.username,
+          role: updatedUser.role,
+          session_version:
+            Number(updatedUser.session_version)
+        }
+      );
+
+      return redirectResponse(
+        request,
+        "/",
+        303,
+        {
+          "Set-Cookie":
+            `${COOKIE_NAME}=${token}; ` +
+            `Path=/; ` +
+            `Max-Age=${SESSION_DURATION}; ` +
+            "HttpOnly; Secure; SameSite=Lax"
+        }
+      );
+    } catch {
+      return redirectResponse(
+        request,
+        "/change-password?error=update"
+      );
+    }
   }
-}
-  /*
-   * Déconnexion.
-   */
+
   if (path === "/logout") {
     return redirectResponse(
       request,
@@ -755,9 +657,6 @@ if (
     );
   }
 
-  /*
-   * Vérification de la session avant tout autre accès.
-   */
   const session = await readValidSession(
     request,
     context.env
@@ -784,10 +683,66 @@ if (
       302
     );
   }
-  /*
-   * Un utilisateur utilisant encore son mot de passe provisoire
-   * ne peut consulter que la page de changement de mot de passe.
-   */
+
+  if (
+    (path === "/me" || path === "/me/") &&
+    request.method === "GET"
+  ) {
+    let roleLabel = "utilisateur";
+
+    if (session.type === "collective") {
+      roleLabel = "accès collectif";
+    } else if (session.role === "admin") {
+      roleLabel = "administrateur";
+    } else if (session.role === "cadre") {
+      roleLabel = "cadre";
+    } else if (session.role === "eleve") {
+      roleLabel = "élève";
+    }
+
+    return new Response(
+      JSON.stringify({
+        authenticated: true,
+        username: session.username || null,
+        role: session.role || null,
+        type: session.type || null,
+        roleLabel
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type":
+            "application/json; charset=utf-8",
+          "Cache-Control": "private, no-store"
+        }
+      }
+    );
+  }
+
+  if (path.startsWith("/admin/")) {
+    if (
+      session.type !== "user" ||
+      session.role !== "admin"
+    ) {
+      return new Response(
+        JSON.stringify({
+          error: "Accès administrateur requis."
+        }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type":
+              "application/json; charset=utf-8",
+            "Cache-Control": "no-store"
+          }
+        }
+      );
+    }
+
+    const response = await context.next();
+    return noStoreResponse(response);
+  }
+
   if (
     session.type === "user" &&
     session.mustChangePassword
@@ -800,16 +755,13 @@ if (
       return noStoreResponse(response);
     }
 
-  return redirectResponse(
-    request,
-    "/change-password",
-    302
-  );
-}
+    return redirectResponse(
+      request,
+      "/change-password",
+      302
+    );
+  }
 
-  /*
-   * Une fois le mot de passe modifié, la page n’est plus utile.
-   */
   if (
     path === "/change-password" &&
     request.method === "GET"
@@ -818,36 +770,34 @@ if (
       request,
       "/",
       302
-  );
-}
-  /*
- * Espace réservé aux administrateurs.
- */
-if (
-  path === "/administration" &&
-  request.method === "GET"
-) {
-  if (
-    session.type !== "user" ||
-    session.role !== "admin"
-  ) {
-    return new Response(
-      "Accès réservé aux administrateurs.",
-      {
-        status: 403,
-        headers: {
-          "Content-Type":
-            "text/plain; charset=utf-8",
-          "Cache-Control": "no-store"
-        }
-      }
     );
   }
 
-  const response = await context.next();
-  return noStoreResponse(response);
-}
-  const response = await context.next();
+  if (
+    path === "/administration" &&
+    request.method === "GET"
+  ) {
+    if (
+      session.type !== "user" ||
+      session.role !== "admin"
+    ) {
+      return new Response(
+        "Accès réservé aux administrateurs.",
+        {
+          status: 403,
+          headers: {
+            "Content-Type":
+              "text/plain; charset=utf-8",
+            "Cache-Control": "no-store"
+          }
+        }
+      );
+    }
 
+    const response = await context.next();
+    return noStoreResponse(response);
+  }
+
+  const response = await context.next();
   return noStoreResponse(response);
 }
