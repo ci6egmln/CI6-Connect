@@ -506,14 +506,20 @@ backBtn.addEventListener("click", () => {
     }, "", location.pathname), setHomeView();
 }), searchInput && searchInput.addEventListener("input", event => renderCards(event.target.value)), 
 window.addEventListener("popstate", openFromHash), renderCards(), openFromHash();
+
 async function displayConnectedUser() {
+  if (document.querySelector(".connected-user")) {
+    return;
+  }
+
   try {
     const response = await fetch("/me", {
       method: "GET",
       headers: {
         "Accept": "application/json"
       },
-      cache: "no-store"
+      cache: "no-store",
+      credentials: "same-origin"
     });
 
     if (!response.ok) {
@@ -532,17 +538,26 @@ async function displayConnectedUser() {
     connectedBox.className =
       "connected-user";
 
+    const identity =
+      document.createElement("div");
+
+    identity.className =
+      "connected-user-identity";
+
     const sentence =
       document.createElement("span");
+
+    sentence.className =
+      "connected-user-role";
 
     sentence.textContent =
       `Vous êtes connecté en tant que ${data.roleLabel}.`;
 
-    connectedBox.appendChild(sentence);
+    identity.appendChild(sentence);
 
     if (
       data.username &&
-      data.roleLabel !== "accès collectif"
+      data.type !== "collective"
     ) {
       const identifier =
         document.createElement("span");
@@ -553,7 +568,31 @@ async function displayConnectedUser() {
       identifier.textContent =
         `Compte : ${data.username}`;
 
-      connectedBox.appendChild(identifier);
+      identity.appendChild(identifier);
+    }
+
+    connectedBox.appendChild(identity);
+
+    /*
+     * Bouton visible uniquement
+     * pour un administrateur.
+     */
+    if (data.role === "admin") {
+      const administrationLink =
+        document.createElement("a");
+
+      administrationLink.href =
+        "/administration";
+
+      administrationLink.className =
+        "connected-user-admin";
+
+      administrationLink.textContent =
+        "Administration";
+
+      connectedBox.appendChild(
+        administrationLink
+      );
     }
 
     const main =
@@ -573,7 +612,12 @@ async function displayConnectedUser() {
   }
 }
 
-document.addEventListener(
-  "DOMContentLoaded",
-  displayConnectedUser
-);
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    displayConnectedUser,
+    { once: true }
+  );
+} else {
+  displayConnectedUser();
+}
