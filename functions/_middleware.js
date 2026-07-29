@@ -292,23 +292,42 @@ async function readValidSession(request, environment) {
     };
   }
 
-  if (session.type === "collective") {
-    const currentVersion =
-      await collectivePasswordVersion(
-        environment.SITE_PASSWORD
-      );
-
-    if (session.version !== currentVersion) {
-      return null;
+     if (session.type === "collective") {
+      const collectiveSetting =
+        await environment.DB
+          .prepare(`
+            SELECT value
+            FROM settings
+            WHERE key = 'collective_access_enabled'
+            LIMIT 1
+          `)
+          .first();
+    
+      const collectiveAccessEnabled =
+        collectiveSetting &&
+        String(collectiveSetting.value) === "1";
+    
+      if (!collectiveAccessEnabled) {
+        return null;
+      }
+    
+      const currentVersion =
+        await collectivePasswordVersion(
+          environment.SITE_PASSWORD
+        );
+    
+      if (session.version !== currentVersion) {
+        return null;
+      }
+    
+      return {
+        type: "collective",
+        username:
+          environment.SITE_USERNAME,
+        role: "collective",
+        mustChangePassword: false
+      };
     }
-
-    return {
-      type: "collective",
-      username: environment.SITE_USERNAME,
-      role: "collective",
-      mustChangePassword: false
-    };
-  }
 
   return null;
 }
@@ -455,13 +474,37 @@ export async function onRequest(context) {
       }
     }
 
-    if (
-      !sessionData &&
-      context.env.SITE_USERNAME &&
-      context.env.SITE_PASSWORD &&
-      username === context.env.SITE_USERNAME &&
-      password === context.env.SITE_PASSWORD
-    ) {
+      if (
+        !sessionData &&
+        context.env.SITE_USERNAME &&
+        context.env.SITE_PASSWORD &&
+        username === context.env.SITE_USERNAME &&
+        password === context.env.SITE_PASSWORD
+      ) {
+        const collectiveSetting =
+          await context.env.DB
+            .prepare(`
+              SELECT value
+              FROM settings
+              WHERE key = 'collective_access_enabled'
+              LIMIT 1
+            `)
+            .first();
+      
+        const collectiveAccessEnabled =
+          collectiveSetting &&
+          String(collectiveSetting.value) === "1";
+      
+        if (collectiveAccessEnabled) {
+          sessionData = {
+            type: "collective",
+            version:
+              await collectivePasswordVersion(
+                context.env.SITE_PASSWORD
+              )
+          };
+        }
+      }
       sessionData = {
         type: "collective",
         version:
