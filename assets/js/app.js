@@ -572,29 +572,57 @@ async function displayConnectedUser() {
     }
 
     connectedBox.appendChild(identity);
+const connectedActions =
+  document.createElement("div");
 
+connectedActions.className =
+  "connected-user-actions";
+      
     /*
-     * Bouton visible uniquement
-     * pour un administrateur.
+     * Bouton Administration
+     * uniquement pour un administrateur.
      */
     if (data.role === "admin") {
       const administrationLink =
         document.createElement("a");
-
+    
       administrationLink.href =
         "/administration";
-
+    
       administrationLink.className =
         "connected-user-admin";
-
+    
       administrationLink.textContent =
         "Administration";
-
-      connectedBox.appendChild(
+    
+      connectedActions.appendChild(
         administrationLink
       );
     }
-
+    
+    /*
+     * Bouton Déconnexion
+     * visible pour tous les comptes.
+     */
+    const logoutLink =
+      document.createElement("a");
+    
+    logoutLink.href = "/logout";
+    
+    logoutLink.className =
+      "connected-user-logout";
+    
+    logoutLink.textContent =
+      "Déconnexion";
+    
+    connectedActions.appendChild(
+      logoutLink
+    );
+    
+    connectedBox.appendChild(
+      connectedActions
+    );
+  
     const main =
       document.querySelector("main");
 
