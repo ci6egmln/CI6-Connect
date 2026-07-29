@@ -506,3 +506,74 @@ backBtn.addEventListener("click", () => {
     }, "", location.pathname), setHomeView();
 }), searchInput && searchInput.addEventListener("input", event => renderCards(event.target.value)), 
 window.addEventListener("popstate", openFromHash), renderCards(), openFromHash();
+async function displayConnectedUser() {
+  try {
+    const response = await fetch("/me", {
+      method: "GET",
+      headers: {
+        "Accept": "application/json"
+      },
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
+    const data = await response.json();
+
+    if (!data.authenticated) {
+      return;
+    }
+
+    const connectedBox =
+      document.createElement("div");
+
+    connectedBox.className =
+      "connected-user";
+
+    const sentence =
+      document.createElement("span");
+
+    sentence.textContent =
+      `Vous êtes connecté en tant que ${data.roleLabel}.`;
+
+    connectedBox.appendChild(sentence);
+
+    if (
+      data.username &&
+      data.roleLabel !== "accès collectif"
+    ) {
+      const identifier =
+        document.createElement("span");
+
+      identifier.className =
+        "connected-user-identifier";
+
+      identifier.textContent =
+        `Compte : ${data.username}`;
+
+      connectedBox.appendChild(identifier);
+    }
+
+    const main =
+      document.querySelector("main");
+
+    if (main) {
+      main.prepend(connectedBox);
+    } else {
+      document.body.prepend(connectedBox);
+    }
+
+  } catch (error) {
+    console.error(
+      "Impossible d’afficher le statut de connexion.",
+      error
+    );
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  displayConnectedUser
+);
