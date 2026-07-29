@@ -1199,59 +1199,7 @@
     <div id="actionMessage"></div>
       </article>
     </section>
-    <section class="collective-access-panel">
-  <div class="collective-access-header">
-    <div>
-      <span class="small-label">
-        Connexion provisoire
-      </span>
-
-      <h2>Accès collectif</h2>
-    </div>
-
-    <span
-      id="collectiveAccessStatus"
-      class="collective-status collective-status-loading"
-    >
-      Vérification…
-    </span>
-  </div>
-
-  <p class="collective-access-description">
-    Cet accès utilise l’identifiant et le mot de passe
-    communs. Sa désactivation ne touche pas les comptes
-    individuels des élèves, cadres et administrateurs.
-  </p>
-
-  <dl class="collective-access-details">
-    <div>
-      <dt>État actuel</dt>
-      <dd id="collectiveAccessState">
-        Chargement…
-      </dd>
-    </div>
-
-    <div>
-      <dt>Dernière modification</dt>
-      <dd id="collectiveAccessUpdatedAt">
-        —
-      </dd>
-    </div>
-  </dl>
-
-  <div class="collective-access-actions">
-    <button
-      id="toggleCollectiveAccessButton"
-      class="collective-access-button"
-      type="button"
-      disabled
-    >
-      Chargement…
-    </button>
-  </div>
-
-  <div id="collectiveAccessMessage"></div>
-</section>
+    
     <section class="create-panel">
       <div class="panel-heading">
         <div>
@@ -1466,7 +1414,59 @@
 
   <div id="importMessage"></div>
 </section>
-    
+    <section class="collective-access-panel">
+    <div class="collective-access-header">
+      <div>
+        <span class="small-label">
+          Connexion provisoire
+        </span>
+  
+        <h2>Accès collectif</h2>
+      </div>
+  
+      <span
+        id="collectiveAccessStatus"
+        class="collective-status collective-status-loading"
+      >
+        Vérification…
+      </span>
+    </div>
+  
+    <p class="collective-access-description">
+      Cet accès utilise l’identifiant et le mot de passe
+      communs. Sa désactivation ne touche pas les comptes
+      individuels des élèves, cadres et administrateurs.
+    </p>
+  
+    <dl class="collective-access-details">
+      <div>
+        <dt>État actuel</dt>
+        <dd id="collectiveAccessState">
+          Chargement…
+        </dd>
+      </div>
+  
+      <div>
+        <dt>Dernière modification</dt>
+        <dd id="collectiveAccessUpdatedAt">
+          —
+        </dd>
+      </div>
+    </dl>
+  
+    <div class="collective-access-actions">
+      <button
+        id="toggleCollectiveAccessButton"
+        class="collective-access-button"
+        type="button"
+        disabled
+      >
+        Chargement…
+      </button>
+    </div>
+  
+    <div id="collectiveAccessMessage"></div>
+  </section>
   </main>
   <script>
   const searchForm =
