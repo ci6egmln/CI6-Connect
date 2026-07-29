@@ -1173,7 +1173,10 @@ input[type=search]:focus {
   background: #f4d77a;
 }
 /* Utilisateur connecté */
-/* Bandeau de l’utilisateur connecté */
+/* ==========================================================
+   BANDEAU DE CONNEXION
+   ========================================================== */
+
 .connected-user {
   display: flex;
   flex-wrap: wrap;
@@ -1209,10 +1212,17 @@ input[type=search]:focus {
   font-weight: 700;
 }
 
-/* Bouton réservé aux administrateurs */
+/* Zone des boutons */
+.connected-user-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Bouton Administration */
 .connected-user-admin {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   min-height: 38px;
@@ -1244,6 +1254,37 @@ input[type=search]:focus {
   outline-offset: 3px;
 }
 
+/* Bouton Déconnexion */
+.connected-user-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 14px;
+  color: #ffdada;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid rgba(220, 80, 80, 0.72);
+  border-radius: 7px;
+  background: rgba(105, 25, 25, 0.72);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.connected-user-logout:hover {
+  color: #ffffff;
+  background: rgba(165, 35, 35, 0.95);
+  transform: translateY(-1px);
+}
+
+.connected-user-logout:focus-visible {
+  outline: 3px solid rgba(255, 120, 120, 0.35);
+  outline-offset: 3px;
+}
+
+/* Affichage sur téléphone */
 @media (max-width: 600px) {
   .connected-user {
     align-items: stretch;
@@ -1256,7 +1297,19 @@ input[type=search]:focus {
     gap: 3px;
   }
 
-  .connected-user-admin {
+  .connected-user-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+  }
+
+  .connected-user-admin,
+  .connected-user-logout {
+    width: 100%;
+  }
+
+  .connected-user-actions
+    .connected-user-logout:only-child {
+    grid-column: 1 / -1;
   }
 }
