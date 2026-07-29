@@ -541,19 +541,19 @@ async function displayConnectedUser() {
     const identity =
       document.createElement("div");
 
-    identity.className =
-      "connected-user-identity";
+        identity.className =
+          "connected-user-identity";
 
     const sentence =
       document.createElement("span");
 
-    sentence.className =
-      "connected-user-role";
-
-    sentence.textContent =
-      `Vous êtes connecté en tant que ${data.roleLabel}.`;
-
-    identity.appendChild(sentence);
+        sentence.className =
+          "connected-user-role";
+    
+        sentence.textContent =
+          `Vous êtes connecté en tant que ${data.roleLabel}.`;
+    
+        identity.appendChild(sentence);
 
     if (
       data.username &&
@@ -605,18 +605,18 @@ connectedActions.className =
      * visible pour tous les comptes.
      */
     const logoutLink =
-      document.createElement("a");
-    
-    logoutLink.href = "/logout";
-    
-    logoutLink.className =
-      "connected-user-logout";
-    
-    logoutLink.textContent =
-      "Déconnexion";
-    
-    connectedActions.appendChild(
-      logoutLink
+          document.createElement("a");
+        
+        logoutLink.href = "/logout";
+        
+        logoutLink.className =
+          "connected-user-logout";
+        
+        logoutLink.textContent =
+          "Déconnexion";
+        
+        connectedActions.appendChild(
+          logoutLink
     );
     
     connectedBox.appendChild(
