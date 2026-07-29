@@ -46,27 +46,10 @@ function jsonResponse(data, status = 200) {
 
 export async function onRequestPost(context) {
   try {
-    if (!context.env.ADMIN_SECRET) {
-      return jsonResponse(
-        { error: "ADMIN_SECRET absent." },
-        500
-      );
-    }
-
     if (!context.env.DB) {
       return jsonResponse(
         { error: "Liaison D1 DB absente." },
         500
-      );
-    }
-
-    const suppliedSecret =
-      context.request.headers.get("X-Admin-Secret");
-
-    if (suppliedSecret !== context.env.ADMIN_SECRET) {
-      return jsonResponse(
-        { error: "Secret administrateur incorrect." },
-        403
       );
     }
 
