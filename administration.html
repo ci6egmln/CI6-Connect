@@ -676,7 +676,183 @@
           width: 100%;
         }
       }
-    
+    /* Import CSV */
+.import-panel {
+  margin-top: 22px;
+  padding: 24px;
+  border: 1px solid rgba(214, 173, 58, 0.5);
+  border-radius: 13px;
+  background: rgba(8, 10, 12, 0.94);
+}
+
+.import-description {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.csv-example {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  color: var(--gold-light);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: #020304;
+}
+
+.csv-example code {
+  font-family:
+    Consolas,
+    "Courier New",
+    monospace;
+}
+
+.import-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.import-field input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  color: var(--text);
+  font: inherit;
+  border: 1px solid rgba(214, 173, 58, 0.65);
+  border-radius: 8px;
+  background: #020304;
+}
+
+.csv-preview {
+  margin-top: 20px;
+}
+
+.csv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin-bottom: 12px;
+}
+
+#csvValidCount {
+  color: #9ee5ad;
+}
+
+#csvErrorCount {
+  color: #ffb3b3;
+}
+
+.csv-table-wrapper {
+  max-height: 340px;
+  overflow: auto;
+  border: 1px solid rgba(214, 173, 58, 0.35);
+  border-radius: 8px;
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.csv-table th,
+.csv-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
+}
+
+.csv-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--gold-light);
+  background: #101316;
+}
+
+.csv-line-valid {
+  color: #9ee5ad;
+}
+
+.csv-line-error {
+  color: #ffb3b3;
+}
+
+.import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.import-progress {
+  margin-top: 20px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #020304;
+}
+
+.progress-bar {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      var(--gold),
+      var(--gold-light)
+    );
+  transition: width 0.25s ease;
+}
+
+#importProgressText {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.import-success,
+.import-error {
+  margin-top: 18px;
+  padding: 15px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.import-success {
+  color: #eaffea;
+  border: 1px solid rgba(70, 190, 100, 0.65);
+  background: rgba(25, 90, 45, 0.3);
+}
+
+.import-error {
+  color: #ffdada;
+  border: 1px solid rgba(255, 90, 90, 0.6);
+  background: rgba(110, 20, 20, 0.3);
+}
+
+@media (max-width: 650px) {
+  .import-panel {
+    padding: 18px;
+  }
+
+  .import-actions {
+    flex-direction: column;
+  }
+
+  .import-actions button {
+    width: 100%;
+  }
+}
   </style>
 </head>
 
@@ -877,6 +1053,113 @@
   </form>
 
   <div id="createAccountMessage"></div>
+</section>
+    <section class="import-panel">
+  <div class="panel-heading">
+    <div>
+      <span class="small-label">
+        Promotion complète
+      </span>
+
+      <h2>Importer des comptes CSV</h2>
+    </div>
+  </div>
+
+  <p class="import-description">
+    Le fichier doit contenir deux colonnes :
+    <strong>nigend</strong> et
+    <strong>role</strong>.
+    Les rôles acceptés sont
+    <strong>eleve</strong> et
+    <strong>cadre</strong>.
+  </p>
+
+  <div class="csv-example">
+    <code>nigend;role</code>
+    <code>123456;eleve</code>
+    <code>123457;cadre</code>
+  </div>
+
+  <div class="import-field">
+    <label for="csvFile">
+      Sélectionner le fichier CSV
+    </label>
+
+    <input
+      id="csvFile"
+      type="file"
+      accept=".csv,text/csv"
+    >
+  </div>
+
+  <div
+    id="csvPreview"
+    class="csv-preview"
+    hidden
+  >
+    <div class="csv-summary">
+      <strong id="csvValidCount">
+        0 compte valide
+      </strong>
+
+      <span id="csvErrorCount">
+        0 erreur
+      </span>
+    </div>
+
+    <div class="csv-table-wrapper">
+      <table class="csv-table">
+        <thead>
+          <tr>
+            <th>Ligne</th>
+            <th>NIGEND</th>
+            <th>Rôle</th>
+            <th>Contrôle</th>
+          </tr>
+        </thead>
+
+        <tbody id="csvPreviewBody"></tbody>
+      </table>
+    </div>
+
+    <div class="import-actions">
+      <button
+        id="cancelImportButton"
+        class="secondary-button"
+        type="button"
+      >
+        Annuler
+      </button>
+
+      <button
+        id="startImportButton"
+        class="primary-button"
+        type="button"
+        disabled
+      >
+        Importer les comptes
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="importProgress"
+    class="import-progress"
+    hidden
+  >
+    <div class="progress-track">
+      <div
+        id="importProgressBar"
+        class="progress-bar"
+      ></div>
+    </div>
+
+    <p id="importProgressText">
+      Préparation de l’import…
+    </p>
+  </div>
+
+  <div id="importMessage"></div>
 </section>
     <section class="dashboard">
       <article class="card">
@@ -1715,6 +1998,449 @@ createAccountForm.addEventListener(
     }
   }
 );
+   const csvFile =
+  document.getElementById("csvFile");
+
+const csvPreview =
+  document.getElementById("csvPreview");
+
+const csvPreviewBody =
+  document.getElementById("csvPreviewBody");
+
+const csvValidCount =
+  document.getElementById("csvValidCount");
+
+const csvErrorCount =
+  document.getElementById("csvErrorCount");
+
+const startImportButton =
+  document.getElementById("startImportButton");
+
+const cancelImportButton =
+  document.getElementById("cancelImportButton");
+
+const importProgress =
+  document.getElementById("importProgress");
+
+const importProgressBar =
+  document.getElementById("importProgressBar");
+
+const importProgressText =
+  document.getElementById("importProgressText");
+
+const importMessage =
+  document.getElementById("importMessage");
+
+let parsedCsvUsers = [];
+let importedAccounts = [];
+
+function normalizeCsvRole(value) {
+  const role = String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (role === "élève") {
+    return "eleve";
+  }
+
+  return role;
+}
+
+function detectSeparator(firstLine) {
+  const semicolons =
+    (firstLine.match(/;/g) || []).length;
+
+  const commas =
+    (firstLine.match(/,/g) || []).length;
+
+  return semicolons >= commas ? ";" : ",";
+}
+
+function parseCsvLine(line, separator) {
+  const values = [];
+  let currentValue = "";
+  let quoted = false;
+
+  for (let index = 0; index < line.length; index++) {
+    const character = line[index];
+
+    if (character === '"') {
+      if (
+        quoted &&
+        line[index + 1] === '"'
+      ) {
+        currentValue += '"';
+        index++;
+      } else {
+        quoted = !quoted;
+      }
+
+      continue;
+    }
+
+    if (
+      character === separator &&
+      !quoted
+    ) {
+      values.push(currentValue.trim());
+      currentValue = "";
+      continue;
+    }
+
+    currentValue += character;
+  }
+
+  values.push(currentValue.trim());
+
+  return values;
+}
+
+function resetCsvImport() {
+  parsedCsvUsers = [];
+  importedAccounts = [];
+
+  csvFile.value = "";
+  csvPreview.hidden = true;
+  csvPreviewBody.innerHTML = "";
+
+  startImportButton.disabled = true;
+
+  importProgress.hidden = true;
+  importProgressBar.style.width = "0%";
+  importProgressText.textContent =
+    "Préparation de l’import…";
+
+  importMessage.className = "";
+  importMessage.textContent = "";
+}
+
+csvFile.addEventListener(
+  "change",
+  async () => {
+    const file = csvFile.files[0];
+
+    if (!file) {
+      resetCsvImport();
+      return;
+    }
+
+    importMessage.className = "";
+    importMessage.textContent = "";
+
+    let text;
+
+    try {
+      text = await file.text();
+    } catch {
+      importMessage.className =
+        "import-error";
+
+      importMessage.textContent =
+        "Le fichier n’a pas pu être lu.";
+
+      return;
+    }
+
+    text = text
+      .replace(/^\uFEFF/, "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n");
+
+    const lines = text
+      .split("\n")
+      .filter(line => line.trim() !== "");
+
+    if (lines.length < 2) {
+      importMessage.className =
+        "import-error";
+
+      importMessage.textContent =
+        "Le fichier ne contient aucun compte.";
+
+      return;
+    }
+
+    const separator =
+      detectSeparator(lines[0]);
+
+    const headers =
+      parseCsvLine(lines[0], separator)
+        .map(header =>
+          header
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+        );
+
+    const usernameIndex =
+      headers.findIndex(header =>
+        [
+          "nigend",
+          "identifiant",
+          "username"
+        ].includes(header)
+      );
+
+    const roleIndex =
+      headers.findIndex(header =>
+        [
+          "role",
+          "statut"
+        ].includes(header)
+      );
+
+    if (
+      usernameIndex === -1 ||
+      roleIndex === -1
+    ) {
+      importMessage.className =
+        "import-error";
+
+      importMessage.textContent =
+        "Les colonnes nigend et role sont obligatoires.";
+
+      csvPreview.hidden = true;
+      return;
+    }
+
+    const seenUsernames = new Set();
+
+    parsedCsvUsers =
+      lines.slice(1).map((line, index) => {
+        const columns =
+          parseCsvLine(line, separator);
+
+        const username =
+          String(
+            columns[usernameIndex] || ""
+          ).trim();
+
+        const role =
+          normalizeCsvRole(
+            columns[roleIndex]
+          );
+
+        const errors = [];
+
+        if (!/^\d{6}$/.test(username)) {
+          errors.push(
+            "NIGEND invalide"
+          );
+        }
+
+        if (
+          role !== "eleve" &&
+          role !== "cadre"
+        ) {
+          errors.push(
+            "Rôle invalide"
+          );
+        }
+
+        if (
+          username &&
+          seenUsernames.has(username)
+        ) {
+          errors.push(
+            "NIGEND en double"
+          );
+        }
+
+        if (username) {
+          seenUsernames.add(username);
+        }
+
+        return {
+          username,
+          role,
+          lineNumber: index + 2,
+          errors
+        };
+      });
+
+    const validUsers =
+      parsedCsvUsers.filter(
+        user => user.errors.length === 0
+      );
+
+    const invalidUsers =
+      parsedCsvUsers.filter(
+        user => user.errors.length > 0
+      );
+
+    csvPreviewBody.innerHTML =
+      parsedCsvUsers.map(user => `
+        <tr>
+          <td>${user.lineNumber}</td>
+          <td>${user.username || "—"}</td>
+          <td>${user.role || "—"}</td>
+          <td class="${
+            user.errors.length
+              ? "csv-line-error"
+              : "csv-line-valid"
+          }">
+            ${
+              user.errors.length
+                ? user.errors.join(", ")
+                : "Valide"
+            }
+          </td>
+        </tr>
+      `).join("");
+
+    csvValidCount.textContent =
+      `${validUsers.length} compte${
+        validUsers.length > 1 ? "s" : ""
+      } valide${
+        validUsers.length > 1 ? "s" : ""
+      }`;
+
+    csvErrorCount.textContent =
+      `${invalidUsers.length} erreur${
+        invalidUsers.length > 1 ? "s" : ""
+      }`;
+
+    csvPreview.hidden = false;
+
+    startImportButton.disabled =
+      validUsers.length === 0 ||
+      invalidUsers.length > 0;
+  }
+);
+
+cancelImportButton.addEventListener(
+  "click",
+  resetCsvImport
+);
+
+startImportButton.addEventListener(
+  "click",
+  async () => {
+    const validUsers =
+      parsedCsvUsers.filter(
+        user => user.errors.length === 0
+      );
+
+    if (!validUsers.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Importer ${validUsers.length} compte(s) ?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    startImportButton.disabled = true;
+    cancelImportButton.disabled = true;
+    csvFile.disabled = true;
+
+    importMessage.className = "";
+    importMessage.textContent = "";
+
+    importProgress.hidden = false;
+    importedAccounts = [];
+
+    const existingAccounts = [];
+    const batchSize = 10;
+
+    try {
+      for (
+        let start = 0;
+        start < validUsers.length;
+        start += batchSize
+      ) {
+        const batch =
+          validUsers.slice(
+            start,
+            start + batchSize
+          );
+
+        const response = await fetch(
+          "/admin/import-users",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+              "Accept":
+                "application/json"
+            },
+            body: JSON.stringify({
+              users: batch
+            })
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "Un lot n’a pas pu être importé."
+          );
+        }
+
+        importedAccounts.push(
+          ...data.created
+        );
+
+        existingAccounts.push(
+          ...data.existing
+        );
+
+        const processed =
+          Math.min(
+            start + batch.length,
+            validUsers.length
+          );
+
+        const percentage =
+          Math.round(
+            processed /
+            validUsers.length *
+            100
+          );
+
+        importProgressBar.style.width =
+          `${percentage}%`;
+
+        importProgressText.textContent =
+          `${processed} compte(s) traité(s) sur ${validUsers.length}`;
+      }
+
+      importMessage.className =
+        "import-success";
+
+      importMessage.innerHTML = `
+        <strong>✓ Import terminé</strong><br>
+        ${importedAccounts.length}
+        compte(s) créé(s).<br>
+        ${existingAccounts.length}
+        compte(s) déjà existant(s).<br><br>
+        Les mots de passe provisoires sont conservés
+        dans cette page jusqu’à son actualisation.
+        L’étape suivante permettra de les exporter.
+      `;
+
+    } catch (error) {
+      importMessage.className =
+        "import-error";
+
+      importMessage.textContent =
+        error.message;
+
+    } finally {
+      cancelImportButton.disabled = false;
+      csvFile.disabled = false;
+    }
+  }
+); 
 </script>
 </body>
 </html>
