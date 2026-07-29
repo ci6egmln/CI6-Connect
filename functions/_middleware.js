@@ -550,6 +550,54 @@ if (
       }
     );
   }
+  if (path === "/me" && request.method === "GET") {
+  if (!session) {
+    return new Response(
+      JSON.stringify({
+        authenticated: false
+      }),
+      {
+        status: 401,
+        headers: {
+          "Content-Type":
+            "application/json; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  }
+
+  let roleLabel = "utilisateur";
+
+  if (session.type === "collective") {
+    roleLabel = "accès collectif";
+  } else if (session.role === "admin") {
+    roleLabel = "administrateur";
+  } else if (session.role === "cadre") {
+    roleLabel = "cadre";
+  } else if (session.role === "eleve") {
+    roleLabel = "élève";
+  }
+
+  return new Response(
+    JSON.stringify({
+      authenticated: true,
+      username:
+        session.username || null,
+      role:
+        session.role || null,
+      roleLabel
+    }),
+    {
+      status: 200,
+      headers: {
+        "Content-Type":
+          "application/json; charset=utf-8",
+        "Cache-Control": "no-store"
+      }
+    }
+  );
+}
     /*
      * API d’administration :
      * accès uniquement avec un compte administrateur.
