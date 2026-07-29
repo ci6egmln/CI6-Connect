@@ -1172,3 +1172,32 @@ input[type=search]:focus {
   color: #050607;
   background: #f4d77a;
 }
+/* Utilisateur connecté */
+.connected-user {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  color: #e9e9e9;
+  font-size: 14px;
+  line-height: 1.4;
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(184, 131, 24, 0.1);
+}
+
+.connected-user-identifier {
+  color: var(--gold-light);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .connected-user {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
