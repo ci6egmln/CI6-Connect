@@ -112,9 +112,9 @@ Le bâtiment est réparti sur quatre niveaux :
 
 À effectif complet, la compagnie compte **120 élèves** et **10 cadres formateurs** : un officier et neuf sous-officiers.
 
-L’unité est commandée par un capitaine, entouré d’un chef secrétaire et d’adjudants d’unité.
+L’unité est commandée par un capitaine, entouré d’une chef secrétaire et d’adjudants d’unité.
 
-Les élèves sont répartis en **trois pelotons de 40 élèves**, placés sous le commandement de sous-officiers du grade de major ou d’adjudant-chef.
+Les élèves sont répartis en **trois pelotons de 40**, placés sous le commandement de sous-officiers du grade de major ou d’adjudant-chef.
 :::
 
 :::galerie
