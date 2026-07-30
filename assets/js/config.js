@@ -21,7 +21,7 @@ window.CI6_RUBRIQUES = [
         title: "Mot du CDU",
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
-		keywords : [ "capitaine", "trouduc"],
+		keywords : [ "capitaine", "accueil", "mot", "bienvenue"],
         content: "content/accueil-cdu.md",
         card: "assets/cards/accueil-cdu.png"
     }, 
@@ -31,6 +31,7 @@ window.CI6_RUBRIQUES = [
         title: "Montluçon, la ville",
         slug: "accueil-montlucon",
         description: "Vivre sa scolarité dans la ville de Montluçon",
+		keywords : [ "Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
         content: "content/accueil-montlucon.md",
         card: "assets/cards/accueil-montlucon.png"
     }, 
@@ -40,6 +41,7 @@ window.CI6_RUBRIQUES = [
         title: "L'école de gendarmerie",
         slug: "accueil-ecole-gendarmerie-montlucon",
         description: "L'école de gendarmerie de Montluçon",
+		keywords : [ "école", "services", "mess", "infirmerie", "bar", "boutique", "vente", "coiffeuse"],
         content: "content/accueil-ecole.md",
         card: "assets/cards/accueil-ecole.png"
     }, 
@@ -49,6 +51,8 @@ window.CI6_RUBRIQUES = [
         title: "La 6ème compagnie",
         slug: "accueil-compagnie",
         description: "La 6ème compagnie d'instruction",
+		keywords : [ "dragon", "noir", "combats", "tu lê", "indochine", "logement", "hébergement"],
+
         content: "content/accueil-compagnie.md",
         card: "assets/cards/accueil-compagnie.png"
     }, 
@@ -58,6 +62,8 @@ window.CI6_RUBRIQUES = [
         title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
+		keywords : [ "matériel", "vêtements", "toilette", "cirage", "chaussure", "valise", "boussole"],
+
         content: "content/accueil-fournitures.md",
         card: "assets/cards/accueil-fournitures.png"
     }, 
@@ -67,6 +73,8 @@ window.CI6_RUBRIQUES = [
         title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
         description: "Comment se rendre à Montluçon",
+		keywords : [ "gare", "train", "voiture", "stationnement", "covoiturage"],
+
         content: "content/accueil-transport.md",
         card: "assets/cards/accueil-transport.png"
     }, 
@@ -76,6 +84,8 @@ window.CI6_RUBRIQUES = [
         title: "Les fonctions et responsabilités",
         slug: "accueil-fournitures",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
+		keywords : [ "tam", "popotier", "magasinier", "secrétaire", "président", "promotion", "commission"],
+
         content: "content/accueil-roles.md",
         card: "assets/cards/accueil-roles.png"
     } ]
@@ -98,6 +108,8 @@ window.CI6_RUBRIQUES = [
   	 title: "1 - Les déplacements",
   	  description: "Les déplacement doivent refléter la discipline militaire par un ordre serré, une attitude exemplaire et une parfaite cohésion.",
  	  slug: "reglement-deplacement",
+		keywords : [ "ordre", "serré", "chant", "pas", "cadence", "deux", "salut"],
+
  	  content: "content/reglement-deplacement.md",
   	  card: "assets/cards/reglement-deplacement.png"
   	  },
@@ -107,6 +119,8 @@ window.CI6_RUBRIQUES = [
   	  title: "2 - Les horaires",
   	  description: "La ponctualité est la première marque de respect.",
  	  slug: "reglement-horaires",
+	  keywords : [ "heure", "lever", "coucher", "etude", "sport", "cours", "repas"],
+
  	  content: "content/reglement-horaires.md",
   	  card: "assets/cards/reglement-horaires.png"
   	  },
@@ -116,6 +130,8 @@ window.CI6_RUBRIQUES = [
           title: "3 - Port de la tenue",
           slug: "reglement-tenue",
           description: "Porter la tenue réglementaire",
+			keywords : [ "51", "53", "31", "32", "11", "13", "treillis", "service courant", "polaire", "survêtement", "coiffure", "calot", "képi", "casquette", "sac noir"],
+
           content: "content/reglement-tenue.md",
           card: "assets/cards/reglement-tenue.png"
     	  },
@@ -125,6 +141,8 @@ window.CI6_RUBRIQUES = [
           title: "4 - Saluer, se présenter",
           slug: "reglement-presentation",
           description: "Le salut militaire est une marque de respect, de discipline et de courtoisie. La présentation est le reflet de votre discipline et de votre professionnalisme.",
+					keywords : [ "salut", "respect", "grade", "bonjour", "garde à vous", "demi tour", "bureau", "téléphone", "civil", "rue", "commerce"],
+
           content: "content/reglement-presentation.md",
           card: "assets/cards/reglement-presentation.png"
     	  },
@@ -134,6 +152,8 @@ window.CI6_RUBRIQUES = [
           title: "5 - Comportement individuel",
           slug: "reglement-comportement",
           description: "Le comportement doit être exemplaire en toutes circonstances, en service comme hors service, en caserne comme à l'extérieur.",
+			  		keywords : [ "comportement", "ville", "rue", "civil", "soirée", "alcool", "discothèque", "one", "grinta", "restaurant"],
+
           content: "content/reglement-comportement.md",
           card: "assets/cards/reglement-comportement.png"
     	  },
@@ -143,6 +163,8 @@ window.CI6_RUBRIQUES = [
           title: "6 - La mixité",
           slug: "reglement-comportement",
           description: "La mixité s'inscrit dans les exigences de la vie collective. Elle nécessite une attitude exemplaire, des propos respectueux et le respect strict des espaces réservés à chacun.",
+			  		keywords : [ "mixité", "sexe", "fille", "femme", "homme", "garcon"],
+
           content: "content/reglement-mixite.md",
           card: "assets/cards/reglement-mixite.png"
     	  },
@@ -152,6 +174,8 @@ window.CI6_RUBRIQUES = [
   		  title: "7 - Utilisation du téléphone",
  		  description: "Un outil utile, jamais une distraction.",
  		  slug: "reglement-telephone",
+					keywords : [ "semaine", "blanche", "téléphone", "remise", "caisse"],
+
 		  content: "content/reglement-telephone.md",
  		  card: "assets/cards/reglement-telephone.png"
 		  }, 
@@ -161,6 +185,8 @@ window.CI6_RUBRIQUES = [
   		  title: "8 - Usage de la cigarette",
  		  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
  		  slug: "reglement-cigarette",
+					keywords : [ "cigarette", "fumeur", "mery", "stand", "mess"],
+
 		  content: "content/reglement-cigarette.md",
  		  card: "assets/cards/reglement-cigarette.png"
 		  } ] 
