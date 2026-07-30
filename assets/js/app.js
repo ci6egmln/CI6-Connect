@@ -6,12 +6,49 @@ function normalizeText(value) {
     return (value || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+function getSearchText(item) {
+  const keywords = Array.isArray(item.keywords)
+    ? item.keywords.join(" ")
+    : "";
+
+  return normalizeText(`
+    ${item.id || ""}
+    ${item.slug || ""}
+    ${item.title || ""}
+    ${item.description || ""}
+    ${keywords}
+  `);
+}
+
+function itemMatchesSearch(item, query) {
+  const normalizedQuery = normalizeText(query).trim();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const searchedWords = normalizedQuery
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const searchText = getSearchText(item);
+
+  return searchedWords.every(word =>
+    searchText.includes(word)
+  );
+}
+
 function getRubriques() {
     return Array.isArray(window.CI6_RUBRIQUES) ? window.CI6_RUBRIQUES : [];
 }
 
 function flattenItems(items = getRubriques()) {
-    return items.flatMap(item => [ item, ...Array.isArray(item.children) ? flattenItems(item.children) : [] ]);
+    return items.flatMap(item => [
+        item,
+        ...(Array.isArray(item.children)
+            ? flattenItems(item.children)
+            : [])
+    ]);
 }
 
 function findItemBySlug(slug) {
@@ -37,14 +74,77 @@ function setDetailView() {
 }
 
 function renderCards(filter = "") {
-    const query = normalizeText(filter), rubriques = getRubriques().filter(item => normalizeText(`${item.id || ""} ${item.title || ""} ${item.description || ""}`).includes(query));
-    grid.innerHTML = rubriques.map(item => `\n    <button class="tile" data-slug="${item.slug}" aria-label="${item.title}">\n      <img class="tile-bg" src="${item.card}" alt="" loading="lazy">\n      <span class="tile-text">\n        <strong>${item.title}</strong>\n        <em>${item.description || ""}</em>\n      </span>\n    </button>\n  `).join(""), 
-    document.querySelectorAll("#cardsGrid .tile").forEach(tile => {
-        tile.addEventListener("click", () => {
-            const item = findItemBySlug(tile.dataset.slug);
-            item && (Array.isArray(item.children) && item.children.length > 0 ? renderChildren(item, !0) : item.content && openContent(item.content, !0));
+    const query = normalizeText(filter).trim();
+
+    const rubriques = query
+        ? flattenItems().filter(item => {
+            const keywords = Array.isArray(item.keywords)
+                ? item.keywords.join(" ")
+                : "";
+
+            const searchableText = normalizeText(`
+                ${item.id || ""}
+                ${item.slug || ""}
+                ${item.title || ""}
+                ${item.description || ""}
+                ${keywords}
+            `);
+
+            const searchedWords = query
+                .split(/\s+/)
+                .filter(Boolean);
+
+            return searchedWords.every(word =>
+                searchableText.includes(word)
+            );
+        })
+        : getRubriques();
+
+    grid.innerHTML = rubriques.map(item => `
+        <button
+            class="tile"
+            data-slug="${item.slug}"
+            aria-label="${item.title}"
+        >
+            <img
+                class="tile-bg"
+                src="${item.card}"
+                alt=""
+                loading="lazy"
+            >
+
+            <span class="tile-text">
+                <strong>${item.title}</strong>
+                <em>${item.description || ""}</em>
+            </span>
+        </button>
+    `).join("");
+
+    document
+        .querySelectorAll("#cardsGrid .tile")
+        .forEach(tile => {
+            tile.addEventListener("click", () => {
+                const item = findItemBySlug(
+                    tile.dataset.slug
+                );
+
+                if (!item) {
+                    return;
+                }
+
+                if (
+                    Array.isArray(item.children) &&
+                    item.children.length > 0
+                ) {
+                    renderChildren(item, true);
+                    return;
+                }
+
+                if (item.content) {
+                    openContent(item.content, true);
+                }
+            });
         });
-    });
 }
 
 function renderChildren(parent, addHistory = !0) {
