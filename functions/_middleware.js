@@ -291,42 +291,43 @@ async function readValidSession(request, environment) {
         Number(user.must_change_password) === 1
     };
   }
-if (session.type === "collective") {
-  const collectiveSetting =
-    await environment.DB
-      .prepare(`
-        SELECT value
-        FROM settings
-        WHERE key = 'collective_access_enabled'
-        LIMIT 1
-      `)
-      .first();
 
-  const collectiveAccessEnabled =
-    collectiveSetting &&
-    String(collectiveSetting.value) === "1";
+  if (session.type === "collective") {
+    const collectiveSetting =
+      await environment.DB
+        .prepare(`
+          SELECT value
+          FROM settings
+          WHERE key = 'collective_access_enabled'
+          LIMIT 1
+        `)
+        .first();
 
-  if (!collectiveAccessEnabled) {
-    return null;
+    const collectiveAccessEnabled =
+      collectiveSetting &&
+      String(collectiveSetting.value) === "1";
+
+    if (!collectiveAccessEnabled) {
+      return null;
+    }
+
+    const currentVersion =
+      await collectivePasswordVersion(
+        environment.SITE_PASSWORD
+      );
+
+    if (session.version !== currentVersion) {
+      return null;
+    }
+
+    return {
+      type: "collective",
+      username: environment.SITE_USERNAME,
+      role: "collective",
+      mustChangePassword: false
+    };
   }
 
-  const currentVersion =
-    await collectivePasswordVersion(
-      environment.SITE_PASSWORD
-    );
-
-  if (session.version !== currentVersion) {
-    return null;
-  }
-
-  return {
-    type: "collective",
-    username:
-      environment.SITE_USERNAME,
-    role: "collective",
-    mustChangePassword: false
-  };
-}
   return null;
 }
 
@@ -692,33 +693,14 @@ export async function onRequest(context) {
   }
 
   const session = await readValidSession(
-  request,
-  context.env
-);
-
-if (!session) {
-  const destination = safeDestination(
-    `${url.pathname}${url.search}`
-  );
-
-  const loginUrl = new URL(
-    "/login",
-    request.url
-  );
-
-  loginUrl.searchParams.set(
-    "next",
-    destination
-  );
-
-  return redirectResponse(
     request,
-    `${loginUrl.pathname}${loginUrl.search}`,
-    302
+    context.env
   );
-}
 
-context.data.session = session;
+  if (!session) {
+    const destination = safeDestination(
+      `${url.pathname}${url.search}`
+    );
 
     const loginUrl = new URL(
       "/login",
@@ -737,6 +719,10 @@ context.data.session = session;
     );
   }
 
+  /*
+   * Rend la session validée accessible
+   * aux Functions exécutées après le middleware.
+   */
   context.data.session = session;
 
   if (
