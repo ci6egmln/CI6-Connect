@@ -21,7 +21,7 @@ window.CI6_RUBRIQUES = [
         title: "Mot du CDU",
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
-		keywords : [ "capitaine", "accueil", "mot", "bienvenue"],
+		keywords : ["capitaine", "accueil", "mot", "bienvenue"],
         content: "content/accueil-cdu.md",
         card: "assets/cards/accueil-cdu.png"
     }, 
@@ -31,7 +31,7 @@ window.CI6_RUBRIQUES = [
         title: "Montluçon, la ville",
         slug: "accueil-montlucon",
         description: "Vivre sa scolarité dans la ville de Montluçon",
-		keywords : [ "Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
+		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
         content: "content/accueil-montlucon.md",
         card: "assets/cards/accueil-montlucon.png"
     }, 
@@ -41,7 +41,7 @@ window.CI6_RUBRIQUES = [
         title: "L'école de gendarmerie",
         slug: "accueil-ecole-gendarmerie-montlucon",
         description: "L'école de gendarmerie de Montluçon",
-		keywords : [ "école", "services", "mess", "infirmerie", "bar", "boutique", "vente", "coiffeuse"],
+		keywords : ["école", "services", "mess", "infirmerie", "bar", "boutique", "vente", "coiffeuse"],
         content: "content/accueil-ecole.md",
         card: "assets/cards/accueil-ecole.png"
     }, 
@@ -51,7 +51,7 @@ window.CI6_RUBRIQUES = [
         title: "La 6ème compagnie",
         slug: "accueil-compagnie",
         description: "La 6ème compagnie d'instruction",
-		keywords : [ "dragon", "noir", "combats", "tu lê", "indochine", "logement", "hébergement"],
+		keywords : ["dragon", "noir", "combats", "tu lê", "indochine", "logement", "hébergement"],
 
         content: "content/accueil-compagnie.md",
         card: "assets/cards/accueil-compagnie.png"
@@ -62,7 +62,7 @@ window.CI6_RUBRIQUES = [
         title: "Que doit-on apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
-		keywords : [ "matériel", "vêtements", "toilette", "cirage", "chaussure", "valise", "boussole"],
+		keywords : ["matériel", "vêtements", "toilette", "cirage", "chaussure", "valise", "boussole"],
 
         content: "content/accueil-fournitures.md",
         card: "assets/cards/accueil-fournitures.png"
@@ -73,7 +73,7 @@ window.CI6_RUBRIQUES = [
         title: "Comment se rendre à Montluçon ?",
         slug: "accueil-transports",
         description: "Comment se rendre à Montluçon",
-		keywords : [ "gare", "train", "voiture", "stationnement", "covoiturage"],
+		keywords : ["gare", "train", "voiture", "stationnement", "covoiturage"],
 
         content: "content/accueil-transport.md",
         card: "assets/cards/accueil-transport.png"
@@ -84,7 +84,7 @@ window.CI6_RUBRIQUES = [
         title: "Les fonctions et responsabilités",
         slug: "accueil-fournitures",
         description: "Les responsabilités ne se subissent pas, elles se prennent. Être volontaire, c'est choisir de servir avant de se servir.",
-		keywords : [ "tam", "popotier", "magasinier", "secrétaire", "président", "promotion", "commission"],
+		keywords : ["tam", "popotier", "magasinier", "secrétaire", "président", "promotion", "commission"],
 
         content: "content/accueil-roles.md",
         card: "assets/cards/accueil-roles.png"
@@ -108,7 +108,7 @@ window.CI6_RUBRIQUES = [
   	 title: "1 - Les déplacements",
   	  description: "Les déplacement doivent refléter la discipline militaire par un ordre serré, une attitude exemplaire et une parfaite cohésion.",
  	  slug: "reglement-deplacement",
-		keywords : [ "ordre", "serré", "chant", "pas", "cadence", "deux", "salut"],
+		keywords : ["ordre", "serré", "chant", "pas", "cadence", "deux", "salut"],
 
  	  content: "content/reglement-deplacement.md",
   	  card: "assets/cards/reglement-deplacement.png"
@@ -119,7 +119,7 @@ window.CI6_RUBRIQUES = [
   	  title: "2 - Les horaires",
   	  description: "La ponctualité est la première marque de respect.",
  	  slug: "reglement-horaires",
-	  keywords : [ "heure", "lever", "coucher", "etude", "sport", "cours", "repas"],
+	  keywords : ["heure", "lever", "coucher", "etude", "sport", "cours", "repas"],
 
  	  content: "content/reglement-horaires.md",
   	  card: "assets/cards/reglement-horaires.png"
@@ -130,7 +130,7 @@ window.CI6_RUBRIQUES = [
           title: "3 - Port de la tenue",
           slug: "reglement-tenue",
           description: "Porter la tenue réglementaire",
-			keywords : [ "51", "53", "31", "32", "11", "13", "treillis", "service courant", "polaire", "survêtement", "coiffure", "calot", "képi", "casquette", "sac noir"],
+			keywords : ["51", "53", "31", "32", "11", "13", "treillis", "service courant", "polaire", "survêtement", "coiffure", "calot", "képi", "casquette", "sac noir"],
 
           content: "content/reglement-tenue.md",
           card: "assets/cards/reglement-tenue.png"
@@ -141,7 +141,7 @@ window.CI6_RUBRIQUES = [
           title: "4 - Saluer, se présenter",
           slug: "reglement-presentation",
           description: "Le salut militaire est une marque de respect, de discipline et de courtoisie. La présentation est le reflet de votre discipline et de votre professionnalisme.",
-					keywords : [ "salut", "respect", "grade", "bonjour", "garde à vous", "demi tour", "bureau", "téléphone", "civil", "rue", "commerce"],
+					keywords : ["salut", "respect", "grade", "bonjour", "garde à vous", "demi tour", "bureau", "téléphone", "civil", "rue", "commerce"],
 
           content: "content/reglement-presentation.md",
           card: "assets/cards/reglement-presentation.png"
@@ -152,7 +152,7 @@ window.CI6_RUBRIQUES = [
           title: "5 - Comportement individuel",
           slug: "reglement-comportement",
           description: "Le comportement doit être exemplaire en toutes circonstances, en service comme hors service, en caserne comme à l'extérieur.",
-			  		keywords : [ "comportement", "ville", "rue", "civil", "soirée", "alcool", "discothèque", "one", "grinta", "restaurant"],
+			  		keywords : ["comportement", "ville", "rue", "civil", "soirée", "alcool", "discothèque", "one", "grinta", "restaurant"],
 
           content: "content/reglement-comportement.md",
           card: "assets/cards/reglement-comportement.png"
@@ -163,7 +163,7 @@ window.CI6_RUBRIQUES = [
           title: "6 - La mixité",
           slug: "reglement-comportement",
           description: "La mixité s'inscrit dans les exigences de la vie collective. Elle nécessite une attitude exemplaire, des propos respectueux et le respect strict des espaces réservés à chacun.",
-			  		keywords : [ "mixité", "sexe", "fille", "femme", "homme", "garcon"],
+			  		keywords : ["mixité", "sexe", "fille", "femme", "homme", "garcon"],
 
           content: "content/reglement-mixite.md",
           card: "assets/cards/reglement-mixite.png"
@@ -174,7 +174,7 @@ window.CI6_RUBRIQUES = [
   		  title: "7 - Utilisation du téléphone",
  		  description: "Un outil utile, jamais une distraction.",
  		  slug: "reglement-telephone",
-					keywords : [ "semaine", "blanche", "téléphone", "remise", "caisse"],
+					keywords : ["semaine", "blanche", "téléphone", "remise", "caisse"],
 
 		  content: "content/reglement-telephone.md",
  		  card: "assets/cards/reglement-telephone.png"
@@ -185,7 +185,7 @@ window.CI6_RUBRIQUES = [
   		  title: "8 - Usage de la cigarette",
  		  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
  		  slug: "reglement-cigarette",
-					keywords : [ "cigarette", "fumeur", "mery", "stand", "mess"],
+					keywords : ["cigarette", "fumeur", "mery", "stand", "mess"],
 
 		  content: "content/reglement-cigarette.md",
  		  card: "assets/cards/reglement-cigarette.png"
@@ -207,7 +207,7 @@ window.CI6_RUBRIQUES = [
         title: "Usage des locaux, circulation",
         slug: "locaux-usage-circulation",
         description: "Usage des locaux et circulation",
-					keywords : [ "locaux", "compagnie", "module", "chambre", "bureau", "douche", "sanitaire", "silence", "extinction", "feux"],
+					keywords : ["locaux", "compagnie", "module", "chambre", "bureau", "douche", "sanitaire", "silence", "extinction", "feux"],
 
         content: "content/locaux-circulation.md",
         card: "assets/cards/locaux-circulation.png"
@@ -218,7 +218,7 @@ window.CI6_RUBRIQUES = [
         title: "Travaux d'intérêt général",
         slug: "locaux-tig",
         description: "Entretenir son lieu de vie.",
-					keywords : [ "tig", "produit", "entretien", "seau", "serpillère", "balais", "extérieur", "véhicule", "carburant", "lavage"],
+					keywords : ["tig", "produit", "entretien", "seau", "serpillère", "balais", "extérieur", "véhicule", "carburant", "lavage"],
 
         content: "content/locaux-tig.md",
         card: "assets/cards/locaux-tig.png"
@@ -242,7 +242,7 @@ window.CI6_RUBRIQUES = [
         title: "Service du mess",
         slug: "cercle-mixte-mess",
         description: "La restauration au quotidien.",
-					keywords : [ "mess", "carte", "pass", "horaire", "chaine", "repas", "plateau"],
+					keywords : ["mess", "carte", "pass", "horaire", "chaine", "repas", "plateau"],
 
         content: "content/cercle-mess.md",
         card: "assets/cards/cercle-mess.png"
@@ -253,7 +253,7 @@ window.CI6_RUBRIQUES = [
         title: "Espace détente",
         slug: "cercle-mixte-bar-detente",
         description: "Lieu de détente et de cohésion.",
-					keywords : [ "bar", "jeux", "game", "zone", "billard", "babyfoot", "alcool", "soft", "cigarette", "telephone"],
+					keywords : ["bar", "jeux", "game", "zone", "billard", "babyfoot", "alcool", "soft", "cigarette", "telephone"],
 
         content: "content/cercle-detente.md",
         card: "assets/cards/cercle-detente.png"
@@ -264,7 +264,7 @@ window.CI6_RUBRIQUES = [
         title: "Salon de coiffure",
         slug: "cercle-mixte-coiffure",
         description: "Un service de coiffure adapté aux exigences de l'école.",
-			keywords : [ "coiffeuse", "salon", "coiffure", "coupe", "tarif", "réglementaire", "dégradé", "cheveux"],
+			keywords : ["coiffeuse", "salon", "coiffure", "coupe", "tarif", "réglementaire", "dégradé", "cheveux"],
 			
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
@@ -275,7 +275,7 @@ window.CI6_RUBRIQUES = [
         title: "Comptoir des ventes",
         slug: "cercle-comptoir-vente",
         description: "La boutique de l'école, tenues, nécessaires, cadeaux.",
-			keywords : [ "comptoir", "vente", "bimbeloterie", "achat", "matériel", "vetement", "chaussure", "dentifrice", "toilette", "cadeau"],
+			keywords : ["comptoir", "vente", "bimbeloterie", "achat", "matériel", "vetement", "chaussure", "dentifrice", "toilette", "cadeau"],
         content: "content/cercle-comptoir.md",
         card: "assets/cards/cercle-comptoir.png"
     },
@@ -285,7 +285,7 @@ window.CI6_RUBRIQUES = [
         title: "Hôtel Couletot",
         slug: "cercle-hotel",
         description: "Un hébergement pratique pour vos familles et visiteurs.",
-			keywords : [ "hotel", "reservation", "chambre", "famille", "visiteurs", "petit déjeuner"],
+			keywords : ["hotel", "reservation", "chambre", "famille", "visiteurs", "petit déjeuner"],
         content: "content/cercle-hotel.md",
         card: "assets/cards/cercle-hotel.png"
     } ]
@@ -306,7 +306,7 @@ window.CI6_RUBRIQUES = [
         title: "Hygiène",
         slug: "collectivite-hygiene",
         description: "L'hygiène est essentielle en collectivité",
-			keywords : [ "hygine", "toilette", "douche", "odeur", "sale", "rasage", "raser", "entretien", "rangement"],
+			keywords : ["hygine", "toilette", "douche", "odeur", "sale", "rasage", "raser", "entretien", "rangement"],
         content: "content/collectivite-hygiene.md",
         card: "assets/cards/collectivite-hygiene.png"
     }, 
@@ -316,7 +316,7 @@ window.CI6_RUBRIQUES = [
         title: "Respect d'autrui",
         slug: "collectivite-respect",
         description: "Favoriser une cohabitation harmonieuse entre camarades.",
-			keywords : [ "respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "alcool", "soft", "cigarette", "telephone"],
+			keywords : ["respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "alcool", "soft", "cigarette", "telephone"],
         content: "content/collectivite-respect.md",
         card: "assets/cards/collectivite-respect.png"
     },
@@ -326,7 +326,7 @@ window.CI6_RUBRIQUES = [
         title: "Silence",
         slug: "collectivite-silence-extinction-feux",
         description: "Le silence est une marque de considération envers tous.",
-			keywords : [ "respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "heures ouvrables", "bureau"],
+			keywords : ["respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "heures ouvrables", "bureau"],
 
         content: "content/collectivite-silence.md",
         card: "assets/cards/collectivite-silence.png"
@@ -348,7 +348,7 @@ window.CI6_RUBRIQUES = [
         title: "Individuel",
         slug: "materiel-individuel",
         description: "Perception et entretien du matériel individuel fourni par la compagnie",
-			keywords : [ "matériel", "perception", "entretien", "musette", "sac", "treillis", "déclassé", "brelage", "duvet", "sac de couchage"],
+			keywords : ["matériel", "perception", "entretien", "musette", "sac", "treillis", "déclassé", "brelage", "duvet", "sac de couchage"],
 
         content: "content/materiel-individuel.md",
         card: "assets/cards/materiel-individuel.png"
@@ -359,7 +359,7 @@ window.CI6_RUBRIQUES = [
         title: "matériel et armement compagnie",
         slug: "materiel-armement",
         description: "Perception et entretien de l'armement individuel ou collectif de la compagnie.",
-			keywords : [ "armement", "PA", "sig pro", "famas", "hk", "pistolet", "pack", "entretien", "armurerie", "tam"],
+			keywords : ["armement", "PA", "sig pro", "famas", "hk", "pistolet", "pack", "entretien", "armurerie", "tam"],
 
         content: "content/materiel-armement.md",
         card: "assets/cards/materiel-armement.png"
@@ -370,7 +370,7 @@ window.CI6_RUBRIQUES = [
         title: "matériel en prêt pour l'instruction",
         slug: "materiel-pret",
         description: "Perception et entretien de l'armement individuel ou collectif prêté par les services.",
-			keywords : [ "perception", "materiel", "bache", "famas", "sac F1"],
+			keywords : ["perception", "materiel", "bache", "famas", "sac F1"],
 
         content: "content/materiel-pret.md",
         card: "assets/cards/materiel-pret.png"
@@ -381,7 +381,7 @@ window.CI6_RUBRIQUES = [
         title: "matériel demandé par les sections",
         slug: "materiel-section",
         description: "Connaître le matériel à emporter pour les cours donnés par les sections",
-			keywords : [ "matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", "cadre de permanence"],
+			keywords : ["matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", "cadre de permanence"],
 
         content: "content/materiel-section.md",
         card: "assets/cards/materiel-section.png"
@@ -403,7 +403,7 @@ window.CI6_RUBRIQUES = [
         title: "Etude et révision au quotidien.",
         slug: "formation-etude",
         description: "Organiser son temps de révision",
-						keywords : [ "etude", "sport", "horaire", "entrainement physique"],
+						keywords : ["etude", "sport", "horaire", "entrainement physique"],
 
         content: "content/formation-etude.md",
         card: "assets/cards/formation-etude.png"
@@ -414,7 +414,7 @@ window.CI6_RUBRIQUES = [
         title: "Réussir sa formation",
         slug: "formation-reussir",
         description: "Que faire pour réussir au mieux sa formation",
-				keywords : [ "etude", "revision", "preparation", "cours", "volontaire", "mise en situation", "mes", "pratique", "livre", "book"],
+				keywords : ["etude", "revision", "preparation", "cours", "volontaire", "mise en situation", "mes", "pratique", "livre", "book"],
 
         content: "content/formation-reussir.md",
         card: "assets/cards/formation-reussir.png"
@@ -425,7 +425,7 @@ window.CI6_RUBRIQUES = [
         title: "Entraînement physique",
         slug: "formation-entrainement-physique",
         description: "S'entraîner pour ne pas subir",
-				keywords : [ "sport", "entrainement", "pompes", "gainage", "traction", "corde", "bareme", "3 km", "8 km", "PO", "parcours d'obstacle"],
+				keywords : ["sport", "entrainement", "pompes", "gainage", "traction", "corde", "bareme", "3 km", "8 km", "PO", "parcours d'obstacle"],
 
         content: "content/formation-sport.md",
         card: "assets/cards/formation-sport.png"
@@ -436,7 +436,7 @@ window.CI6_RUBRIQUES = [
         title: "Programme et examens.",
         slug: "formation-examen",
         description: "Que faire pour réussir au mieux sa formation",
-				keywords : [ "programme", "examen", "prog", "programmation", "coefficients", "notes", "bareme", "cours", "échéance", "phase"],
+				keywords : ["programme", "examen", "prog", "programmation", "coefficients", "notes", "bareme", "cours", "échéance", "phase"],
 
         content: "content/formation-examen.md",
         card: "assets/cards/formation-examen.png"
@@ -458,7 +458,7 @@ window.CI6_RUBRIQUES = [
         title: "Les cadres de la compagnie",
         slug: "vh-cadres",
         description: "Connaître le rôle des cadres",
-				keywords : [ "respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
+				keywords : ["respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
 
         content: "content/vh-cadres.md",
         card: "assets/cards/vh-cadres.png"
@@ -469,7 +469,7 @@ window.CI6_RUBRIQUES = [
         title: "Voie hiérarchique",
         slug: "vh-voie-hierarchique",
         description: "Connaître l'organisation hiérarchique de la compagnie",
-				keywords : [ "hiérarchie", "dialogue", "interlocuteur", "voie", "vh"],
+				keywords : ["hiérarchie", "dialogue", "interlocuteur", "voie", "vh"],
 
         content: "content/vh-vh.md",
         card: "assets/cards/vh-vh.png"
@@ -480,7 +480,7 @@ window.CI6_RUBRIQUES = [
         title: "Compte rendu",
         slug: "vh-compte-rendu-cr",
         description: "Savoir rendre compte",
-				keywords : [ "rendre compte", "écrits", "manuscrit", "format", "marges", "forme", "fond", "sanction", "felicitation", "accident"],
+				keywords : ["rendre compte", "écrits", "manuscrit", "format", "marges", "forme", "fond", "sanction", "felicitation", "accident"],
 
         content: "content/vh-cr.md",
         card: "assets/cards/vh-cr.png"
@@ -502,7 +502,7 @@ window.CI6_RUBRIQUES = [
         title: "Armement et matériel sensible",
         slug: "securite-armement",
         description: "Les règles de sécurité des l'armement",
-				keywords : [ "stockage", "PA", "sig pro", "famas", "hk", "armement", "pack", "entretien", "armurerie", "tam"],
+				keywords : ["stockage", "PA", "sig pro", "famas", "hk", "armement", "pack", "entretien", "armurerie", "tam"],
 
         content: "content/securite-armement.md",
         card: "assets/cards/securite-armement.png"
@@ -513,7 +513,7 @@ window.CI6_RUBRIQUES = [
         title: "Systèmes d'information",
         slug: "securite-ssi",
         description: "Les règles de sécurité des systèmes d'information",
-				keywords : [ "sécurité", "système", "informatique", "carte professionnelle", "mot de passe", "neogend", "ubiquity", "confidentialite", "cle usb", "reseau"],
+				keywords : ["sécurité", "système", "informatique", "carte professionnelle", "mot de passe", "neogend", "ubiquity", "confidentialite", "cle usb", "reseau"],
 
         content: "content/securite-ssi.md",
         card: "assets/cards/securite-ssi.png"
@@ -524,7 +524,7 @@ window.CI6_RUBRIQUES = [
         title: "Branchements électriques",
         slug: "securite-appareils",
         description: "Connaître les règles de sécurité électrique",
-				keywords : [ "branchement", "appareil", "electrique", "multiprise", "risque", "incendie"],
+				keywords : ["branchement", "appareil", "electrique", "multiprise", "risque", "incendie"],
 
         content: "content/securite-appareils.md",
         card: "assets/cards/securite-appareils.png"
@@ -535,7 +535,7 @@ window.CI6_RUBRIQUES = [
         title: "Sécurité incendie",
         slug: "securite-incendie",
         description: "Savoir utiliser le SSI de la compagnie",
-				keywords : [ "ssi", "alarme", "voyant", "detecteur", "controle"],
+				keywords : ["ssi", "alarme", "voyant", "detecteur", "controle"],
 
         content: "content/securite-incendie.md",
         card: "assets/cards/securite-incendie.png"
@@ -546,7 +546,7 @@ window.CI6_RUBRIQUES = [
         title: "Évacuation incendie",
         slug: "securite-evacuation",
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
-				keywords : [ "ssi", "alarme", "voyant", "detecteur", "controle", "evacuation", "serre file", "vehicule", "appel", "fiche T"],
+				keywords : ["ssi", "alarme", "voyant", "detecteur", "controle", "evacuation", "serre file", "vehicule", "appel", "fiche T"],
         content: "content/securite-evacuation.md",
         card: "assets/cards/securite-evacuation.png"
     } ]
