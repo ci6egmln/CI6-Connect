@@ -550,6 +550,8 @@ export async function onRequest(context) {
       context.env
     );
 
+    context.data.session = session;
+
     if (!session || session.type !== "user") {
       return redirectResponse(
         request,
