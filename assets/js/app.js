@@ -2,6 +2,135 @@ const grid = document.getElementById("cardsGrid"), searchInput = document.getEle
 
 let currentParent = null;
 
+let activeConsultationId = null;
+let activeConsultationPath = null;
+
+function createConsultationId() {
+  if (
+    window.crypto &&
+    typeof window.crypto.randomUUID === "function"
+  ) {
+    return window.crypto.randomUUID();
+  }
+
+  return (
+    Date.now().toString(36) +
+    "-" +
+    Math.random().toString(36).slice(2) +
+    "-" +
+    Math.random().toString(36).slice(2)
+  );
+}
+
+async function sendConsultationEvent(
+  payload,
+  keepalive = false
+) {
+  try {
+    const response = await fetch(
+      "/api/fiche-consultation",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          "Accept":
+            "application/json"
+        },
+        credentials: "same-origin",
+        cache: "no-store",
+        keepalive,
+        body: JSON.stringify(payload)
+      }
+    );
+
+    if (!response.ok) {
+      console.warn(
+        "Journalisation non enregistrée.",
+        await response.text()
+      );
+    }
+
+    return response.ok;
+
+  } catch (error) {
+    console.warn(
+      "Impossible de journaliser la consultation.",
+      error
+    );
+
+    return false;
+  }
+}
+
+async function openFicheConsultation({
+  path,
+  title,
+  ficheId,
+  version
+}) {
+  /*
+   * Ferme d’abord une éventuelle fiche
+   * déjà ouverte dans l’application.
+   */
+  await closeActiveConsultation();
+
+  const consultationId =
+    createConsultationId();
+
+  activeConsultationId =
+    consultationId;
+
+  activeConsultationPath =
+    path;
+
+  const success =
+    await sendConsultationEvent({
+      action: "open",
+      consultationId,
+      ficheId,
+      ficheTitle: title,
+      fichePath: path,
+      ficheVersion: version || "1",
+      promotion: ""
+    });
+
+  /*
+   * En cas d’échec technique, on ne garde
+   * pas une fausse consultation active.
+   */
+  if (!success) {
+    activeConsultationId = null;
+    activeConsultationPath = null;
+  }
+}
+
+async function closeActiveConsultation(
+  keepalive = false
+) {
+  if (!activeConsultationId) {
+    return;
+  }
+
+  const consultationId =
+    activeConsultationId;
+
+  /*
+   * On vide immédiatement les variables
+   * pour éviter deux fermetures simultanées.
+   */
+  activeConsultationId = null;
+  activeConsultationPath = null;
+
+  await sendConsultationEvent(
+    {
+      action: "close",
+      consultationId
+    },
+    keepalive
+  );
+}
+
 function normalizeText(value) {
     return (value || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -60,10 +189,16 @@ function findItemByContent(path) {
 }
 
 function setHomeView() {
-    currentParent = null, detailView.hidden = !0, homeView.hidden = !1, window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+  closeActiveConsultation();
+
+  currentParent = null;
+  detailView.hidden = true;
+  homeView.hidden = false;
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 function setDetailView() {
@@ -148,6 +283,7 @@ function renderCards(filter = "") {
 }
 
 function renderChildren(parent, addHistory = !0) {
+    closeActiveConsultation();
     currentParent = parent, detailContent.innerHTML = `\n    <section class="subpage-header">\n      <p class="subpage-kicker">Sous-rubriques</p>\n      <h1>${parent.title}</h1>\n      <p>${parent.description || ""}</p>\n    </section>\n\n    <section class="children-grid" aria-label="Sous-rubriques ${parent.title}">\n      ${(parent.children || []).map(child => `\n        <button class="child-nav-tile" data-slug="${child.slug}" aria-label="${child.title}">\n          <img class="child-nav-img" src="${child.card}" alt="" loading="lazy">\n          <span class="child-nav-title">${child.title}</span>\n        </button>\n      `).join("")}\n    </section>\n  `, 
     setDetailView(), document.querySelectorAll(".child-nav-tile").forEach(tile => {
         tile.addEventListener("click", () => {
@@ -561,25 +697,117 @@ function markdownToHtml(markdown) {
     `;
 }
 
-async function openContent(path, addHistory = !0) {
-    currentParent = null;
-    try {
-        const response = await fetch(path, {
-            cache: "no-store"
-        });
-        if (!response.ok) throw new Error("Fiche introuvable : " + path);
-        const markdown = await response.text();
-        detailContent.innerHTML = markdownToHtml(markdown);
-    } catch (error) {
-        console.error(error), detailContent.innerHTML = '\n      <article class="fiche">\n        <section class="fiche-content">\n          <h1>Fiche indisponible</h1>\n          <p>Le contenu de cette fiche n’a pas pu être chargé.</p>\n        </section>\n      </article>\n    ';
+async function openContent(
+  path,
+  addHistory = true
+) {
+  currentParent = null;
+
+  /*
+   * Si une autre fiche est ouverte,
+   * elle est fermée avant le chargement.
+   */
+  if (
+    activeConsultationId &&
+    activeConsultationPath !== path
+  ) {
+    await closeActiveConsultation();
+  }
+
+  try {
+    const response = await fetch(
+      path,
+      {
+        cache: "no-store",
+        credentials: "same-origin"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Fiche introuvable : " + path
+      );
     }
-    if (setDetailView(), addHistory) {
-        const item = findItemByContent(path), hash = item ? item.slug : path.replace("content/", "").replace(".md", "");
-        history.pushState({
-            type: "content",
-            path: path
-        }, "", "#" + hash);
+
+    const markdown =
+      await response.text();
+
+    const parsed =
+      parseFrontMatter(markdown);
+
+    const item =
+      findItemByContent(path);
+
+    const ficheTitle =
+      parsed.meta.title ||
+      item?.title ||
+      path;
+
+    const ficheVersion =
+      parsed.meta.version ||
+      parsed.meta.updated ||
+      "1";
+
+    const ficheId =
+      item?.slug ||
+      path
+        .replace(/^content\//, "")
+        .replace(/\.md$/i, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "-");
+
+    detailContent.innerHTML =
+      markdownToHtml(markdown);
+
+    setDetailView();
+
+    /*
+     * Une ouverture n’est enregistrée
+     * qu’après le chargement réussi.
+     */
+    await openFicheConsultation({
+      path,
+      title: ficheTitle,
+      ficheId,
+      version: ficheVersion
+    });
+
+    if (addHistory) {
+      const hash =
+        item
+          ? item.slug
+          : path
+              .replace("content/", "")
+              .replace(".md", "");
+
+      history.pushState(
+        {
+          type: "content",
+          path
+        },
+        "",
+        "#" + hash
+      );
     }
+
+  } catch (error) {
+    console.error(error);
+
+    await closeActiveConsultation();
+
+    detailContent.innerHTML = `
+      <article class="fiche">
+        <section class="fiche-content">
+          <h1>Fiche indisponible</h1>
+          <p>
+            Le contenu de cette fiche
+            n’a pas pu être chargé.
+          </p>
+        </section>
+      </article>
+    `;
+
+    setDetailView();
+  }
 }
 
 function openFromHash() {
@@ -749,3 +977,10 @@ if (document.readyState === "loading") {
 } else {
   displayConnectedUser();
 }
+
+window.addEventListener(
+  "pagehide",
+  () => {
+    closeActiveConsultation(true);
+  }
+);
