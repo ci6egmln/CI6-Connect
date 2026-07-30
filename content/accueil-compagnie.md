@@ -66,7 +66,7 @@ Autre document | assets/documents/autre-document.pdf
 :::bloc bleu | La 6ème compagnie en symboles | ℹ️
 - notre couleur : le noir
 - notre animal tutélaire : le dragon
-- notre devise : à coeur vaillant, rien d'impossible
+- notre devise : " à coeur vaillant, rien d'impossible "
 :::
 
 :::bloc gris | Code d'honneur du dragon | 📖
