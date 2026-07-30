@@ -207,6 +207,8 @@ window.CI6_RUBRIQUES = [
         title: "Usage des locaux, circulation",
         slug: "locaux-usage-circulation",
         description: "Usage des locaux et circulation",
+					keywords : [ "locaux", "compagnie", "module", "chambre", "bureau", "douche", "sanitaire", "silence", "extinction", "feux"],
+
         content: "content/locaux-circulation.md",
         card: "assets/cards/locaux-circulation.png"
     }, 
@@ -216,6 +218,8 @@ window.CI6_RUBRIQUES = [
         title: "Travaux d'intérêt général",
         slug: "locaux-tig",
         description: "Entretenir son lieu de vie.",
+					keywords : [ "tig", "produit", "entretien", "seau", "serpillère", "balais", "extérieur", "véhicule", "carburant", "lavage"],
+
         content: "content/locaux-tig.md",
         card: "assets/cards/locaux-tig.png"
     } ]
@@ -238,6 +242,8 @@ window.CI6_RUBRIQUES = [
         title: "Service du mess",
         slug: "cercle-mixte-mess",
         description: "La restauration au quotidien.",
+					keywords : [ "mess", "carte", "pass", "horaire", "chaine", "repas", "plateau"],
+
         content: "content/cercle-mess.md",
         card: "assets/cards/cercle-mess.png"
     }, 
@@ -247,6 +253,8 @@ window.CI6_RUBRIQUES = [
         title: "Espace détente",
         slug: "cercle-mixte-bar-detente",
         description: "Lieu de détente et de cohésion.",
+					keywords : [ "bar", "jeux", "game", "zone", "billard", "babyfoot", "alcool", "soft", "cigarette", "telephone"],
+
         content: "content/cercle-detente.md",
         card: "assets/cards/cercle-detente.png"
     },
@@ -256,6 +264,8 @@ window.CI6_RUBRIQUES = [
         title: "Salon de coiffure",
         slug: "cercle-mixte-coiffure",
         description: "Un service de coiffure adapté aux exigences de l'école.",
+			keywords : [ "coiffeuse", "salon", "coiffure", "coupe", "tarif", "réglementaire", "dégradé", "cheveux"],
+			
         content: "content/cercle-coiffeuse.md",
         card: "assets/cards/cercle-coiffeuse.png"
     },
@@ -265,6 +275,7 @@ window.CI6_RUBRIQUES = [
         title: "Comptoir des ventes",
         slug: "cercle-comptoir-vente",
         description: "La boutique de l'école, tenues, nécessaires, cadeaux.",
+			keywords : [ "comptoir", "vente", "bimbeloterie", "achat", "matériel", "vetement", "chaussure", "dentifrice", "toilette", "cadeau"],
         content: "content/cercle-comptoir.md",
         card: "assets/cards/cercle-comptoir.png"
     },
@@ -274,6 +285,7 @@ window.CI6_RUBRIQUES = [
         title: "Hôtel Couletot",
         slug: "cercle-hotel",
         description: "Un hébergement pratique pour vos familles et visiteurs.",
+			keywords : [ "hotel", "reservation", "chambre", "famille", "visiteurs", "petit déjeuner"],
         content: "content/cercle-hotel.md",
         card: "assets/cards/cercle-hotel.png"
     } ]
@@ -294,6 +306,7 @@ window.CI6_RUBRIQUES = [
         title: "Hygiène",
         slug: "collectivite-hygiene",
         description: "L'hygiène est essentielle en collectivité",
+			keywords : [ "hygine", "toilette", "douche", "odeur", "sale", "rasage", "raser", "entretien", "rangement"],
         content: "content/collectivite-hygiene.md",
         card: "assets/cards/collectivite-hygiene.png"
     }, 
@@ -303,6 +316,7 @@ window.CI6_RUBRIQUES = [
         title: "Respect d'autrui",
         slug: "collectivite-respect",
         description: "Favoriser une cohabitation harmonieuse entre camarades.",
+			keywords : [ "respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "alcool", "soft", "cigarette", "telephone"],
         content: "content/collectivite-respect.md",
         card: "assets/cards/collectivite-respect.png"
     },
