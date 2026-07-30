@@ -21,6 +21,7 @@ window.CI6_RUBRIQUES = [
         title: "Mot du CDU",
         slug: "accueil-cdu",
         description: "Mot du commandant de la 6ème compagnie",
+		keywords : [ "capitaine", "trouduc"],
         content: "content/accueil-cdu.md",
         card: "assets/cards/accueil-cdu.png"
     }, 
