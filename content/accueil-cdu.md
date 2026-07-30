@@ -5,7 +5,7 @@ cover: assets/cards/accueil-cdu.png
 quote: "Exigence, bienveillance, autonomie et responsabilité : les quatre valeurs qui guideront votre formation au sein de la 6ᵉ compagnie."
 ---
 
-:::bloc bleu | Mot d'accueil du commandant d'unité | 📢
+:::bloc bleu | Mot d'accueil du commandant d'unité | 📝
 
 ![Capitaine, commandant la 6ème compagnie](assets/photos/accueil-cdu.JPG)
 Tout d’abord, bienvenue à la **6ᵉ compagnie d'instruction** de l'École de gendarmerie de Montluçon, et bienvenue sur **CI6 Connect**.
