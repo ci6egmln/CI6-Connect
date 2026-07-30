@@ -326,6 +326,8 @@ window.CI6_RUBRIQUES = [
         title: "Silence",
         slug: "collectivite-silence-extinction-feux",
         description: "Le silence est une marque de considération envers tous.",
+			keywords : [ "respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "heures ouvrables", "bureau"],
+
         content: "content/collectivite-silence.md",
         card: "assets/cards/collectivite-silence.png"
     } ]
@@ -346,6 +348,8 @@ window.CI6_RUBRIQUES = [
         title: "Individuel",
         slug: "materiel-individuel",
         description: "Perception et entretien du matériel individuel fourni par la compagnie",
+			keywords : [ "matériel", "perception", "entretien", "musette", "sac", "treillis", "déclassé", "brelage", "duvet", "sac de couchage"],
+
         content: "content/materiel-individuel.md",
         card: "assets/cards/materiel-individuel.png"
     }, 
@@ -355,6 +359,8 @@ window.CI6_RUBRIQUES = [
         title: "matériel et armement compagnie",
         slug: "materiel-armement",
         description: "Perception et entretien de l'armement individuel ou collectif de la compagnie.",
+			keywords : [ "armement", "PA", "sig pro", "famas", "hk", "pistolet", "pack", "entretien", "armurerie", "tam"],
+
         content: "content/materiel-armement.md",
         card: "assets/cards/materiel-armement.png"
     },
@@ -364,6 +370,8 @@ window.CI6_RUBRIQUES = [
         title: "matériel en prêt pour l'instruction",
         slug: "materiel-pret",
         description: "Perception et entretien de l'armement individuel ou collectif prêté par les services.",
+			keywords : [ "perception", "materiel", "bache", "famas", "sac F1"],
+
         content: "content/materiel-pret.md",
         card: "assets/cards/materiel-pret.png"
     },
@@ -373,6 +381,8 @@ window.CI6_RUBRIQUES = [
         title: "matériel demandé par les sections",
         slug: "materiel-section",
         description: "Connaître le matériel à emporter pour les cours donnés par les sections",
+			keywords : [ "matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", "cadre de permanence"],
+
         content: "content/materiel-section.md",
         card: "assets/cards/materiel-section.png"
     } ]
@@ -393,6 +403,8 @@ window.CI6_RUBRIQUES = [
         title: "Etude et révision au quotidien.",
         slug: "formation-etude",
         description: "Organiser son temps de révision",
+						keywords : [ "etude", "sport", "horaire", "entrainement physique"],
+
         content: "content/formation-etude.md",
         card: "assets/cards/formation-etude.png"
     }, 
@@ -402,6 +414,8 @@ window.CI6_RUBRIQUES = [
         title: "Réussir sa formation",
         slug: "formation-reussir",
         description: "Que faire pour réussir au mieux sa formation",
+				keywords : [ "etude", "revision", "preparation", "cours", "volontaire", "mise en situation", "mes", "pratique", "livre", "book"],
+
         content: "content/formation-reussir.md",
         card: "assets/cards/formation-reussir.png"
     },
@@ -411,6 +425,8 @@ window.CI6_RUBRIQUES = [
         title: "Entraînement physique",
         slug: "formation-entrainement-physique",
         description: "S'entraîner pour ne pas subir",
+				keywords : [ "sport", "entrainement", "pompes", "gainage", "traction", "corde", "bareme", "3 km", "8 km", "PO", "parcours d'obstacle"],
+
         content: "content/formation-sport.md",
         card: "assets/cards/formation-sport.png"
     },  
@@ -418,8 +434,10 @@ window.CI6_RUBRIQUES = [
 		{
         id: "examen",
         title: "Programme et examens.",
-        slug: "formation-reussir",
+        slug: "formation-examen",
         description: "Que faire pour réussir au mieux sa formation",
+				keywords : [ "programme", "examen", "prog", "programmation", "coefficients", "notes", "bareme", "cours", "échéance", "phase"],
+
         content: "content/formation-examen.md",
         card: "assets/cards/formation-examen.png"
     } ]
@@ -440,6 +458,8 @@ window.CI6_RUBRIQUES = [
         title: "Les cadres de la compagnie",
         slug: "vh-cadres",
         description: "Connaître le rôle des cadres",
+				keywords : [ "respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
+
         content: "content/vh-cadres.md",
         card: "assets/cards/vh-cadres.png"
     }, 
@@ -449,6 +469,8 @@ window.CI6_RUBRIQUES = [
         title: "Voie hiérarchique",
         slug: "vh-voie-hierarchique",
         description: "Connaître l'organisation hiérarchique de la compagnie",
+				keywords : [ "hiérarchie", "dialogue", "interlocuteur", "voie", "vh"],
+
         content: "content/vh-vh.md",
         card: "assets/cards/vh-vh.png"
     },
@@ -458,6 +480,8 @@ window.CI6_RUBRIQUES = [
         title: "Compte rendu",
         slug: "vh-compte-rendu-cr",
         description: "Savoir rendre compte",
+				keywords : [ "rendre compte", "écrits", "manuscrit", "format", "marges", "forme", "fond", "sanction", "felicitation", "accident"],
+
         content: "content/vh-cr.md",
         card: "assets/cards/vh-cr.png"
     } ]
@@ -478,6 +502,8 @@ window.CI6_RUBRIQUES = [
         title: "Armement et matériel sensible",
         slug: "securite-armement",
         description: "Les règles de sécurité des l'armement",
+				keywords : [ "stockage", "PA", "sig pro", "famas", "hk", "armement", "pack", "entretien", "armurerie", "tam"],
+
         content: "content/securite-armement.md",
         card: "assets/cards/securite-armement.png"
     },
@@ -487,6 +513,8 @@ window.CI6_RUBRIQUES = [
         title: "Systèmes d'information",
         slug: "securite-ssi",
         description: "Les règles de sécurité des systèmes d'information",
+				keywords : [ "sécurité", "système", "informatique", "carte professionnelle", "mot de passe", "neogend", "ubiquity", "confidentialite", "cle usb", "reseau"],
+
         content: "content/securite-ssi.md",
         card: "assets/cards/securite-ssi.png"
     },
@@ -496,6 +524,8 @@ window.CI6_RUBRIQUES = [
         title: "Branchements électriques",
         slug: "securite-appareils",
         description: "Connaître les règles de sécurité électrique",
+				keywords : [ "branchement", "appareil", "electrique", "multiprise", "risque", "incendie"],
+
         content: "content/securite-appareils.md",
         card: "assets/cards/securite-appareils.png"
     }, 
@@ -505,6 +535,8 @@ window.CI6_RUBRIQUES = [
         title: "Sécurité incendie",
         slug: "securite-incendie",
         description: "Savoir utiliser le SSI de la compagnie",
+				keywords : [ "ssi", "alarme", "voyant", "detecteur", "controle"],
+
         content: "content/securite-incendie.md",
         card: "assets/cards/securite-incendie.png"
     },
@@ -514,6 +546,7 @@ window.CI6_RUBRIQUES = [
         title: "Évacuation incendie",
         slug: "securite-evacuation",
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
+				keywords : [ "ssi", "alarme", "voyant", "detecteur", "controle", "evacuation", "serre file", "vehicule", "appel", "fiche T"],
         content: "content/securite-evacuation.md",
         card: "assets/cards/securite-evacuation.png"
     } ]
