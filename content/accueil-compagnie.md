@@ -1,7 +1,7 @@
 ---
 title: La 6ème compagnie
 icon: assets/cards/accueil-compagnie.png
-quote: "« Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre. »"
+quote: " Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre. "
 ---
 
 <!-- ===========================================================
