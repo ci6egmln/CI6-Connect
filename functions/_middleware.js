@@ -545,12 +545,11 @@ export async function onRequest(context) {
     path === "/change-password" &&
     request.method === "POST"
   ) {
+   
     const session = await readValidSession(
       request,
       context.env
     );
-
-    context.data.session = session;
 
     if (!session || session.type !== "user") {
       return redirectResponse(
@@ -693,14 +692,33 @@ export async function onRequest(context) {
   }
 
   const session = await readValidSession(
-    request,
-    context.env
+  request,
+  context.env
+);
+
+if (!session) {
+  const destination = safeDestination(
+    `${url.pathname}${url.search}`
   );
 
-  if (!session) {
-    const destination = safeDestination(
-      `${url.pathname}${url.search}`
-    );
+  const loginUrl = new URL(
+    "/login",
+    request.url
+  );
+
+  loginUrl.searchParams.set(
+    "next",
+    destination
+  );
+
+  return redirectResponse(
+    request,
+    `${loginUrl.pathname}${loginUrl.search}`,
+    302
+  );
+}
+
+context.data.session = session;
 
     const loginUrl = new URL(
       "/login",
@@ -718,6 +736,8 @@ export async function onRequest(context) {
       302
     );
   }
+
+  context.data.session = session;
 
   if (
     (path === "/me" || path === "/me/") &&
