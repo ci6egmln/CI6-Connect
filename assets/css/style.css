@@ -1298,3 +1298,73 @@ input[type=search]:focus {
     grid-column: 1 / -1;
   }
 }
+
+/* ==========================================================
+   RANGÉE DES PELOTONS EN BAS DE L’ACCUEIL
+   ========================================================== */
+
+.pelotons-section {
+  width: 100%;
+  margin: 42px 0 10px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(214,173,58,.28);
+}
+
+.pelotons-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 14px;
+  width: min(760px,100%);
+  margin: 0 auto;
+}
+
+.pelotons-grid .peloton-tile {
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 14px !important;
+}
+
+.pelotons-grid .peloton-tile .tile-text {
+  right: 8px !important;
+  bottom: 10px !important;
+  left: 8px !important;
+}
+
+.pelotons-grid .peloton-tile .tile-title,
+.pelotons-grid .peloton-tile .tile-text strong {
+  font-size: clamp(12px,1.5vw,18px) !important;
+}
+
+.pelotons-grid .peloton-tile .tile-description,
+.pelotons-grid .peloton-tile .tile-text em,
+.pelotons-grid .peloton-tile .tile-text strong::after {
+  display: none !important;
+}
+
+@media (max-width:760px) {
+  .pelotons-section {
+    margin-top: 30px;
+    padding-top: 16px;
+  }
+
+  .pelotons-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 8px;
+  }
+
+  .pelotons-grid .peloton-tile {
+    min-width: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  .pelotons-grid .peloton-tile .tile-text {
+    right: 4px !important;
+    bottom: 7px !important;
+    left: 4px !important;
+  }
+
+  .pelotons-grid .peloton-tile .tile-text strong {
+    font-size: clamp(10px,3vw,13px) !important;
+    letter-spacing: .02em !important;
+  }
+}
+
