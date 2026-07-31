@@ -2,6 +2,55 @@ const grid = document.getElementById("cardsGrid"), searchInput = document.getEle
 
 let currentParent = null;
 
+/*
+ * Informations sur la session connectée.
+ * Un administrateur bénéficie aussi de l'affichage cadre.
+ */
+let currentSession = {
+  authenticated: false,
+  username: null,
+  role: null,
+  type: null,
+  roleLabel: ""
+};
+
+function isCadreMode() {
+  return (
+    currentSession.type === "user" &&
+    (
+      currentSession.role === "cadre" ||
+      currentSession.role === "admin"
+    )
+  );
+}
+
+function canAccessRoles(allowedRoles) {
+  if (
+    !Array.isArray(allowedRoles) ||
+    allowedRoles.length === 0
+  ) {
+    return true;
+  }
+
+  if (
+    allowedRoles.includes("cadre") &&
+    isCadreMode()
+  ) {
+    return true;
+  }
+
+  return allowedRoles.includes(
+    currentSession.role
+  );
+}
+
+function isItemVisible(item) {
+  return canAccessRoles(
+    item.effectiveAccess || item.access
+  );
+}
+
+
 let activeConsultationId = null;
 let activeConsultationPath = null;
 
@@ -171,21 +220,41 @@ function getRubriques() {
     return Array.isArray(window.CI6_RUBRIQUES) ? window.CI6_RUBRIQUES : [];
 }
 
-function flattenItems(items = getRubriques()) {
-    return items.flatMap(item => [
-        item,
-        ...(Array.isArray(item.children)
-            ? flattenItems(item.children)
-            : [])
-    ]);
+function flattenItems(
+  items = getRubriques(),
+  inheritedAccess = null
+) {
+  return items.flatMap(item => {
+    const effectiveAccess =
+      Array.isArray(item.access)
+        ? item.access
+        : inheritedAccess;
+
+    const decoratedItem = {
+      ...item,
+      effectiveAccess
+    };
+
+    return [
+      decoratedItem,
+      ...(
+        Array.isArray(item.children)
+          ? flattenItems(
+              item.children,
+              effectiveAccess
+            )
+          : []
+      )
+    ];
+  });
 }
 
 function findItemBySlug(slug) {
-    return flattenItems().find(item => item.slug === slug);
+    return flattenItems().find(item => item.slug === slug && isItemVisible(item));
 }
 
 function findItemByContent(path) {
-    return flattenItems().find(item => item.content === path);
+    return flattenItems().find(item => item.content === path && isItemVisible(item));
 }
 
 function setHomeView() {
@@ -212,7 +281,9 @@ function renderCards(filter = "") {
     const query = normalizeText(filter).trim();
 
     const rubriques = query
-        ? flattenItems().filter(item => {
+        ? flattenItems()
+            .filter(isItemVisible)
+            .filter(item => {
             const keywords = Array.isArray(item.keywords)
                 ? item.keywords.join(" ")
                 : "";
@@ -233,7 +304,7 @@ function renderCards(filter = "") {
                 searchableText.includes(word)
             );
         })
-        : getRubriques();
+        : getRubriques().filter(isItemVisible);
 
     grid.innerHTML = rubriques.map(item => `
         <button
@@ -283,17 +354,100 @@ function renderCards(filter = "") {
 }
 
 function renderChildren(parent, addHistory = !0) {
-    closeActiveConsultation();
-    currentParent = parent, detailContent.innerHTML = `\n    <section class="subpage-header">\n      <p class="subpage-kicker">Sous-rubriques</p>\n      <h1>${parent.title}</h1>\n      <p>${parent.description || ""}</p>\n    </section>\n\n    <section class="children-grid" aria-label="Sous-rubriques ${parent.title}">\n      ${(parent.children || []).map(child => `\n        <button class="child-nav-tile" data-slug="${child.slug}" aria-label="${child.title}">\n          <img class="child-nav-img" src="${child.card}" alt="" loading="lazy">\n          <span class="child-nav-title">${child.title}</span>\n        </button>\n      `).join("")}\n    </section>\n  `, 
-    setDetailView(), document.querySelectorAll(".child-nav-tile").forEach(tile => {
-        tile.addEventListener("click", () => {
-            const child = findItemBySlug(tile.dataset.slug);
-            child && (Array.isArray(child.children) && child.children.length > 0 ? renderChildren(child, !0) : child.content && openContent(child.content, !0));
-        });
-    }), addHistory && history.pushState({
+  currentParent = parent;
+
+  const inheritedAccess =
+    parent.effectiveAccess || parent.access || null;
+
+  const visibleChildren =
+    (parent.children || [])
+      .map(child => ({
+        ...child,
+        effectiveAccess:
+          Array.isArray(child.access)
+            ? child.access
+            : inheritedAccess
+      }))
+      .filter(isItemVisible);
+
+  detailContent.innerHTML = `
+    <section class="subpage-header">
+      <p class="subpage-kicker">Sous-rubriques</p>
+      <h1>${parent.title}</h1>
+      <p>${parent.description || ""}</p>
+    </section>
+
+    ${
+      visibleChildren.length > 0
+        ? `
+          <section
+            class="children-grid"
+            aria-label="Sous-rubriques ${parent.title}"
+          >
+            ${visibleChildren.map(child => `
+              <button
+                class="child-nav-tile"
+                data-slug="${child.slug}"
+                aria-label="${child.title}"
+              >
+                <img
+                  class="child-nav-img"
+                  src="${child.card}"
+                  alt=""
+                  loading="lazy"
+                >
+                <span class="child-nav-title">
+                  ${child.title}
+                </span>
+              </button>
+            `).join("")}
+          </section>
+        `
+        : `
+          <article class="fiche">
+            <section class="fiche-content">
+              <h2>Espace en préparation</h2>
+              <p>
+                Les sous-domaines réservés aux cadres
+                seront ajoutés prochainement.
+              </p>
+            </section>
+          </article>
+        `
+    }
+  `;
+
+  setDetailView();
+
+  document
+    .querySelectorAll(".child-nav-tile")
+    .forEach(tile => {
+      tile.addEventListener("click", () => {
+        const child =
+          findItemBySlug(tile.dataset.slug);
+
+        if (!child) {
+          return;
+        }
+
+        if (Array.isArray(child.children)) {
+          renderChildren(child, true);
+        } else if (child.content) {
+          openContent(child.content, true);
+        }
+      });
+    });
+
+  if (addHistory) {
+    history.pushState(
+      {
         type: "children",
         slug: parent.slug
-    }, "", "#" + parent.slug);
+      },
+      "",
+      "#" + parent.slug
+    );
+  }
 }
 
 function escapeHtml(value) {
@@ -816,7 +970,7 @@ function openFromHash() {
     const item = findItemBySlug(hash);
     if (!item) return detailContent.innerHTML = '\n      <article class="fiche">\n        <section class="fiche-content">\n          <h1>Fiche introuvable</h1>\n          <p>Cette rubrique n’existe pas ou son lien est incorrect.</p>\n        </section>\n      </article>\n    ', 
     void setDetailView();
-    Array.isArray(item.children) && item.children.length > 0 ? renderChildren(item, !1) : item.content && openContent(item.content, !1);
+    Array.isArray(item.children) ? renderChildren(item, !1) : item.content && openContent(item.content, !1);
 }
 
 backBtn.addEventListener("click", () => {
@@ -824,7 +978,14 @@ backBtn.addEventListener("click", () => {
     if (!item) return history.pushState({
         type: "home"
     }, "", location.pathname), void setHomeView();
-    const parent = flattenItems().find(possibleParent => Array.isArray(possibleParent.children) && possibleParent.children.some(child => child.slug === item.slug));
+    const parent = flattenItems().find(
+      possibleParent =>
+        isItemVisible(possibleParent) &&
+        Array.isArray(possibleParent.children) &&
+        possibleParent.children.some(
+          child => child.slug === item.slug
+        )
+    );
     if (parent) return renderChildren(parent, !1), void history.pushState({
         type: "children",
         slug: parent.slug
@@ -832,8 +993,17 @@ backBtn.addEventListener("click", () => {
     history.pushState({
         type: "home"
     }, "", location.pathname), setHomeView();
-}), searchInput && searchInput.addEventListener("input", event => renderCards(event.target.value)), 
-window.addEventListener("popstate", openFromHash), renderCards(), openFromHash();
+});
+
+searchInput && searchInput.addEventListener(
+  "input",
+  event => renderCards(event.target.value)
+);
+
+window.addEventListener(
+  "popstate",
+  openFromHash
+);
 
 async function displayConnectedUser() {
   if (document.querySelector(".connected-user")) {
@@ -860,6 +1030,14 @@ async function displayConnectedUser() {
       return;
     }
 
+    currentSession = {
+      authenticated: true,
+      username: data.username || null,
+      role: data.role || null,
+      type: data.type || null,
+      roleLabel: data.roleLabel || ""
+    };
+
     const connectedBox =
       document.createElement("div");
 
@@ -879,7 +1057,9 @@ async function displayConnectedUser() {
           "connected-user-role";
     
         sentence.textContent =
-          `Vous êtes connecté en tant que ${data.roleLabel}.`;
+          data.role === "admin"
+            ? "Vous êtes connecté en tant que cadre administrateur."
+            : `Vous êtes connecté en tant que ${data.roleLabel}.`;
     
         identity.appendChild(sentence);
 
@@ -968,14 +1148,20 @@ connectedActions.className =
   }
 }
 
+async function initializeApplication() {
+  await displayConnectedUser();
+  renderCards();
+  openFromHash();
+}
+
 if (document.readyState === "loading") {
   document.addEventListener(
     "DOMContentLoaded",
-    displayConnectedUser,
+    initializeApplication,
     { once: true }
   );
 } else {
-  displayConnectedUser();
+  initializeApplication();
 }
 
 window.addEventListener(
