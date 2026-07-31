@@ -1097,7 +1097,7 @@
 .consultations-panel{margin-top:22px;padding:24px;border:1px solid rgba(214,173,58,.5);border-radius:13px;background:rgba(8,10,12,.94)}
 .consultations-panel h2{margin:5px 0 10px;color:var(--gold-light)}
 .consultations-description{margin:0 0 20px;color:var(--muted);line-height:1.6}
-.consultations-filters{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:12px;align-items:end}
+.consultations-filters{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(180px,.8fr) auto;gap:12px;align-items:end}
 .consultations-field label{display:block;margin-bottom:8px;font-weight:700}
 .consultations-field input{width:100%;min-height:46px;padding:10px 13px;color:var(--text);font:inherit;border:1px solid rgba(214,173,58,.7);border-radius:8px;outline:none;background:#020304}
 .consultations-field input:focus{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(214,173,58,.14)}
@@ -1445,12 +1445,17 @@
     <h2>Suivi des consultations</h2>
   </div>
   <p class="consultations-description">
-    Saisissez un NIGEND pour afficher toutes les fiches consultées par ce compte individuel. Sans fermeture transmise, elle est estimée huit minutes après l’ouverture.
+    Saisissez un NIGEND pour afficher ses 10 consultations les plus récentes, ou ****** pour toute la compagnie. L’export CSV contient toutes les consultations depuis la date d’incorporation.
   </p>
   <form id="consultationsFilterForm" class="consultations-filters">
     <div class="consultations-field">
       <label for="consultationsUsername">NIGEND</label>
-      <input id="consultationsUsername" type="text" inputmode="numeric" maxlength="6" placeholder="Tous les comptes">
+      <input id="consultationsUsername" type="text" maxlength="6" placeholder="NIGEND ou ******">
+    </div>
+
+    <div class="consultations-field">
+      <label for="consultationsStartDate">Date d’incorporation</label>
+      <input id="consultationsStartDate" type="date" required>
     </div>
 
     <div class="consultations-filter-actions">
@@ -1461,7 +1466,7 @@
   </form>
   <div class="consultations-summary">
     <strong id="consultationsCount">Aucune donnée chargée</strong>
-    <span>200 consultations maximum par recherche</span>
+    <span>10 consultations maximum à l’écran</span>
   </div>
   <div class="consultations-table-wrapper">
     <table class="consultations-table">
@@ -3134,7 +3139,7 @@ downloadCredentialsButton.addEventListener(
 
 const consultationsFilterForm=document.getElementById("consultationsFilterForm");
 const consultationsUsername=document.getElementById("consultationsUsername");
-
+const consultationsStartDate=document.getElementById("consultationsStartDate");
 const consultationsTableBody=document.getElementById("consultationsTableBody");
 const consultationsCount=document.getElementById("consultationsCount");
 const consultationsMessage=document.getElementById("consultationsMessage");
@@ -3154,14 +3159,17 @@ function formatConsultationDate(value){
   return date?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(date):"—";
 }
 function consultationEnd(row){
-  return consultationDate(row.closedAt)||new Date(consultationDate(row.openedAt).getTime()+8*60*1000);
+  const closed=consultationDate(row.closedAt);
+  if(closed)return closed;
+  const opened=consultationDate(row.openedAt);
+  return opened?new Date(opened.getTime()+8*60*1000):null;
 }
 function consultationDuration(row){
   const opened=consultationDate(row.openedAt),ended=consultationEnd(row);
   if(!opened||!ended)return "—";
   const seconds=Math.max(0,Math.round((ended-opened)/1000));
-  const minutes=Math.floor(seconds/60),rest=seconds%60;
-  return minutes?`${minutes} min ${String(rest).padStart(2,"0")} s`:`${rest} s`;
+  const minutes=Math.floor(seconds/60),remaining=seconds%60;
+  return minutes?`${minutes} min ${String(remaining).padStart(2,"0")} s`:`${remaining} s`;
 }
 function adminEscape(value){
   return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
@@ -3169,84 +3177,63 @@ function adminEscape(value){
 function renderConsultations(rows){
   loadedConsultations=rows;
   consultationsCount.textContent=`${rows.length} consultation${rows.length>1?"s":""} affichée${rows.length>1?"s":""}`;
-  exportConsultationsButton.disabled=!rows.length;
+  exportConsultationsButton.disabled=false;
   if(!rows.length){
     consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Aucune consultation ne correspond aux critères.</td></tr>';
     return;
   }
   consultationsTableBody.innerHTML=rows.map(row=>{
-    const estimated=!row.closedAt;
-    const closing=estimated?consultationEnd(row):consultationDate(row.closedAt);
+    const estimated=!row.closedAt,closing=consultationEnd(row);
     return `<tr>
       <td><strong>${adminEscape(row.username)}</strong></td>
       <td>${adminEscape(formatRole(row.role))}</td>
       <td><strong>${adminEscape(row.ficheTitle)}</strong><br><span class="consultations-muted">${adminEscape(row.fichePath||row.ficheId)}</span></td>
       <td>${adminEscape(formatConsultationDate(row.openedAt))}</td>
-      <td class="${estimated?"consultations-estimated":""}">${adminEscape(new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing))}${estimated?"<br><small>Estimation à +8 min</small>":""}</td>
+      <td class="${estimated?"consultations-estimated":""}">${adminEscape(closing?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing):"—")}${estimated?"<br><small>Estimation à +8 min</small>":""}</td>
       <td>${adminEscape(consultationDuration(row))}</td>
     </tr>`;
   }).join("");
 }
-async function loadConsultations(){
+function validateConsultationFilters(){
   const username=consultationsUsername.value.trim();
-
-  if(!/^\d{6}$/.test(username)){
-    consultationsMessage.className="consultations-error";
-    consultationsMessage.textContent="Saisissez un NIGEND à six chiffres.";
-    consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Aucune recherche effectuée.</td></tr>';
-    consultationsCount.textContent="Aucune donnée chargée";
-    exportConsultationsButton.disabled=true;
-    return;
+  const startDate=consultationsStartDate.value;
+  if(username!=="******"&&!/^\d{6}$/.test(username)){
+    throw new Error("Saisissez un NIGEND à six chiffres ou ****** pour toute la compagnie.");
   }
-
-  const params=new URLSearchParams({
-    username,
-    limit:"200"
+  if(!startDate){
+    throw new Error("Renseignez la date d’incorporation.");
+  }
+  return {username,startDate};
+}
+async function requestConsultations(mode){
+  const {username,startDate}=validateConsultationFilters();
+  const params=new URLSearchParams({username,startDate,mode});
+  const response=await fetch(`/admin/consultations?${params.toString()}`,{
+    headers:{Accept:"application/json"},
+    cache:"no-store",
+    credentials:"same-origin"
   });
-
+  const contentType=response.headers.get("content-type")||"";
+  const raw=await response.text();
+  if(!contentType.includes("application/json")){
+    throw new Error(response.status===404?"La fonction /admin/consultations est introuvable.":"Le serveur n’a pas renvoyé une réponse JSON.");
+  }
+  const data=JSON.parse(raw);
+  if(!response.ok)throw new Error(data.error||"Impossible de charger les consultations.");
+  return Array.isArray(data.consultations)?data.consultations:[];
+}
+async function loadConsultations(){
   loadConsultationsButton.disabled=true;
+  exportConsultationsButton.disabled=true;
   consultationsMessage.className="consultations-info";
   consultationsMessage.textContent="Chargement des consultations…";
-
   try{
-    const response=await fetch(
-      `/admin/consultations?${params.toString()}`,
-      {
-        headers:{Accept:"application/json"},
-        cache:"no-store",
-        credentials:"same-origin"
-      }
-    );
-
-    const contentType=response.headers.get("content-type")||"";
-    const raw=await response.text();
-
-    if(!contentType.includes("application/json")){
-      throw new Error(
-        response.status===404
-          ? "La fonction /admin/consultations est introuvable."
-          : "Le serveur n’a pas renvoyé une réponse JSON."
-      );
-    }
-
-    const data=JSON.parse(raw);
-
-    if(!response.ok){
-      throw new Error(
-        data.error||"Impossible de charger les consultations."
-      );
-    }
-
-    renderConsultations(
-      Array.isArray(data.consultations)
-        ? data.consultations
-        : []
-    );
-
+    renderConsultations(await requestConsultations("screen"));
     consultationsMessage.className="";
     consultationsMessage.textContent="";
   }catch(error){
     loadedConsultations=[];
+    consultationsCount.textContent="Aucune donnée chargée";
     exportConsultationsButton.disabled=true;
     consultationsMessage.className="consultations-error";
     consultationsMessage.textContent=error.message;
@@ -3257,31 +3244,44 @@ async function loadConsultations(){
 consultationsFilterForm.addEventListener("submit",event=>{event.preventDefault();loadConsultations();});
 resetConsultationsButton.addEventListener("click",()=>{
   consultationsUsername.value="";
+  consultationsStartDate.value="";
   loadedConsultations=[];
   consultationsCount.textContent="Aucune donnée chargée";
   exportConsultationsButton.disabled=true;
   consultationsMessage.className="";
   consultationsMessage.textContent="";
-  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND puis lancez la recherche.</td></tr>';
+  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND ou ******, puis la date d’incorporation.</td></tr>';
   consultationsUsername.focus();
 });
 function csvConsultationValue(value){
   const text=String(value??"");
   return /[;"\r\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
 }
-exportConsultationsButton.addEventListener("click",()=>{
-  if(!loadedConsultations.length)return;
-  const lines=[["nigend","role","fiche","chemin","ouverture","fermeture","fermeture_estimee","duree"].join(";")];
-  loadedConsultations.forEach(row=>{
-    const estimated=!row.closedAt;
-    const closing=estimated?consultationEnd(row):consultationDate(row.closedAt);
-    lines.push([row.username,row.role,row.ficheTitle,row.fichePath||row.ficheId,formatConsultationDate(row.openedAt),new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing),estimated?"oui":"non",consultationDuration(row)].map(csvConsultationValue).join(";"));
-  });
-  const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
-  const url=URL.createObjectURL(blob),link=document.createElement("a");
-  link.href=url;
-  link.download=`consultations-ci6-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+exportConsultationsButton.addEventListener("click",async()=>{
+  exportConsultationsButton.disabled=true;
+  consultationsMessage.className="consultations-info";
+  consultationsMessage.textContent="Préparation de l’export complet…";
+  try{
+    const rows=await requestConsultations("export");
+    if(!rows.length)throw new Error("Aucune consultation à exporter.");
+    const lines=[["nigend","role","fiche","chemin","ouverture","fermeture","fermeture_estimee","duree"].join(";")];
+    rows.forEach(row=>{
+      const estimated=!row.closedAt,closing=consultationEnd(row);
+      lines.push([row.username,row.role,row.ficheTitle,row.fichePath||row.ficheId,formatConsultationDate(row.openedAt),closing?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing):"—",estimated?"oui":"non",consultationDuration(row)].map(csvConsultationValue).join(";"));
+    });
+    const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob),link=document.createElement("a");
+    link.href=url;
+    link.download=`consultations-ci6-${consultationsUsername.value.trim()==="******"?"compagnie":consultationsUsername.value.trim()}-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+    consultationsMessage.className="";
+    consultationsMessage.textContent="";
+  }catch(error){
+    consultationsMessage.className="consultations-error";
+    consultationsMessage.textContent=error.message;
+  }finally{
+    exportConsultationsButton.disabled=false;
+  }
 });
 consultationsUsername.focus();
 
