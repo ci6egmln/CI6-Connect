@@ -1009,21 +1009,20 @@ window.CI6_RUBRIQUES = [
   /********************************* ESPACE CADRES ****************************************/
   /*****************************************************************************************/
   {
-    id: "cadres",
+    id: "espace-cadres",
     title: "Espace cadres",
     description: "Consignes, outils et ressources réservés aux cadres.",
-    slug: "cadres",
+    slug: "espace-cadres",
     card: "assets/cards/cadres.png",
 
     /*
-     * L'administrateur est aussi considéré comme cadre
-     * par app.js. Cette restriction s'appliquera également
-     * aux futurs sous-domaines placés dans children.
+     * Visible uniquement pour les cadres.
+     * app.js considère également le rôle admin comme cadre.
      */
     access: ["cadre"],
 
     /*
-     * Les sous-domaines seront ajoutés ici ultérieurement.
+     * Les futurs sous-domaines seront ajoutés ici.
      */
     children: []
   }
