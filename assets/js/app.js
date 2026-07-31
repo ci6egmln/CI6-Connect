@@ -2899,11 +2899,22 @@ function openFicheEditor() {
           currentEditableFiche.markdown =
             markdown;
 
-          message.className =
-            "fiche-editor-message";
+          overlay.remove();
 
-          message.textContent =
-            "La fiche a été enregistrée dans GitHub. Le site sera actualisé après le déploiement Cloudflare.";
+          await closeActiveConsultation();
+
+          currentParent = null;
+          searchInput && (searchInput.value = "");
+          setHomeView();
+          renderCards();
+
+          history.pushState(
+            {
+              type: "home"
+            },
+            "",
+            window.location.pathname
+          );
 
         } catch (error) {
           message.className =
