@@ -1,4 +1,4 @@
-const grid = document.getElementById("cardsGrid"), searchInput = document.getElementById("searchInput"), homeView = document.getElementById("homeView"), detailView = document.getElementById("detailView"), detailContent = document.getElementById("detailContent"), backBtn = document.getElementById("backBtn");
+const grid = document.getElementById("cardsGrid"), pelotonsSection = document.getElementById("pelotonsSection"), pelotonsGrid = document.getElementById("pelotonsGrid"), searchInput = document.getElementById("searchInput"), homeView = document.getElementById("homeView"), detailView = document.getElementById("detailView"), detailContent = document.getElementById("detailContent"), backBtn = document.getElementById("backBtn");
 
 let currentParent = null;
 
@@ -375,29 +375,10 @@ function setDetailView() {
     });
 }
 
-function renderCards(filter = "") {
-    const query = normalizeText(filter).trim();
-
-    /*
-     * Une rubrique principale masquée ainsi que toutes
-     * ses sous-rubriques sont exclues de l’accueil
-     * et des résultats de recherche.
-     */
-    const visibleHomepageRubriques =
-        getVisibleHomepageRubriques();
-
-    const rubriques = query
-        ? flattenItems(visibleHomepageRubriques)
-            .filter(isItemVisible)
-            .filter(item =>
-                itemMatchesSearch(item, query)
-            )
-        : visibleHomepageRubriques
-            .filter(isItemVisible);
-
-    grid.innerHTML = rubriques.map(item => `
+function renderTileMarkup(item, compact = false) {
+    return `
         <button
-            class="tile"
+            class="tile${compact ? " peloton-tile" : ""}"
             data-slug="${item.slug}"
             aria-label="${item.title}"
         >
@@ -413,10 +394,16 @@ function renderCards(filter = "") {
                 <em>${item.description || ""}</em>
             </span>
         </button>
-    `).join("");
+    `;
+}
 
-    document
-        .querySelectorAll("#cardsGrid .tile")
+function bindHomepageTileClicks(container) {
+    if (!container) {
+        return;
+    }
+
+    container
+        .querySelectorAll(".tile")
         .forEach(tile => {
             tile.addEventListener("click", () => {
                 const item = findVisibleItemBySlug(
@@ -429,7 +416,10 @@ function renderCards(filter = "") {
 
                 if (
                     Array.isArray(item.children) &&
-                    item.children.length > 0
+                    (
+                        item.children.length > 0 ||
+                        item.homeGroup === "pelotons"
+                    )
                 ) {
                     renderChildren(item, true);
                     return;
@@ -440,6 +430,77 @@ function renderCards(filter = "") {
                 }
             });
         });
+}
+
+function renderCards(filter = "") {
+    const query = normalizeText(filter).trim();
+
+    /*
+     * Une rubrique principale masquée ainsi que toutes
+     * ses sous-rubriques sont exclues de l’accueil
+     * et des résultats de recherche.
+     */
+    const visibleHomepageRubriques =
+        getVisibleHomepageRubriques();
+
+    if (query) {
+        const rubriques = flattenItems(
+            visibleHomepageRubriques
+        )
+            .filter(isItemVisible)
+            .filter(item =>
+                itemMatchesSearch(item, query)
+            );
+
+        grid.innerHTML = rubriques
+            .map(item => renderTileMarkup(item))
+            .join("");
+
+        if (pelotonsSection) {
+            pelotonsSection.hidden = true;
+        }
+
+        if (pelotonsGrid) {
+            pelotonsGrid.innerHTML = "";
+        }
+
+        bindHomepageTileClicks(grid);
+        return;
+    }
+
+    const mainRubriques =
+        visibleHomepageRubriques
+            .filter(isItemVisible)
+            .filter(item =>
+                item.homeGroup !== "pelotons"
+            );
+
+    const pelotonRubriques =
+        visibleHomepageRubriques
+            .filter(isItemVisible)
+            .filter(item =>
+                item.homeGroup === "pelotons"
+            );
+
+    grid.innerHTML = mainRubriques
+        .map(item => renderTileMarkup(item))
+        .join("");
+
+    if (pelotonsGrid) {
+        pelotonsGrid.innerHTML = pelotonRubriques
+            .map(item =>
+                renderTileMarkup(item, true)
+            )
+            .join("");
+    }
+
+    if (pelotonsSection) {
+        pelotonsSection.hidden =
+            pelotonRubriques.length === 0;
+    }
+
+    bindHomepageTileClicks(grid);
+    bindHomepageTileClicks(pelotonsGrid);
 }
 
 function renderChildren(parent, addHistory = !0) {

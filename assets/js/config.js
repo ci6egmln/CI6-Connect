@@ -1006,6 +1006,37 @@ window.CI6_RUBRIQUES = [
     } ]
 },
   /*****************************************************************************************/
+  /************************************* PELOTONS ******************************************/
+  /*****************************************************************************************/
+  {
+    id: "peloton-1",
+    title: "1er peloton",
+    description: "",
+    slug: "peloton-1",
+    card: "assets/cards/index-P1.png",
+    homeGroup: "pelotons",
+    children: []
+  },
+  {
+    id: "peloton-2",
+    title: "2e peloton",
+    description: "",
+    slug: "peloton-2",
+    card: "assets/cards/index-P2.png",
+    homeGroup: "pelotons",
+    children: []
+  },
+  {
+    id: "peloton-3",
+    title: "3e peloton",
+    description: "",
+    slug: "peloton-3",
+    card: "assets/cards/index-P3.png",
+    homeGroup: "pelotons",
+    children: []
+  },
+
+  /*****************************************************************************************/
   /********************************* ESPACE CADRES ****************************************/
   /*****************************************************************************************/
   {
