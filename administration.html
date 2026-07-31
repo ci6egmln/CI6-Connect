@@ -1245,6 +1245,25 @@
   .homepage-tiles-info{color:#dcecff;border:1px solid rgba(80,145,220,.6);background:rgba(25,65,110,.28)}
   @media(max-width:650px){.homepage-tiles-panel{padding:18px}.homepage-tiles-list{grid-template-columns:1fr}.homepage-tile-row{grid-template-columns:1fr}.homepage-tile-control{justify-content:space-between}.homepage-tile-state{text-align:left}.homepage-tiles-actions{flex-direction:column}.homepage-tiles-actions button{width:100%}}
 
+  .visitor-demo-banner {
+    margin: 0 0 22px;
+    padding: 16px 18px;
+    color: #dcecff;
+    font-weight: 800;
+    line-height: 1.55;
+    border: 1px solid rgba(80, 145, 220, 0.68);
+    border-radius: 11px;
+    background: rgba(25, 65, 110, 0.3);
+  }
+
+  body.visitor-readonly button:disabled,
+  body.visitor-readonly input:disabled,
+  body.visitor-readonly select:disabled,
+  body.visitor-readonly textarea:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.52 !important;
+  }
+
 </style>
 </head>
 
@@ -1444,6 +1463,7 @@
             >
               <option value="eleve">Élève</option>
               <option value="cadre">Cadre</option>
+              <option value="visiteur">Visiteur (démonstration)</option>
             </select>
           </div>
     
@@ -1731,6 +1751,43 @@
   </main>
   <script src="/assets/js/config.js"></script>
   <script>
+  let administrationVisitorMode = false;
+
+  const administrationModePromise = fetch(
+    "/me",
+    {
+      headers: { "Accept": "application/json" },
+      cache: "no-store",
+      credentials: "same-origin"
+    }
+  )
+    .then(response => response.ok ? response.json() : null)
+    .then(data => {
+      administrationVisitorMode =
+        Boolean(data && data.role === "visiteur");
+
+      if (administrationVisitorMode) {
+        document.body.classList.add("visitor-readonly");
+
+        const page = document.querySelector(".page");
+        const banner = document.createElement("div");
+        banner.className = "visitor-demo-banner";
+        banner.textContent =
+          "Mode visiteur — aperçu de l’administration uniquement. " +
+          "Toutes les commandes sont visibles, mais aucune donnée ne peut être consultée, créée ou modifiée.";
+
+        page.prepend(banner);
+
+        document
+          .querySelectorAll("button, input, select, textarea")
+          .forEach(control => {
+            control.disabled = true;
+          });
+      }
+
+      return administrationVisitorMode;
+    })
+    .catch(() => false);
   const searchForm =
     document.getElementById("searchForm");
 
@@ -1762,7 +1819,8 @@
     const roles = {
       eleve: "Élève",
       cadre: "Cadre",
-      admin: "Administrateur"
+      admin: "Administrateur",
+      visiteur: "Visiteur"
     };
 
     return roles[role] || role;
@@ -2490,7 +2548,11 @@ createAccountForm.addEventListener(
         <strong>${data.username}</strong><br>
         Rôle :
         <strong>
-          ${data.role === "cadre" ? "Cadre" : "Élève"}
+          ${data.role === "cadre"
+            ? "Cadre"
+            : data.role === "visiteur"
+              ? "Visiteur"
+              : "Élève"}
         </strong><br>
         Mot de passe provisoire :
         <span class="created-password"></span><br>
@@ -3332,7 +3394,18 @@ downloadCredentialsButton.addEventListener(
       }
     );
     
-    loadCollectiveAccessState(); 
+    administrationModePromise.then(isVisitor => {
+      if (!isVisitor) {
+        loadCollectiveAccessState();
+      } else {
+        collectiveAccessStatus.textContent = "Aperçu";
+        collectiveAccessStatus.className =
+          "collective-status collective-status-loading";
+        collectiveAccessState.textContent =
+          "Commandes désactivées en mode visiteur";
+        collectiveAccessUpdatedAt.textContent = "—";
+      }
+    }); 
 
 const consultationsFilterForm=document.getElementById("consultationsFilterForm");
 const consultationsUsername=document.getElementById("consultationsUsername");
@@ -3587,7 +3660,19 @@ saveHomepageTilesButton.addEventListener("click",async()=>{
     updateHomepageTileControls();
   }
 });
-loadHomepageTiles();
+administrationModePromise.then(isVisitor => {
+  if (!isVisitor) {
+    loadHomepageTiles();
+  } else {
+    loadedHomepageTiles = {};
+    renderHomepageTiles({});
+    homepageTilesList
+      .querySelectorAll("input")
+      .forEach(input => { input.disabled = true; });
+    saveHomepageTilesButton.disabled = true;
+    resetHomepageTilesButton.disabled = true;
+  }
+});
 
 
 const promotionSettingsForm =
@@ -3800,7 +3885,15 @@ promotionSettingsForm.addEventListener(
   }
 );
 
-loadPromotionSettings();
+administrationModePromise.then(isVisitor => {
+  if (!isVisitor) {
+    loadPromotionSettings();
+  } else {
+    promotionNumber.value = "Exemple de promotion";
+    promotionIncorporationDate.value = "";
+    savePromotionSettingsButton.disabled = true;
+  }
+});
 
 
 </script>
