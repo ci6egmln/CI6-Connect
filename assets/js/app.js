@@ -1149,6 +1149,40 @@ function injectFicheEditorStyles() {
       line-height: 1.5;
     }
 
+    .fiche-editor-upload-box {
+      margin-top: 10px;
+      padding: 14px;
+      border: 1px dashed rgba(214,173,58,.5);
+      border-radius: 9px;
+      background: rgba(214,173,58,.045);
+    }
+
+    .fiche-editor-upload-box[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-upload-status {
+      margin-top: 10px;
+      color: #c9c2b4;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .fiche-editor-upload-status.success {
+      color: #bdf2c5;
+    }
+
+    .fiche-editor-upload-status.error {
+      color: #ffb7b7;
+    }
+
+    .fiche-editor-file-name {
+      margin-top: 7px;
+      color: #f4d77a;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
     .fiche-editor-source {
       min-height: 360px !important;
       font-family: ui-monospace,SFMono-Regular,Consolas,monospace !important;
@@ -1527,14 +1561,64 @@ function openFicheEditor() {
             ></textarea>
           </div>
 
-          <div class="fiche-editor-field">
+          <div
+            id="editorImageUploadBox"
+            class="fiche-editor-upload-box"
+            hidden
+          >
+            <div class="fiche-editor-field">
+              <label for="editorImageFile">
+                Choisir une photo
+              </label>
+              <input
+                id="editorImageFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+              >
+              <div
+                id="editorSelectedFileName"
+                class="fiche-editor-file-name"
+              ></div>
+            </div>
+
+            <div class="fiche-editor-field">
+              <label for="editorImageName">
+                Nom de la photo
+              </label>
+              <input
+                id="editorImageName"
+                type="text"
+                maxlength="100"
+                placeholder="Ex. présentation tenue cérémonie"
+              >
+            </div>
+
+            <button
+              type="button"
+              id="uploadEditorImageButton"
+              class="fiche-editor-button secondary"
+            >
+              Envoyer la photo dans GitHub
+            </button>
+
+            <div
+              id="editorImageUploadStatus"
+              class="fiche-editor-upload-status"
+            ></div>
+          </div>
+
+          <div
+            id="editorOnlineMediaBox"
+            class="fiche-editor-field"
+            hidden
+          >
             <label for="editorMediaUrl">
-              Image ou lien vidéo
+              Lien de la vidéo en ligne
             </label>
             <input
               id="editorMediaUrl"
               type="url"
-              placeholder="https://… ou assets/photos/…"
+              placeholder="https://…"
             >
           </div>
 
@@ -1620,6 +1704,112 @@ function openFicheEditor() {
   const source =
     overlay.querySelector("#editorSource");
 
+  const blockTypeSelect =
+    overlay.querySelector("#editorBlockType");
+
+  const imageUploadBox =
+    overlay.querySelector("#editorImageUploadBox");
+
+  const onlineMediaBox =
+    overlay.querySelector("#editorOnlineMediaBox");
+
+  const imageFileInput =
+    overlay.querySelector("#editorImageFile");
+
+  const imageNameInput =
+    overlay.querySelector("#editorImageName");
+
+  const selectedFileName =
+    overlay.querySelector("#editorSelectedFileName");
+
+  const uploadStatus =
+    overlay.querySelector("#editorImageUploadStatus");
+
+  const mediaUrlInput =
+    overlay.querySelector("#editorMediaUrl");
+
+  const uploadImageButton =
+    overlay.querySelector("#uploadEditorImageButton");
+
+  function updateMediaFields() {
+    const type = blockTypeSelect.value;
+    imageUploadBox.hidden = type !== "image";
+    onlineMediaBox.hidden = type !== "video";
+  }
+
+  blockTypeSelect.addEventListener("change", updateMediaFields);
+  updateMediaFields();
+
+  imageFileInput.addEventListener("change", () => {
+    const file = imageFileInput.files?.[0];
+
+    selectedFileName.textContent =
+      file ? `Fichier sélectionné : ${file.name}` : "";
+
+    uploadStatus.textContent = "";
+    uploadStatus.className = "fiche-editor-upload-status";
+  });
+
+  uploadImageButton.addEventListener("click", async () => {
+    const file = imageFileInput.files?.[0];
+    const requestedName = imageNameInput.value.trim();
+
+    if (!file) {
+      uploadStatus.textContent = "Choisissez d’abord une photo.";
+      uploadStatus.className = "fiche-editor-upload-status error";
+      return;
+    }
+
+    if (!requestedName) {
+      uploadStatus.textContent = "Renseignez le nom de la photo.";
+      uploadStatus.className = "fiche-editor-upload-status error";
+      return;
+    }
+
+    uploadImageButton.disabled = true;
+    uploadStatus.textContent = "Envoi de la photo dans GitHub…";
+    uploadStatus.className = "fiche-editor-upload-status";
+
+    try {
+      const formData = new FormData();
+
+      formData.append("photo", file);
+      formData.append("photoName", requestedName);
+      formData.append("fichePath", currentEditableFiche.path);
+      formData.append(
+        "ficheTitle",
+        overlay.querySelector("#editorFicheTitle").value.trim()
+      );
+
+      const response = await fetch("/cadres/photo-upload", {
+        method: "POST",
+        credentials: "same-origin",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || "L’envoi de la photo a échoué."
+        );
+      }
+
+      mediaUrlInput.value = data.path;
+
+      uploadStatus.textContent =
+        `Photo enregistrée : ${data.path}`;
+
+      uploadStatus.className =
+        "fiche-editor-upload-status success";
+    } catch (error) {
+      uploadStatus.textContent = error.message;
+      uploadStatus.className = "fiche-editor-upload-status error";
+    } finally {
+      uploadImageButton.disabled = false;
+    }
+  });
+
   function buildCompleteMarkdown() {
     return (
       buildFrontMatter({
@@ -1659,7 +1849,9 @@ function openFicheEditor() {
             text:
               overlay.querySelector("#editorBlockText").value,
             mediaUrl:
-              overlay.querySelector("#editorMediaUrl").value.trim(),
+              blockTypeSelect.value === "image"
+                ? mediaUrlInput.value.trim()
+                : overlay.querySelector("#editorMediaUrl").value.trim(),
             caption:
               overlay.querySelector("#editorMediaCaption").value.trim()
           });
@@ -1675,6 +1867,13 @@ function openFicheEditor() {
         overlay.querySelector("#editorBlockText").value = "";
         overlay.querySelector("#editorMediaUrl").value = "";
         overlay.querySelector("#editorMediaCaption").value = "";
+
+        imageFileInput.value = "";
+        imageNameInput.value = "";
+        selectedFileName.textContent = "";
+        uploadStatus.textContent = "";
+        uploadStatus.className =
+          "fiche-editor-upload-status";
 
         message.hidden = false;
         message.className = "fiche-editor-message";
