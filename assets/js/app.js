@@ -3,6 +3,64 @@ const grid = document.getElementById("cardsGrid"), searchInput = document.getEle
 let currentParent = null;
 
 /*
+ * Configuration d’affichage des rubriques principales.
+ * Une rubrique absente de la table reste visible par défaut.
+ */
+let homepageTileSettings = {};
+
+function isHomepageTileVisible(item) {
+  return homepageTileSettings[item.slug] !== false;
+}
+
+function getVisibleHomepageRubriques() {
+  return getRubriques()
+    .filter(isHomepageTileVisible);
+}
+
+async function loadHomepageTileSettings() {
+  try {
+    const response = await fetch(
+      "/api/homepage-tiles",
+      {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+        cache: "no-store",
+        credentials: "same-origin"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Configuration des tuiles indisponible."
+      );
+    }
+
+    const data = await response.json();
+
+    homepageTileSettings =
+      data.tiles &&
+      typeof data.tiles === "object" &&
+      !Array.isArray(data.tiles)
+        ? data.tiles
+        : {};
+
+  } catch (error) {
+    /*
+     * En cas d’indisponibilité temporaire,
+     * toutes les rubriques restent visibles.
+     */
+    homepageTileSettings = {};
+
+    console.warn(
+      "Impossible de charger l’affichage des tuiles.",
+      error
+    );
+  }
+}
+
+/*
  * Informations sur la session connectée.
  * Un administrateur bénéficie aussi de l'affichage cadre.
  */
@@ -249,12 +307,36 @@ function flattenItems(
   });
 }
 
+function findVisibleItemBySlug(slug) {
+    return flattenItems(
+      getVisibleHomepageRubriques()
+    ).find(
+      item =>
+        item.slug === slug &&
+        isItemVisible(item)
+    );
+}
+
+function findVisibleItemByContent(path) {
+    return flattenItems(
+      getVisibleHomepageRubriques()
+    ).find(
+      item =>
+        item.content === path &&
+        isItemVisible(item)
+    );
+}
+
+/*
+ * Ces noms sont conservés pour le reste de l’application.
+ * Ils respectent désormais le masquage des tuiles d’accueil.
+ */
 function findItemBySlug(slug) {
-    return flattenItems().find(item => item.slug === slug && isItemVisible(item));
+    return findVisibleItemBySlug(slug);
 }
 
 function findItemByContent(path) {
-    return flattenItems().find(item => item.content === path && isItemVisible(item));
+    return findVisibleItemByContent(path);
 }
 
 function setHomeView() {
@@ -280,31 +362,22 @@ function setDetailView() {
 function renderCards(filter = "") {
     const query = normalizeText(filter).trim();
 
+    /*
+     * Une rubrique principale masquée ainsi que toutes
+     * ses sous-rubriques sont exclues de l’accueil
+     * et des résultats de recherche.
+     */
+    const visibleHomepageRubriques =
+        getVisibleHomepageRubriques();
+
     const rubriques = query
-        ? flattenItems()
+        ? flattenItems(visibleHomepageRubriques)
             .filter(isItemVisible)
-            .filter(item => {
-            const keywords = Array.isArray(item.keywords)
-                ? item.keywords.join(" ")
-                : "";
-
-            const searchableText = normalizeText(`
-                ${item.id || ""}
-                ${item.slug || ""}
-                ${item.title || ""}
-                ${item.description || ""}
-                ${keywords}
-            `);
-
-            const searchedWords = query
-                .split(/\s+/)
-                .filter(Boolean);
-
-            return searchedWords.every(word =>
-                searchableText.includes(word)
-            );
-        })
-        : getRubriques().filter(isItemVisible);
+            .filter(item =>
+                itemMatchesSearch(item, query)
+            )
+        : visibleHomepageRubriques
+            .filter(isItemVisible);
 
     grid.innerHTML = rubriques.map(item => `
         <button
@@ -330,7 +403,7 @@ function renderCards(filter = "") {
         .querySelectorAll("#cardsGrid .tile")
         .forEach(tile => {
             tile.addEventListener("click", () => {
-                const item = findItemBySlug(
+                const item = findVisibleItemBySlug(
                     tile.dataset.slug
                 );
 
@@ -3573,6 +3646,7 @@ connectedActions.className =
 
 async function initializeApplication() {
   await displayConnectedUser();
+  await loadHomepageTileSettings();
   renderCards();
   openFromHash();
 }
