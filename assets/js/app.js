@@ -1329,6 +1329,90 @@ function injectFicheEditorStyles() {
       background: #050607;
     }
 
+    .fiche-editor-preview {
+      display: grid;
+      gap: 14px;
+    }
+
+    .fiche-editor-block-shell {
+      position: relative;
+      padding-top: 48px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 11px;
+      background: rgba(255,255,255,.018);
+      overflow: hidden;
+    }
+
+    .fiche-editor-block-toolbar {
+      position: absolute;
+      inset: 0 0 auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 7px;
+      min-height: 42px;
+      padding: 7px 9px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      background: #111418;
+      z-index: 2;
+    }
+
+    .fiche-editor-mini-button {
+      min-height: 30px;
+      padding: 5px 9px;
+      border: 1px solid rgba(214,173,58,.48);
+      border-radius: 7px;
+      color: #f5f5f5;
+      background: #20252a;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .fiche-editor-mini-button.danger {
+      border-color: rgba(255,105,105,.55);
+      background: #6d2020;
+    }
+
+    .fiche-editor-block-content {
+      padding: 12px;
+    }
+
+    .fiche-editor-empty {
+      padding: 28px 18px;
+      text-align: center;
+      color: #c9c2b4;
+      border: 1px dashed rgba(214,173,58,.5);
+      border-radius: 10px;
+    }
+
+    .fiche-editor-header-panel {
+      margin-bottom: 18px;
+    }
+
+    .fiche-editor-block-form[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-form-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .fiche-editor-form-title h3 {
+      margin: 0;
+    }
+
+    .fiche-editor-add-zone {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
     @media (max-width: 820px) {
       .fiche-editor-grid {
         grid-template-columns: 1fr;
@@ -1495,14 +1579,220 @@ function renderFicheEditButton(path, markdown, item) {
     .addEventListener("click", openFicheEditor);
 }
 
+
+function parseEditorBlocks(markdownBody) {
+  const source = String(markdownBody || "").trim();
+
+  if (!source) {
+    return [];
+  }
+
+  const lines = source.split(/\r?\n/);
+  const blocks = [];
+  let plainLines = [];
+
+  function flushPlain() {
+    const text = plainLines.join("\n").trim();
+
+    if (text) {
+      blocks.push({
+        type: "contenu",
+        title: "Contenu",
+        color: "gris",
+        icon: "📄",
+        text
+      });
+    }
+
+    plainLines = [];
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const opening = line.match(
+      /^\s*:::(bloc|image-texte|galerie|video-lien|image)\b(?:\s+(.*))?\s*$/
+    );
+
+    if (!opening) {
+      plainLines.push(line);
+      continue;
+    }
+
+    flushPlain();
+
+    const kind = opening[1];
+    const header = (opening[2] || "").trim();
+    const contentLines = [];
+
+    index += 1;
+
+    while (
+      index < lines.length &&
+      !/^\s*:::\s*$/.test(lines[index])
+    ) {
+      contentLines.push(lines[index]);
+      index += 1;
+    }
+
+    const content = contentLines.join("\n").trim();
+
+    if (kind === "bloc") {
+      const [color, title, icon] =
+        header.split("|").map(part => part.trim());
+
+      blocks.push({
+        type: "texte",
+        color: color || "gris",
+        title: title || "Information",
+        icon: icon || "ℹ️",
+        text: content
+      });
+
+      continue;
+    }
+
+    if (kind === "image-texte") {
+      const [color, title, icon] =
+        header.split("|").map(part => part.trim());
+
+      const contentParts = content.split(/\r?\n/);
+      const mediaLine =
+        contentParts.shift()?.trim() || "";
+
+      const [mediaUrl, caption] =
+        mediaLine.split("|").map(part => part.trim());
+
+      blocks.push({
+        type: "texte-image",
+        color: color || "gris",
+        title: title || "Illustration",
+        icon: icon || "🖼️",
+        text: contentParts.join("\n").trim(),
+        mediaUrl: mediaUrl || "",
+        caption: caption || ""
+      });
+
+      continue;
+    }
+
+    if (kind === "galerie") {
+      const galleryImages =
+        content
+          .split(/\r?\n/)
+          .map(lineValue => lineValue.trim())
+          .filter(Boolean)
+          .map(lineValue => {
+            const [path, caption] =
+              lineValue.split("|").map(part => part.trim());
+
+            return {
+              path,
+              caption: caption || ""
+            };
+          });
+
+      blocks.push({
+        type: "galerie",
+        title: header || "Galerie",
+        galleryImages
+      });
+
+      continue;
+    }
+
+    if (kind === "video-lien") {
+      const firstLine =
+        content
+          .split(/\r?\n/)
+          .map(lineValue => lineValue.trim())
+          .find(Boolean) || "";
+
+      const [mediaUrl, caption] =
+        firstLine.split("|").map(part => part.trim());
+
+      blocks.push({
+        type: "video",
+        title: header || "Vidéo",
+        mediaUrl: mediaUrl || "",
+        caption: caption || ""
+      });
+
+      continue;
+    }
+
+    if (kind === "image") {
+      const firstLine =
+        content
+          .split(/\r?\n/)
+          .map(lineValue => lineValue.trim())
+          .find(Boolean) || "";
+
+      const [mediaUrl, caption] =
+        firstLine.split("|").map(part => part.trim());
+
+      blocks.push({
+        type: "texte-image",
+        color: "gris",
+        title: header || "Illustration",
+        icon: "🖼️",
+        text: caption || "",
+        mediaUrl: mediaUrl || "",
+        caption: caption || ""
+      });
+    }
+  }
+
+  flushPlain();
+  return blocks;
+}
+
+function serializeEditorBlock(block) {
+  if (block.type === "contenu") {
+    return String(block.text || "").trim();
+  }
+
+  return editorBlockMarkdown({
+    type: block.type,
+    color: block.color,
+    title: block.title,
+    icon: block.icon,
+    text: block.text || "",
+    mediaUrl: block.mediaUrl || "",
+    caption: block.caption || "",
+    galleryImages: block.galleryImages || []
+  });
+}
+
+function serializeEditorBlocks(blocks) {
+  return blocks
+    .map(serializeEditorBlock)
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function renderSingleEditorBlock(block) {
+  const markdown = serializeEditorBlock(block);
+
+  if (!markdown) {
+    return "";
+  }
+
+  return renderCustomBlocks(markdown);
+}
+
 function openFicheEditor() {
   injectFicheEditorStyles();
 
   const meta =
     getEditorMeta(currentEditableFiche.markdown);
 
-  const body =
-    getEditorBody(currentEditableFiche.markdown);
+  let blocks =
+    parseEditorBlocks(
+      getEditorBody(currentEditableFiche.markdown)
+    );
+
+  let editingIndex = null;
+  let galleryImages = [];
 
   const overlay = document.createElement("div");
   overlay.className = "fiche-editor-overlay";
@@ -1533,10 +1823,10 @@ function openFicheEditor() {
         </button>
       </div>
 
-      <div class="fiche-editor-grid">
-        <section class="fiche-editor-panel">
-          <h3>Fiche actuelle</h3>
+      <section class="fiche-editor-panel fiche-editor-header-panel">
+        <h3>En-tête de la fiche</h3>
 
+        <div class="fiche-editor-grid">
           <div class="fiche-editor-field">
             <label for="editorFicheTitle">
               Titre de la fiche
@@ -1544,7 +1834,11 @@ function openFicheEditor() {
             <input
               id="editorFicheTitle"
               type="text"
-              value="${escapeHtml(meta.title || currentEditableFiche.item?.title || "")}"
+              value="${escapeHtml(
+                meta.title ||
+                currentEditableFiche.item?.title ||
+                ""
+              )}"
             >
           </div>
 
@@ -1561,7 +1855,7 @@ function openFicheEditor() {
 
           <div class="fiche-editor-field">
             <label for="editorFicheIcon">
-              Chemin de l’icône de la fiche
+              Chemin de l’icône
             </label>
             <input
               id="editorFicheIcon"
@@ -1573,7 +1867,7 @@ function openFicheEditor() {
 
           <div class="fiche-editor-field">
             <label for="editorFicheCover">
-              Image de couverture facultative
+              Image de couverture
             </label>
             <input
               id="editorFicheCover"
@@ -1582,66 +1876,110 @@ function openFicheEditor() {
               placeholder="assets/photos/couverture.webp"
             >
           </div>
+        </div>
+      </section>
 
-          <div class="fiche-editor-field">
-            <label for="editorSource">
-              Contenu actuel
-            </label>
-            <textarea
-              id="editorSource"
-              class="fiche-editor-source"
-            >${escapeHtml(body)}</textarea>
-          </div>
-        </section>
+      <section class="fiche-editor-panel">
+        <h3>Aperçu de la fiche</h3>
 
-        <section class="fiche-editor-panel">
-          <h3>Ajouter un bloc</h3>
+        <div
+          id="ficheEditorPreview"
+          class="fiche-editor-preview"
+        ></div>
 
-          <div class="fiche-editor-field">
-            <label for="editorBlockType">
-              Type de bloc
-            </label>
-            <select id="editorBlockType">
-              <option value="texte">Bloc texte</option>
-              <option value="texte-image">Bloc texte avec image</option>
-              <option value="galerie">Galerie d’images</option>
-              <option value="video">Vidéo en ligne</option>
-            </select>
-          </div>
+        <div class="fiche-editor-add-zone">
+          <button
+            type="button"
+            id="newEditorBlockButton"
+            class="fiche-editor-button"
+          >
+            Ajouter un bloc
+          </button>
+        </div>
+      </section>
 
-          <div class="fiche-editor-field">
-            <label for="editorBlockColor">
-              Couleur
-            </label>
-            <select id="editorBlockColor">
-              <option value="bleu">Bleu</option>
-              <option value="vert">Vert</option>
-              <option value="rouge">Rouge</option>
-              <option value="orange">Orange</option>
-              <option value="jaune">Jaune</option>
-              <option value="gris">Gris</option>
-            </select>
-          </div>
+      <section
+        id="ficheEditorBlockForm"
+        class="fiche-editor-panel fiche-editor-block-form"
+        hidden
+      >
+        <div class="fiche-editor-form-title">
+          <h3 id="ficheEditorBlockFormTitle">
+            Ajouter un bloc
+          </h3>
 
-          <div class="fiche-editor-field">
-            <label for="editorBlockTitle">
-              Titre du bloc
-            </label>
-            <input
-              id="editorBlockTitle"
-              type="text"
-              placeholder="Ex. À retenir"
+          <button
+            type="button"
+            id="closeEditorBlockFormButton"
+            class="fiche-editor-mini-button"
+          >
+            Fermer
+          </button>
+        </div>
+
+        <div class="fiche-editor-grid">
+          <div>
+            <div class="fiche-editor-field">
+              <label for="editorBlockType">
+                Type de bloc
+              </label>
+              <select id="editorBlockType">
+                <option value="texte">Bloc texte</option>
+                <option value="texte-image">
+                  Bloc texte avec image
+                </option>
+                <option value="galerie">
+                  Galerie d’images
+                </option>
+                <option value="video">
+                  Vidéo en ligne
+                </option>
+                <option value="contenu">
+                  Contenu existant
+                </option>
+              </select>
+            </div>
+
+            <div
+              id="editorBlockColorField"
+              class="fiche-editor-field"
             >
-          </div>
+              <label for="editorBlockColor">
+                Couleur
+              </label>
+              <select id="editorBlockColor">
+                <option value="bleu">Bleu</option>
+                <option value="vert">Vert</option>
+                <option value="rouge">Rouge</option>
+                <option value="orange">Orange</option>
+                <option value="jaune">Jaune</option>
+                <option value="gris">Gris</option>
+              </select>
+            </div>
 
-          <fieldset class="fiche-editor-field">
-            <legend class="fiche-editor-legend">
-              Icône
-            </legend>
+            <div class="fiche-editor-field">
+              <label for="editorBlockTitle">
+                Titre du bloc
+              </label>
+              <input
+                id="editorBlockTitle"
+                type="text"
+              >
+            </div>
 
-            <div class="fiche-editor-radio-grid">
-              ${["ℹ️","✅","⚠️","⛔","💡","📌","📄","🛡️","🎯","📅","🖼️","🎥"]
-                .map((icon, index) => `
+            <fieldset
+              id="editorBlockIconField"
+              class="fiche-editor-field"
+            >
+              <legend class="fiche-editor-legend">
+                Icône
+              </legend>
+
+              <div class="fiche-editor-radio-grid">
+                ${[
+                  "ℹ️","✅","⚠️","⛔","💡","📌",
+                  "📄","🛡️","🎯","📅","🖼️","🎥"
+                ].map((icon, index) => `
                   <label title="${icon}">
                     <input
                       type="radio"
@@ -1652,127 +1990,139 @@ function openFicheEditor() {
                     <span>${icon}</span>
                   </label>
                 `).join("")}
-            </div>
-          </fieldset>
+              </div>
+            </fieldset>
 
-          <div class="fiche-editor-field">
-            <label for="editorBlockText">
-              Texte
-            </label>
-            <textarea
-              id="editorBlockText"
-              placeholder="Saisissez le contenu du bloc…"
-            ></textarea>
+            <div
+              id="editorBlockTextField"
+              class="fiche-editor-field"
+            >
+              <label for="editorBlockText">
+                Texte
+              </label>
+              <textarea
+                id="editorBlockText"
+                placeholder="Saisissez le contenu du bloc…"
+              ></textarea>
+            </div>
           </div>
 
-          <div
-            id="editorImageUploadBox"
-            class="fiche-editor-upload-box"
-            hidden
-          >
-            <div class="fiche-editor-field">
-              <label for="editorImageFile">
-                Choisir une photo
-              </label>
-              <input
-                id="editorImageFile"
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+          <div>
+            <div
+              id="editorImageUploadBox"
+              class="fiche-editor-upload-box"
+              hidden
+            >
+              <div class="fiche-editor-field">
+                <label for="editorImageFile">
+                  Choisir une photo
+                </label>
+                <input
+                  id="editorImageFile"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                >
+
+                <div
+                  id="editorSelectedFileName"
+                  class="fiche-editor-file-name"
+                ></div>
+              </div>
+
+              <div class="fiche-editor-field">
+                <label for="editorImageName">
+                  Nom de la photo
+                </label>
+                <input
+                  id="editorImageName"
+                  type="text"
+                  maxlength="100"
+                  placeholder="Ex. présentation tenue cérémonie"
+                >
+              </div>
+
+              <button
+                type="button"
+                id="uploadEditorImageButton"
+                class="fiche-editor-button secondary"
               >
+                Envoyer la photo dans GitHub
+              </button>
+
               <div
-                id="editorSelectedFileName"
-                class="fiche-editor-file-name"
+                id="editorImageUploadStatus"
+                class="fiche-editor-upload-status"
+              ></div>
+
+              <div
+                id="editorGalleryList"
+                class="fiche-editor-upload-status success"
               ></div>
             </div>
 
-            <div class="fiche-editor-field">
-              <label for="editorImageName">
-                Nom de la photo
+            <div
+              id="editorOnlineMediaBox"
+              class="fiche-editor-field"
+              hidden
+            >
+              <label for="editorMediaUrl">
+                Lien de la vidéo en ligne
               </label>
               <input
-                id="editorImageName"
-                type="text"
-                maxlength="100"
-                placeholder="Ex. présentation tenue cérémonie"
+                id="editorMediaUrl"
+                type="url"
+                placeholder="https://…"
               >
             </div>
 
-            <button
-              type="button"
-              id="uploadEditorImageButton"
-              class="fiche-editor-button secondary"
+            <div
+              id="editorMediaCaptionField"
+              class="fiche-editor-field"
             >
-              Envoyer la photo dans GitHub
-            </button>
-
-            <div
-              id="editorImageUploadStatus"
-              class="fiche-editor-upload-status"
-            ></div>
-
-            <div
-              id="editorGalleryList"
-              class="fiche-editor-upload-status success"
-            ></div>
+              <label for="editorMediaCaption">
+                Légende facultative
+              </label>
+              <input
+                id="editorMediaCaption"
+                type="text"
+              >
+            </div>
           </div>
+        </div>
 
-          <div
-            id="editorOnlineMediaBox"
-            class="fiche-editor-field"
-            hidden
+        <div class="fiche-editor-actions">
+          <button
+            type="button"
+            id="validateEditorBlockButton"
+            class="fiche-editor-button"
           >
-            <label for="editorMediaUrl">
-              Lien de la vidéo en ligne
-            </label>
-            <input
-              id="editorMediaUrl"
-              type="url"
-              placeholder="https://…"
-            >
-          </div>
-
-          <div class="fiche-editor-field">
-            <label for="editorMediaCaption">
-              Légende facultative
-            </label>
-            <input
-              id="editorMediaCaption"
-              type="text"
-            >
-          </div>
+            Valider ce bloc
+          </button>
 
           <button
             type="button"
-            id="addEditorBlockButton"
-            class="fiche-editor-button"
+            id="cancelEditorBlockButton"
+            class="fiche-editor-button secondary"
           >
-            Ajouter ce bloc
+            Annuler
           </button>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <div class="fiche-editor-actions">
-        <button
-          type="button"
-          id="previewFicheButton"
-          class="fiche-editor-button secondary"
-        >
-          Prévisualiser
-        </button>
-
         <button
           type="button"
           id="saveFicheButton"
           class="fiche-editor-button"
         >
-          Valider et publier
+          Valider et publier la fiche
         </button>
 
         <button
           type="button"
           class="fiche-editor-button secondary fiche-editor-cancel"
         >
-          Annuler
+          Fermer sans publier
         </button>
       </div>
 
@@ -1780,64 +2130,55 @@ function openFicheEditor() {
         id="ficheEditorMessage"
         hidden
       ></div>
-
-      <div
-        id="ficheEditorPreview"
-        class="fiche-editor-preview"
-        hidden
-      ></div>
     </section>
   `;
 
   document.body.appendChild(overlay);
 
-  const closeEditor = () => overlay.remove();
+  const preview =
+    overlay.querySelector("#ficheEditorPreview");
 
-  overlay
-    .querySelector(".fiche-editor-close")
-    .addEventListener("click", closeEditor);
+  const blockForm =
+    overlay.querySelector("#ficheEditorBlockForm");
 
-  overlay
-    .querySelector(".fiche-editor-cancel")
-    .addEventListener("click", closeEditor);
+  const blockFormTitle =
+    overlay.querySelector("#ficheEditorBlockFormTitle");
 
-  overlay.addEventListener("click", event => {
-    if (event.target === overlay) {
-      closeEditor();
-    }
-  });
-
-  const message =
-    overlay.querySelector("#ficheEditorMessage");
-
-  const source =
-    overlay.querySelector("#editorSource");
-
-  const blockTypeSelect =
+  const blockType =
     overlay.querySelector("#editorBlockType");
 
-  const colorField =
-    overlay
-      .querySelector("#editorBlockColor")
-      .closest(".fiche-editor-field");
+  const blockColor =
+    overlay.querySelector("#editorBlockColor");
 
-  const iconField =
-    overlay
-      .querySelector(
-        'input[name="editorBlockIcon"]'
-      )
-      .closest("fieldset");
+  const blockTitle =
+    overlay.querySelector("#editorBlockTitle");
 
-  const textField =
-    overlay
-      .querySelector("#editorBlockText")
-      .closest(".fiche-editor-field");
+  const blockText =
+    overlay.querySelector("#editorBlockText");
+
+  const blockColorField =
+    overlay.querySelector("#editorBlockColorField");
+
+  const blockIconField =
+    overlay.querySelector("#editorBlockIconField");
+
+  const blockTextField =
+    overlay.querySelector("#editorBlockTextField");
 
   const imageUploadBox =
     overlay.querySelector("#editorImageUploadBox");
 
   const onlineMediaBox =
     overlay.querySelector("#editorOnlineMediaBox");
+
+  const mediaCaptionField =
+    overlay.querySelector("#editorMediaCaptionField");
+
+  const mediaUrl =
+    overlay.querySelector("#editorMediaUrl");
+
+  const mediaCaption =
+    overlay.querySelector("#editorMediaCaption");
 
   const imageFileInput =
     overlay.querySelector("#editorImageFile");
@@ -1854,13 +2195,197 @@ function openFicheEditor() {
   const galleryList =
     overlay.querySelector("#editorGalleryList");
 
-  const mediaUrlInput =
-    overlay.querySelector("#editorMediaUrl");
-
   const uploadImageButton =
     overlay.querySelector("#uploadEditorImageButton");
 
-  let galleryImages = [];
+  const message =
+    overlay.querySelector("#ficheEditorMessage");
+
+  function buildCompleteMarkdown() {
+    const body =
+      serializeEditorBlocks(blocks);
+
+    return (
+      buildFrontMatter({
+        title:
+          overlay
+            .querySelector("#editorFicheTitle")
+            .value
+            .trim(),
+        quote:
+          overlay
+            .querySelector("#editorFicheQuote")
+            .value
+            .trim(),
+        icon:
+          overlay
+            .querySelector("#editorFicheIcon")
+            .value
+            .trim(),
+        cover:
+          overlay
+            .querySelector("#editorFicheCover")
+            .value
+            .trim()
+      }) +
+      body +
+      (body ? "\n" : "")
+    );
+  }
+
+  function renderPreview() {
+    if (blocks.length === 0) {
+      preview.innerHTML = `
+        <div class="fiche-editor-empty">
+          Cette fiche ne contient encore aucun bloc.
+        </div>
+      `;
+
+      return;
+    }
+
+    preview.innerHTML =
+      blocks
+        .map((block, index) => `
+          <section
+            class="fiche-editor-block-shell"
+            data-editor-index="${index}"
+          >
+            <div class="fiche-editor-block-toolbar">
+              <button
+                type="button"
+                class="fiche-editor-mini-button"
+                data-action="edit"
+                data-index="${index}"
+              >
+                Modifier
+              </button>
+
+              <button
+                type="button"
+                class="fiche-editor-mini-button"
+                data-action="up"
+                data-index="${index}"
+                ${index === 0 ? "disabled" : ""}
+              >
+                Monter
+              </button>
+
+              <button
+                type="button"
+                class="fiche-editor-mini-button"
+                data-action="down"
+                data-index="${index}"
+                ${index === blocks.length - 1 ? "disabled" : ""}
+              >
+                Descendre
+              </button>
+
+              <button
+                type="button"
+                class="fiche-editor-mini-button danger"
+                data-action="delete"
+                data-index="${index}"
+              >
+                Supprimer
+              </button>
+            </div>
+
+            <div class="fiche-editor-block-content">
+              ${renderSingleEditorBlock(block)}
+            </div>
+          </section>
+        `)
+        .join("");
+
+    preview
+      .querySelectorAll("[data-action]")
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            const index =
+              Number(button.dataset.index);
+
+            const action =
+              button.dataset.action;
+
+            if (action === "edit") {
+              openBlockForm(index);
+              return;
+            }
+
+            if (action === "up" && index > 0) {
+              [
+                blocks[index - 1],
+                blocks[index]
+              ] = [
+                blocks[index],
+                blocks[index - 1]
+              ];
+
+              renderPreview();
+              return;
+            }
+
+            if (
+              action === "down" &&
+              index < blocks.length - 1
+            ) {
+              [
+                blocks[index + 1],
+                blocks[index]
+              ] = [
+                blocks[index],
+                blocks[index + 1]
+              ];
+
+              renderPreview();
+              return;
+            }
+
+            if (action === "delete") {
+              const confirmed =
+                window.confirm(
+                  "Êtes-vous sûr de vouloir supprimer ce bloc ?"
+                );
+
+              if (!confirmed) {
+                return;
+              }
+
+              blocks.splice(index, 1);
+              closeBlockForm();
+              renderPreview();
+            }
+          }
+        );
+      });
+  }
+
+  function selectedIcon() {
+    return (
+      overlay.querySelector(
+        'input[name="editorBlockIcon"]:checked'
+      )?.value || "ℹ️"
+    );
+  }
+
+  function setSelectedIcon(icon) {
+    const radio =
+      overlay.querySelector(
+        `input[name="editorBlockIcon"][value="${CSS.escape(
+          icon || "ℹ️"
+        )}"]`
+      );
+
+    const fallback =
+      overlay.querySelector(
+        'input[name="editorBlockIcon"]'
+      );
+
+    (radio || fallback).checked = true;
+  }
 
   function refreshGalleryList() {
     if (galleryImages.length === 0) {
@@ -1872,56 +2397,253 @@ function openFicheEditor() {
       <strong>
         ${galleryImages.length}
         photo${galleryImages.length > 1 ? "s" : ""}
-        dans la galerie :
       </strong>
       <br>
       ${galleryImages
-        .map((image, index) =>
-          `${index + 1}. ${escapeHtml(image.path)}`
-        )
+        .map((image, index) => `
+          ${index + 1}. ${escapeHtml(image.path)}
+          <button
+            type="button"
+            class="fiche-editor-mini-button danger"
+            data-gallery-remove="${index}"
+          >
+            Retirer
+          </button>
+        `)
         .join("<br>")}
     `;
+
+    galleryList
+      .querySelectorAll("[data-gallery-remove]")
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            galleryImages.splice(
+              Number(button.dataset.galleryRemove),
+              1
+            );
+
+            refreshGalleryList();
+          }
+        );
+      });
   }
 
-  function updateMediaFields() {
-    const type = blockTypeSelect.value;
+  function updateBlockFields() {
+    const type =
+      blockType.value;
 
     const needsImage =
       type === "texte-image" ||
       type === "galerie";
 
-    imageUploadBox.hidden = !needsImage;
-    onlineMediaBox.hidden = type !== "video";
+    imageUploadBox.hidden =
+      !needsImage;
 
-    colorField.hidden =
+    onlineMediaBox.hidden =
+      type !== "video";
+
+    blockColorField.hidden =
+      type === "galerie" ||
+      type === "video" ||
+      type === "contenu";
+
+    blockIconField.hidden =
+      type === "galerie" ||
+      type === "video" ||
+      type === "contenu";
+
+    blockTextField.hidden =
       type === "galerie" ||
       type === "video";
 
-    iconField.hidden =
-      type === "galerie" ||
-      type === "video";
-
-    textField.hidden =
-      type === "galerie" ||
-      type === "video";
+    mediaCaptionField.hidden =
+      type === "texte" ||
+      type === "contenu";
 
     uploadImageButton.textContent =
       type === "galerie"
         ? "Ajouter cette photo à la galerie"
         : "Envoyer la photo dans GitHub";
-
-    if (type !== "galerie") {
-      galleryImages = [];
-      refreshGalleryList();
-    }
   }
 
-  blockTypeSelect.addEventListener(
-    "change",
-    updateMediaFields
+  function resetBlockForm() {
+    blockType.value = "texte";
+    blockColor.value = "gris";
+    blockTitle.value = "";
+    blockText.value = "";
+    mediaUrl.value = "";
+    mediaCaption.value = "";
+    imageFileInput.value = "";
+    imageNameInput.value = "";
+    selectedFileName.textContent = "";
+    uploadStatus.textContent = "";
+    galleryImages = [];
+    setSelectedIcon("ℹ️");
+    refreshGalleryList();
+    updateBlockFields();
+  }
+
+  function openBlockForm(index = null) {
+    editingIndex =
+      Number.isInteger(index)
+        ? index
+        : null;
+
+    resetBlockForm();
+
+    if (editingIndex !== null) {
+      const block =
+        blocks[editingIndex];
+
+      blockFormTitle.textContent =
+        "Modifier le bloc";
+
+      blockType.value =
+        block.type || "texte";
+
+      blockColor.value =
+        block.color || "gris";
+
+      blockTitle.value =
+        block.title || "";
+
+      blockText.value =
+        block.text || "";
+
+      mediaUrl.value =
+        block.mediaUrl || "";
+
+      mediaCaption.value =
+        block.caption || "";
+
+      galleryImages =
+        Array.isArray(block.galleryImages)
+          ? block.galleryImages.map(image => ({
+              ...image
+            }))
+          : [];
+
+      setSelectedIcon(
+        block.icon || "ℹ️"
+      );
+
+      refreshGalleryList();
+    } else {
+      blockFormTitle.textContent =
+        "Ajouter un bloc";
+    }
+
+    updateBlockFields();
+    blockForm.hidden = false;
+
+    blockForm.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  function closeBlockForm() {
+    blockForm.hidden = true;
+    editingIndex = null;
+    resetBlockForm();
+  }
+
+  function buildBlockFromForm() {
+    const type =
+      blockType.value;
+
+    if (type === "contenu") {
+      if (!blockText.value.trim()) {
+        throw new Error(
+          "Le contenu du bloc ne peut pas être vide."
+        );
+      }
+
+      return {
+        type: "contenu",
+        title: "Contenu",
+        text: blockText.value.trim()
+      };
+    }
+
+    const block = {
+      type,
+      color:
+        blockColor.value,
+      title:
+        blockTitle.value.trim(),
+      icon:
+        selectedIcon(),
+      text:
+        blockText.value.trim(),
+      mediaUrl:
+        mediaUrl.value.trim(),
+      caption:
+        mediaCaption.value.trim(),
+      galleryImages:
+        galleryImages.map(image => ({
+          ...image
+        }))
+    };
+
+    serializeEditorBlock(block);
+    return block;
+  }
+
+  function closeEditor() {
+    overlay.remove();
+  }
+
+  overlay
+    .querySelector(".fiche-editor-close")
+    .addEventListener(
+      "click",
+      closeEditor
+    );
+
+  overlay
+    .querySelector(".fiche-editor-cancel")
+    .addEventListener(
+      "click",
+      closeEditor
+    );
+
+  overlay.addEventListener(
+    "click",
+    event => {
+      if (event.target === overlay) {
+        closeEditor();
+      }
+    }
   );
 
-  updateMediaFields();
+  overlay
+    .querySelector("#newEditorBlockButton")
+    .addEventListener(
+      "click",
+      () => openBlockForm(null)
+    );
+
+  overlay
+    .querySelector("#closeEditorBlockFormButton")
+    .addEventListener(
+      "click",
+      closeBlockForm
+    );
+
+  overlay
+    .querySelector("#cancelEditorBlockButton")
+    .addEventListener(
+      "click",
+      closeBlockForm
+    );
+
+  blockType.addEventListener(
+    "change",
+    updateBlockFields
+  );
 
   imageFileInput.addEventListener(
     "change",
@@ -1952,22 +2674,27 @@ function openFicheEditor() {
       if (!file) {
         uploadStatus.textContent =
           "Choisissez d’abord une photo.";
+
         uploadStatus.className =
           "fiche-editor-upload-status error";
+
         return;
       }
 
       if (!requestedName) {
         uploadStatus.textContent =
           "Renseignez le nom de la photo.";
+
         uploadStatus.className =
           "fiche-editor-upload-status error";
+
         return;
       }
 
       uploadImageButton.disabled = true;
       uploadStatus.textContent =
         "Envoi de la photo dans GitHub…";
+
       uploadStatus.className =
         "fiche-editor-upload-status";
 
@@ -1989,14 +2716,15 @@ function openFicheEditor() {
             .trim()
         );
 
-        const response = await fetch(
-          "/cadres/photo-upload",
-          {
-            method: "POST",
-            credentials: "same-origin",
-            body: formData
-          }
-        );
+        const response =
+          await fetch(
+            "/cadres/photo-upload",
+            {
+              method: "POST",
+              credentials: "same-origin",
+              body: formData
+            }
+          );
 
         const data =
           await response.json();
@@ -2008,22 +2736,24 @@ function openFicheEditor() {
           );
         }
 
-        if (blockTypeSelect.value === "galerie") {
-          const caption =
-            overlay
-              .querySelector("#editorMediaCaption")
-              .value
-              .trim();
-
+        if (
+          blockType.value === "galerie"
+        ) {
           galleryImages.push({
             path: data.path,
-            caption
+            caption:
+              mediaCaption.value.trim()
           });
 
           refreshGalleryList();
 
           uploadStatus.textContent =
-            `Photo ajoutée à la galerie : ${data.fileName}`;
+            `Photo ajoutée : ${data.fileName}`;
+
+          imageFileInput.value = "";
+          imageNameInput.value = "";
+          selectedFileName.textContent = "";
+          mediaCaption.value = "";
 
           const addAnother =
             window.confirm(
@@ -2031,18 +2761,11 @@ function openFicheEditor() {
               "Voulez-vous ajouter une autre photo ?"
             );
 
-          imageFileInput.value = "";
-          imageNameInput.value = "";
-          selectedFileName.textContent = "";
-          overlay
-            .querySelector("#editorMediaCaption")
-            .value = "";
-
           if (addAnother) {
             imageFileInput.click();
           }
         } else {
-          mediaUrlInput.value =
+          mediaUrl.value =
             data.path;
 
           uploadStatus.textContent =
@@ -2065,175 +2788,151 @@ function openFicheEditor() {
     }
   );
 
-  function buildCompleteMarkdown() {
-    return (
-      buildFrontMatter({
-        title:
-          overlay.querySelector("#editorFicheTitle").value.trim(),
-        quote:
-          overlay.querySelector("#editorFicheQuote").value.trim(),
-        icon:
-          overlay.querySelector("#editorFicheIcon").value.trim(),
-        cover:
-          overlay.querySelector("#editorFicheCover").value.trim()
-      }) +
-      source.value.trim() +
-      "\n"
-    );
-  }
-
   overlay
-    .querySelector("#addEditorBlockButton")
-    .addEventListener("click", () => {
-      try {
-        const selectedIcon =
-          overlay.querySelector(
-            'input[name="editorBlockIcon"]:checked'
-          )?.value || "ℹ️";
+    .querySelector("#validateEditorBlockButton")
+    .addEventListener(
+      "click",
+      () => {
+        try {
+          const block =
+            buildBlockFromForm();
 
-        const block =
-          editorBlockMarkdown({
-            type:
-              blockTypeSelect.value,
-            color:
-              overlay.querySelector("#editorBlockColor").value,
-            title:
-              overlay.querySelector("#editorBlockTitle").value.trim(),
-            icon:
-              selectedIcon,
-            text:
-              overlay.querySelector("#editorBlockText").value,
-            mediaUrl:
-              blockTypeSelect.value === "texte-image"
-                ? mediaUrlInput.value.trim()
-                : overlay.querySelector("#editorMediaUrl").value.trim(),
-            caption:
-              overlay.querySelector("#editorMediaCaption").value.trim(),
-            galleryImages
-          });
+          const wasAdding =
+            editingIndex === null;
 
-        source.value =
-          [
-            source.value.trim(),
-            block
-          ]
-            .filter(Boolean)
-            .join("\n\n");
+          if (wasAdding) {
+            blocks.push(block);
+          } else {
+            blocks[editingIndex] = block;
+          }
 
-        overlay.querySelector("#editorBlockText").value = "";
-        overlay.querySelector("#editorMediaUrl").value = "";
-        overlay.querySelector("#editorMediaCaption").value = "";
+          closeBlockForm();
+          renderPreview();
 
-        imageFileInput.value = "";
-        imageNameInput.value = "";
-        selectedFileName.textContent = "";
-        uploadStatus.textContent = "";
-        uploadStatus.className =
-          "fiche-editor-upload-status";
-        galleryImages = [];
-        refreshGalleryList();
+          message.hidden = false;
+          message.className =
+            "fiche-editor-message";
 
-        message.hidden = false;
-        message.className = "fiche-editor-message";
-        message.textContent =
-          "Bloc ajouté. Vous pouvez en ajouter un autre ou publier la fiche.";
+          message.textContent =
+            wasAdding
+              ? "Bloc ajouté."
+              : "Bloc modifié.";
 
-      } catch (error) {
-        message.hidden = false;
-        message.className =
-          "fiche-editor-message error";
-        message.textContent = error.message;
+        } catch (error) {
+          message.hidden = false;
+          message.className =
+            "fiche-editor-message error";
+
+          message.textContent =
+            error.message;
+        }
       }
-    });
-
-  overlay
-    .querySelector("#previewFicheButton")
-    .addEventListener("click", () => {
-      const preview =
-        overlay.querySelector("#ficheEditorPreview");
-
-      preview.innerHTML =
-        markdownToHtml(buildCompleteMarkdown());
-
-      preview.hidden = false;
-      preview.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    });
+    );
 
   overlay
     .querySelector("#saveFicheButton")
-    .addEventListener("click", async event => {
-      const confirmed = window.confirm(
-        "Êtes-vous sûr de vouloir publier cette nouvelle version de la fiche ?\n\n" +
-        "La modification sera enregistrée directement dans GitHub et déclenchera un nouveau déploiement."
-      );
-
-      if (!confirmed) {
-        return;
-      }
-
-      const button = event.currentTarget;
-      button.disabled = true;
-
-      message.hidden = false;
-      message.className = "fiche-editor-message";
-      message.textContent =
-        "Publication dans GitHub en cours…";
-
-      try {
-        const markdown =
-          buildCompleteMarkdown();
-
-        const response = await fetch(
-          "/cadres/fiche-save",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-              "Accept":
-                "application/json"
-            },
-            credentials: "same-origin",
-            body: JSON.stringify({
-              path:
-                currentEditableFiche.path,
-              markdown,
-              title:
-                overlay.querySelector("#editorFicheTitle").value.trim()
-            })
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-            "La publication a échoué."
+    .addEventListener(
+      "click",
+      async event => {
+        const confirmed =
+          window.confirm(
+            "Êtes-vous sûr de vouloir publier cette nouvelle version de la fiche ?\n\n" +
+            "La modification sera enregistrée directement dans GitHub."
           );
+
+        if (!confirmed) {
+          return;
         }
 
-        currentEditableFiche.markdown =
-          markdown;
+        const button =
+          event.currentTarget;
 
+        button.disabled = true;
+
+        message.hidden = false;
         message.className =
           "fiche-editor-message";
 
         message.textContent =
-          "La fiche a été enregistrée dans GitHub. Le site sera actualisé après le déploiement Cloudflare.";
+          "Publication dans GitHub en cours…";
 
-      } catch (error) {
-        message.className =
-          "fiche-editor-message error";
-        message.textContent = error.message;
+        try {
+          const markdown =
+            buildCompleteMarkdown();
 
-      } finally {
-        button.disabled = false;
+          const response =
+            await fetch(
+              "/cadres/fiche-save",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                  "Accept":
+                    "application/json"
+                },
+                credentials:
+                  "same-origin",
+                body: JSON.stringify({
+                  path:
+                    currentEditableFiche.path,
+                  markdown,
+                  title:
+                    overlay
+                      .querySelector("#editorFicheTitle")
+                      .value
+                      .trim()
+                })
+              }
+            );
+
+          const data =
+            await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              data.error ||
+              "La publication a échoué."
+            );
+          }
+
+          currentEditableFiche.markdown =
+            markdown;
+
+          message.className =
+            "fiche-editor-message";
+
+          message.textContent =
+            "La fiche a été enregistrée dans GitHub. Le site sera actualisé après le déploiement Cloudflare.";
+
+        } catch (error) {
+          message.className =
+            "fiche-editor-message error";
+
+          message.textContent =
+            error.message;
+
+        } finally {
+          button.disabled = false;
+        }
       }
-    });
+    );
+
+  [
+    "#editorFicheTitle",
+    "#editorFicheQuote",
+    "#editorFicheIcon",
+    "#editorFicheCover"
+  ].forEach(selector => {
+    overlay
+      .querySelector(selector)
+      .addEventListener(
+        "input",
+        renderPreview
+      );
+  });
+
+  renderPreview();
 }
 
 function createEmptyFicheMarkdown(item) {
