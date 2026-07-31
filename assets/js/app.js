@@ -8,7 +8,18 @@ let currentParent = null;
  */
 let homepageTileSettings = {};
 
+function isVisitorMode() {
+  return (
+    currentSession.type === "user" &&
+    currentSession.role === "visiteur"
+  );
+}
+
 function isHomepageTileVisible(item) {
+  if (isVisitorMode()) {
+    return true;
+  }
+
   return homepageTileSettings[item.slug] !== false;
 }
 
@@ -77,12 +88,17 @@ function isCadreMode() {
     currentSession.type === "user" &&
     (
       currentSession.role === "cadre" ||
-      currentSession.role === "admin"
+      currentSession.role === "admin" ||
+      currentSession.role === "visiteur"
     )
   );
 }
 
 function canAccessRoles(allowedRoles) {
+  if (isVisitorMode()) {
+    return true;
+  }
+
   if (
     !Array.isArray(allowedRoles) ||
     allowedRoles.length === 0
@@ -1411,6 +1427,23 @@ function injectFicheEditorStyles() {
       border: 1px solid rgba(80,145,220,.55);
     }
 
+    .fiche-editor-visitor-banner {
+      margin: 0 0 16px;
+      padding: 13px 15px;
+      color: #dcecff;
+      font-weight: 700;
+      line-height: 1.5;
+      border: 1px solid rgba(80, 145, 220, 0.68);
+      border-radius: 9px;
+      background: rgba(25, 65, 110, 0.3);
+    }
+
+    .fiche-editor-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.48;
+      transform: none;
+    }
+
     .fiche-editor-message.error {
       color: #ffdada;
       background: rgba(110,20,20,.3);
@@ -2025,6 +2058,14 @@ function openFicheEditor() {
         </button>
       </div>
 
+      ${isVisitorMode() ? `
+        <div class="fiche-editor-visitor-banner">
+          Mode visiteur — démonstration uniquement. Vous pouvez parcourir
+          l’éditeur et modifier temporairement son contenu, mais aucune
+          photo ni aucune fiche ne peut être publiée.
+        </div>
+      ` : ""}
+
       <section class="fiche-editor-panel fiche-editor-header-panel">
         <h3>En-tête de la fiche</h3>
 
@@ -2252,8 +2293,11 @@ function openFicheEditor() {
                 type="button"
                 id="uploadEditorImageButton"
                 class="fiche-editor-button secondary"
+                ${isVisitorMode() ? "disabled" : ""}
               >
-                Envoyer la photo dans GitHub
+                ${isVisitorMode()
+                  ? "Envoi indisponible en mode visiteur"
+                  : "Envoyer la photo dans GitHub"}
               </button>
 
               <div
@@ -2321,8 +2365,11 @@ function openFicheEditor() {
           type="button"
           id="saveFicheButton"
           class="fiche-editor-button"
+          ${isVisitorMode() ? "disabled" : ""}
         >
-          Valider et publier la fiche
+          ${isVisitorMode()
+            ? "Publication indisponible en mode visiteur"
+            : "Valider et publier la fiche"}
         </button>
 
         <button
@@ -2990,6 +3037,14 @@ function openFicheEditor() {
   uploadImageButton.addEventListener(
     "click",
     async () => {
+      if (isVisitorMode()) {
+        uploadStatus.textContent =
+          "Le mode visiteur ne permet pas d’envoyer une photo.";
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+        return;
+      }
+
       const file =
         imageFileInput.files?.[0];
 
@@ -3159,6 +3214,15 @@ function openFicheEditor() {
     .addEventListener(
       "click",
       async event => {
+        if (isVisitorMode()) {
+          message.hidden = false;
+          message.className =
+            "fiche-editor-message error";
+          message.textContent =
+            "La publication est désactivée en mode visiteur.";
+          return;
+        }
+
         const confirmed =
           window.confirm(
             "Êtes-vous sûr de vouloir publier cette nouvelle version de la fiche ?\n\n" +
@@ -3555,7 +3619,9 @@ async function displayConnectedUser() {
         sentence.textContent =
           data.role === "admin"
             ? "Vous êtes connecté en tant que cadre administrateur."
-            : `Vous êtes connecté en tant que ${data.roleLabel}.`;
+            : data.role === "visiteur"
+              ? "Vous êtes connecté en mode visiteur (démonstration)."
+              : `Vous êtes connecté en tant que ${data.roleLabel}.`;
     
         identity.appendChild(sentence);
 
@@ -3586,7 +3652,10 @@ connectedActions.className =
      * Bouton Administration
      * uniquement pour un administrateur.
      */
-    if (data.role === "admin") {
+    if (
+      data.role === "admin" ||
+      data.role === "visiteur"
+    ) {
       const administrationLink =
         document.createElement("a");
     
