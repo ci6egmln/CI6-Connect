@@ -460,7 +460,7 @@ function formatInline(text) {
         /* Images Markdown */
         .replace(
             /!\[([^\]]*)\]\(([^)]+)\)/g,
-            '<a class="fiche-inline-image-link" href="$2" target="_blank" rel="noopener noreferrer"><img class="fiche-inline-image" src="$2" alt="$1" loading="lazy"></a>'
+            '<a class="fiche-inline-image-link" href="$2"><img class="fiche-inline-image" src="$2" alt="$1" loading="lazy"></a>'
         )
 
         /* Code */
@@ -484,7 +484,7 @@ function formatInline(text) {
         /* Liens */
         .replace(
             /\[([^\]]+)\]\(([^)]+)\)/g,
-            '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+            '<a href="$2">$1</a>'
         );
 }
 
@@ -533,7 +533,7 @@ function getDownloadIcon(path) {
 function renderDownloadBlock(content) {
     return `\n    <section class="fiche-card fiche-card-download">\n      <div class="fiche-card-head">\n        <span class="fiche-card-icon">⬇️</span>\n        <strong>Documents à télécharger</strong>\n      </div>\n\n      <div class="download-list">\n        ${content.split("\n").map(line => line.trim()).filter(line => line.startsWith("-")).map(line => line.replace(/^-/, "").trim()).map(item => {
         const [label, url] = item.split("|").map(part => part.trim());
-        return `\n            <a class="download-item" href="${url}" target="_blank" rel="noopener noreferrer">\n              <span>${getDownloadIcon(url || "")}</span>\n              <strong>${label}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
+        return `\n            <a class="download-item" href="${url}">\n              <span>${getDownloadIcon(url || "")}</span>\n              <strong>${label}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
     }).join("")}\n      </div>\n    </section>\n  `;
 }
 function renderImageBlock(title, content) {
@@ -557,8 +557,6 @@ function renderImageBlock(title, content) {
       <a
         class="media-image-link"
         href="${safePath}"
-        target="_blank"
-        rel="noopener noreferrer"
         aria-label="Agrandir l’image ${safeCaption}"
       >
         <img
@@ -611,8 +609,6 @@ function renderGalleryBlock(title, content) {
             <a
               class="media-gallery-item"
               href="${safePath}"
-              target="_blank"
-              rel="noopener noreferrer"
               aria-label="Agrandir l’image ${safeCaption}"
             >
               <img
@@ -749,8 +745,6 @@ function renderOnlineVideoBlock(title, content) {
           <p>
             <a
               href="${escapeHtml(url)}"
-              target="_blank"
-              rel="noopener noreferrer"
             >
               Ouvrir la vidéo en ligne
             </a>
