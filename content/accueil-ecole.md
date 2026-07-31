@@ -3,11 +3,13 @@ title: "L'école de gendarmerie de Montluçon"
 icon: "assets/cards/accueil-ecole.png"
 quote: "« Nec pluribus impar » : être à la hauteur des exigences d'aujourd'hui pour assumer les responsabilités de demain."
 ---
-:::bloc bleu | l'école en chiffres | ℹ️
-L'école de Montlucon est la plus grande ecole de gendarmerie de France 
+:::image-texte bleu | l'école en quelques chiffres | ℹ️
+assets/photos/accueil-ecole-portail-bleu.png
+
+L'école de Montluçon est la plus grande école de gendarmerie Française :
 
 - 11 compagnies 
-- 1310 élèves lorsque L'école est pleine
-- plus de 250 cadres formateurs 
-- personnels de soutiens  militaires et civils
+- 1310 élèves en même temps
+- 150 cadres formateurs 
+- 200 personnels militaires ou civils de soutien
 :::
