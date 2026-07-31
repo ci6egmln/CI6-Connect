@@ -725,6 +725,32 @@ export async function onRequest(context) {
    */
   context.data.session = session;
 
+  /*
+   * Le visiteur peut parcourir la structure du site,
+   * mais ne reçoit jamais les véritables fiches Markdown
+   * ni les photographies internes.
+   */
+  if (
+    session.type === "user" &&
+    session.role === "visiteur" &&
+    (
+      path.startsWith("/content/") ||
+      path.startsWith("/assets/photos/")
+    )
+  ) {
+    return new Response(
+      "Contenu masqué en mode visiteur.",
+      {
+        status: 403,
+        headers: {
+          "Content-Type":
+            "text/plain; charset=utf-8",
+          "Cache-Control": "private, no-store"
+        }
+      }
+    );
+  }
+
   if (
     (path === "/me" || path === "/me/") &&
     request.method === "GET"
