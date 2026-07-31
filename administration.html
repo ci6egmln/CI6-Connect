@@ -1369,7 +1369,7 @@
       <button
         id="changeRoleButton"
         class="account-action-button change-role"
-        type="button"
+        type="button" hidden disabled
       >
         Passer administrateur
       </button>
@@ -1711,6 +1711,9 @@
 
   let currentUser = null;
 
+  changeRoleButton.hidden = true;
+  changeRoleButton.disabled = true;
+
   function formatRole(role) {
     const roles = {
       eleve: "Élève",
@@ -1721,156 +1724,20 @@
     return roles[role] || role;
   }
 
-  function formatDate(value) {
-    if (!value) {
-      return "Non renseignée";
+  function renderRoleAction(user) {
+    /*
+     * Règle stricte :
+     * - un élève reste élève ;
+     * - seuls cadre et administrateur peuvent basculer entre eux.
+     */
+    if (!user || user.role === "eleve") {
+      changeRoleButton.hidden = true;
+      changeRoleButton.disabled = true;
+      changeRoleButton.textContent =
+        "Modification du rôle interdite";
+      return;
     }
-
-    const normalizedValue =
-      value.includes("T")
-        ? value
-        : value.replace(" ", "T") + "Z";
-
-    const date = new Date(normalizedValue);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat(
-      "fr-FR",
-      {
-        dateStyle: "short",
-        timeStyle: "short"
-      }
-    ).format(date);
-  }
-
-  searchForm.addEventListener(
-    "submit",
-    async event => {
-      event.preventDefault();
-
-      userResult.hidden = true;
-      searchMessage.className = "search-info";
-      searchMessage.textContent = "Recherche en cours…";
-
-      const username =
-        document
-          .getElementById("searchUsername")
-          .value
-          .trim();
-
-      try {
-        const response = await fetch(
-          `/admin/user?username=${encodeURIComponent(username)}`,
-          {
-            headers: {
-              "Accept": "application/json"
-            }
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error || "Recherche impossible."
-          );
-        }
-
-        const user = data.user;
-
-        currentUser = user;
-          actionMessage.textContent = "";
-          actionMessage.className = "";
-          resetPasswordButton.disabled = false;
-        
-        document.getElementById(
-          "resultUsername"
-        ).textContent = user.username;
-
-        const status =
-          document.getElementById("resultStatus");
-
-        status.textContent =
-          user.active ? "Actif" : "Désactivé";
-
-        status.className =
-          "status-badge " +
-          (
-            user.active
-              ? "status-active"
-              : "status-disabled"
-          );
-
-        document.getElementById(
-          "resultRole"
-        ).textContent = formatRole(user.role);
-
-        document.getElementById(
-          "resultPasswordState"
-        ).textContent =
-          user.mustChangePassword
-            ? "Changement obligatoire"
-            : "Mot de passe personnel";
-
-        document.getElementById(
-          "resultSessionVersion"
-        ).textContent = user.sessionVersion;
-
-        document.getElementById(
-          "resultCreatedAt"
-        ).textContent = formatDate(user.createdAt);
-
-        searchMessage.textContent = "";
-        searchMessage.className = "";
-        if (user.role === "admin") {
-            toggleActiveButton.textContent =
-              "Compte administrateur protégé";
-          
-            toggleActiveButton.className =
-              "account-action-button";
-          
-            toggleActiveButton.disabled = true;
-          
-          } else if (user.active) {
-            toggleActiveButton.textContent =
-              "Désactiver le compte";
-          
-            toggleActiveButton.className =
-              "account-action-button";
-          
-            toggleActiveButton.disabled = false;
-          
-          } else {
-            toggleActiveButton.textContent =
-              "Réactiver le compte";
-          
-            toggleActiveButton.className =
-              "account-action-button activate";
-          
-            toggleActiveButton.disabled = false;
-          }
-          if (user.role === "cadre") {
-            changeRoleButton.hidden = false;
-            changeRoleButton.disabled = false;
-            changeRoleButton.textContent =
-              "Passer administrateur";
-            changeRoleButton.className =
-              "account-action-button change-role";
-          
-          } else if (user.role === "admin") {
-            changeRoleButton.hidden = false;
-            changeRoleButton.disabled = false;
-            changeRoleButton.textContent =
-              "Revenir cadre";
-            changeRoleButton.className =
-              "account-action-button change-role remove-admin";
-          
-          } else {
-            changeRoleButton.hidden = true;
-          }
+          renderRoleAction(user);
         
         userResult.hidden = false;
 
@@ -2136,6 +2003,15 @@
       currentUser.role !== "cadre" &&
       currentUser.role !== "admin"
     ) {
+      changeRoleButton.hidden = true;
+      changeRoleButton.disabled = true;
+
+      actionMessage.className =
+        "action-error";
+
+      actionMessage.textContent =
+        "Le rôle élève est définitif. Seuls les comptes cadres peuvent recevoir ou perdre les droits administrateur.";
+
       return;
     }
 
@@ -2198,13 +2074,9 @@
       ).textContent =
         currentUser.sessionVersion;
 
+      renderRoleAction(currentUser);
+
       if (currentUser.role === "admin") {
-        changeRoleButton.textContent =
-          "Revenir cadre";
-
-        changeRoleButton.className =
-          "account-action-button change-role remove-admin";
-
         toggleActiveButton.textContent =
           "Compte administrateur protégé";
 
@@ -2214,12 +2086,6 @@
         toggleActiveButton.disabled = true;
 
       } else {
-        changeRoleButton.textContent =
-          "Passer administrateur";
-
-        changeRoleButton.className =
-          "account-action-button change-role";
-
         toggleActiveButton.textContent =
           currentUser.active
             ? "Désactiver le compte"
