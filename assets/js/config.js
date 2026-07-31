@@ -1004,4 +1004,27 @@ window.CI6_RUBRIQUES = [
         content: "content/sif-poubelles.md",
         card: "assets/cards/sif-poubelles.png"
     } ]
-} ];
+},
+  /*****************************************************************************************/
+  /********************************* ESPACE CADRES ****************************************/
+  /*****************************************************************************************/
+  {
+    id: "cadres",
+    title: "Espace cadres",
+    description: "Consignes, outils et ressources réservés aux cadres.",
+    slug: "cadres",
+    card: "assets/cards/cadres.svg",
+
+    /*
+     * L'administrateur est aussi considéré comme cadre
+     * par app.js. Cette restriction s'appliquera également
+     * aux futurs sous-domaines placés dans children.
+     */
+    access: ["cadre"],
+
+    /*
+     * Les sous-domaines seront ajoutés ici ultérieurement.
+     */
+    children: []
+  }
+ ];
