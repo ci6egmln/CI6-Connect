@@ -1,0 +1,56 @@
+function jsonResponse(data,status=200){
+  return new Response(JSON.stringify(data),{
+    status,
+    headers:{
+      "Content-Type":"application/json; charset=utf-8",
+      "Cache-Control":"private, no-store"
+    }
+  });
+}
+function cleanText(value,max){
+  return String(value||"").trim().slice(0,max);
+}
+export async function onRequestGet(context){
+  const url=new URL(context.request.url);
+  const username=cleanText(url.searchParams.get("username"),6);
+  const fiche=cleanText(url.searchParams.get("fiche"),150);
+  const requested=Number(url.searchParams.get("limit")||100);
+  const limit=Math.min(200,Math.max(1,Number.isFinite(requested)?Math.floor(requested):100));
+  if(username&&!/^\d{6}$/.test(username)){
+    return jsonResponse({error:"Le NIGEND doit contenir six chiffres."},400);
+  }
+  const conditions=[],values=[];
+  if(username){conditions.push("username = ?");values.push(username);}
+  if(fiche){
+    conditions.push("(fiche_title LIKE ? OR fiche_path LIKE ? OR fiche_id LIKE ?)");
+    const term=`%${fiche}%`;
+    values.push(term,term,term);
+  }
+  const where=conditions.length?`WHERE ${conditions.join(" AND ")}`:"";
+  try{
+    const result=await context.env.DB.prepare(`
+      SELECT id,username,role,fiche_id,fiche_title,fiche_path,
+             fiche_version,promotion,opened_at,closed_at
+      FROM fiche_consultations
+      ${where}
+      ORDER BY opened_at DESC
+      LIMIT ?
+    `).bind(...values,limit).all();
+    const consultations=(result.results||[]).map(row=>({
+      id:row.id,
+      username:row.username,
+      role:row.role,
+      ficheId:row.fiche_id,
+      ficheTitle:row.fiche_title,
+      fichePath:row.fiche_path,
+      ficheVersion:row.fiche_version,
+      promotion:row.promotion,
+      openedAt:row.opened_at,
+      closedAt:row.closed_at
+    }));
+    return jsonResponse({success:true,count:consultations.length,consultations});
+  }catch(error){
+    console.error("Erreur consultations",error);
+    return jsonResponse({error:"Impossible de lire les consultations."},500);
+  }
+}
