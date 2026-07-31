@@ -1231,6 +1231,21 @@ function injectFicheEditorStyles() {
       line-height: 1.5;
     }
 
+    .fiche-editor-color-help {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-left: 3px solid rgba(214,173,58,.7);
+      border-radius: 6px;
+      background: rgba(214,173,58,.055);
+      color: #d8d1c4;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .fiche-editor-color-help strong {
+      color: #f4d77a;
+    }
+
     .fiche-editor-upload-box {
       margin-top: 10px;
       padding: 14px;
@@ -1948,13 +1963,30 @@ function openFicheEditor() {
                 Couleur
               </label>
               <select id="editorBlockColor">
-                <option value="bleu">Bleu</option>
-                <option value="vert">Vert</option>
-                <option value="rouge">Rouge</option>
-                <option value="orange">Orange</option>
-                <option value="jaune">Jaune</option>
-                <option value="gris">Gris</option>
+                <option value="bleu">
+                  🔵 Bleu — Information, directives, organisation…
+                </option>
+                <option value="vert">
+                  🟢 Vert — Ce qu’il faut faire, bonne pratique…
+                </option>
+                <option value="rouge">
+                  🔴 Rouge — Interdit, danger, attention…
+                </option>
+                <option value="orange">
+                  🟠 Orange — Vigilance, risques, point sensible…
+                </option>
+                <option value="jaune">
+                  🟡 Jaune — À retenir, conseil, astuce…
+                </option>
+                <option value="gris">
+                  ⚪ Gris — Définition, précision, contexte…
+                </option>
               </select>
+
+              <div
+                id="editorBlockColorHelp"
+                class="fiche-editor-color-help"
+              ></div>
             </div>
 
             <div class="fiche-editor-field">
@@ -1975,22 +2007,10 @@ function openFicheEditor() {
                 Icône
               </legend>
 
-              <div class="fiche-editor-radio-grid">
-                ${[
-                  "ℹ️","✅","⚠️","⛔","💡","📌",
-                  "📄","🛡️","🎯","📅","🖼️","🎥"
-                ].map((icon, index) => `
-                  <label title="${icon}">
-                    <input
-                      type="radio"
-                      name="editorBlockIcon"
-                      value="${icon}"
-                      ${index === 0 ? "checked" : ""}
-                    >
-                    <span>${icon}</span>
-                  </label>
-                `).join("")}
-              </div>
+              <div
+                id="editorBlockIconGrid"
+                class="fiche-editor-radio-grid"
+              ></div>
             </fieldset>
 
             <div
@@ -2149,6 +2169,12 @@ function openFicheEditor() {
 
   const blockColor =
     overlay.querySelector("#editorBlockColor");
+
+  const blockColorHelp =
+    overlay.querySelector("#editorBlockColorHelp");
+
+  const blockIconGrid =
+    overlay.querySelector("#editorBlockIconGrid");
 
   const blockTitle =
     overlay.querySelector("#editorBlockTitle");
@@ -2363,28 +2389,127 @@ function openFicheEditor() {
       });
   }
 
+  const colorGuidance = {
+    bleu: {
+      description:
+        "Information, directives, organisation…",
+      titlePlaceholder:
+        "Ex. Information, directives, organisation",
+      defaultTitle:
+        "Information",
+      icons:
+        ["📘", "📋", "📖", "📝", "📌", "ℹ️", "📢", "🔎"]
+    },
+    vert: {
+      description:
+        "Ce qu’il faut faire, bonne pratique…",
+      titlePlaceholder:
+        "Ex. Ce qu’il faut faire, bonne pratique",
+      defaultTitle:
+        "Ce qu’il faut faire",
+      icons:
+        ["✅", "✔️", "👍", "🤝", "🛡️", "🎯", "🌱"]
+    },
+    rouge: {
+      description:
+        "Interdit, danger, attention…",
+      titlePlaceholder:
+        "Ex. Interdit, danger, attention",
+      defaultTitle:
+        "Interdit",
+      icons:
+        ["⛔", "❌", "🚫", "🛑", "☠️", "🚷"]
+    },
+    orange: {
+      description:
+        "Vigilance, risques, point sensible…",
+      titlePlaceholder:
+        "Ex. Vigilance, risques, point sensible",
+      defaultTitle:
+        "Vigilance",
+      icons:
+        ["⚠️", "🚨", "🔥", "🔔", "👁️", "🔍", "⏳"]
+    },
+    jaune: {
+      description:
+        "À retenir, conseil, astuce…",
+      titlePlaceholder:
+        "Ex. À retenir, conseil, astuce",
+      defaultTitle:
+        "À retenir",
+      icons:
+        ["💡", "🧠", "⭐", "💬", "🗝️", "📍"]
+    },
+    gris: {
+      description:
+        "Définition, précision, contexte…",
+      titlePlaceholder:
+        "Ex. Définition, précision, contexte",
+      defaultTitle:
+        "Précision",
+      icons:
+        ["ℹ️", "📖", "📑", "📄", "🗂️"]
+    }
+  };
+
   function selectedIcon() {
     return (
       overlay.querySelector(
         'input[name="editorBlockIcon"]:checked'
-      )?.value || "ℹ️"
+      )?.value ||
+      colorGuidance[blockColor.value]?.icons?.[0] ||
+      "ℹ️"
     );
   }
 
+  function renderIconsForColor(
+    requestedIcon = ""
+  ) {
+    const guidance =
+      colorGuidance[blockColor.value] ||
+      colorGuidance.gris;
+
+    const selected =
+      guidance.icons.includes(requestedIcon)
+        ? requestedIcon
+        : guidance.icons[0];
+
+    blockIconGrid.innerHTML =
+      guidance.icons
+        .map(icon => `
+          <label title="${icon}">
+            <input
+              type="radio"
+              name="editorBlockIcon"
+              value="${icon}"
+              ${icon === selected ? "checked" : ""}
+            >
+            <span>${icon}</span>
+          </label>
+        `)
+        .join("");
+  }
+
+  function updateColorGuidance(
+    requestedIcon = ""
+  ) {
+    const guidance =
+      colorGuidance[blockColor.value] ||
+      colorGuidance.gris;
+
+    blockColorHelp.innerHTML = `
+      <strong>Usage conseillé :</strong>
+      ${escapeHtml(guidance.description)}
+    `;
+
+    blockTitle.placeholder =
+      guidance.titlePlaceholder;
+
+    renderIconsForColor(requestedIcon);
+  }
+
   function setSelectedIcon(icon) {
-    const radio =
-      overlay.querySelector(
-        `input[name="editorBlockIcon"][value="${CSS.escape(
-          icon || "ℹ️"
-        )}"]`
-      );
-
-    const fallback =
-      overlay.querySelector(
-        'input[name="editorBlockIcon"]'
-      );
-
-    (radio || fallback).checked = true;
+    renderIconsForColor(icon);
   }
 
   function refreshGalleryList() {
@@ -2480,7 +2605,7 @@ function openFicheEditor() {
     selectedFileName.textContent = "";
     uploadStatus.textContent = "";
     galleryImages = [];
-    setSelectedIcon("ℹ️");
+    updateColorGuidance();
     refreshGalleryList();
     updateBlockFields();
   }
@@ -2525,8 +2650,8 @@ function openFicheEditor() {
             }))
           : [];
 
-      setSelectedIcon(
-        block.icon || "ℹ️"
+      updateColorGuidance(
+        block.icon || ""
       );
 
       refreshGalleryList();
@@ -2573,7 +2698,9 @@ function openFicheEditor() {
       color:
         blockColor.value,
       title:
-        blockTitle.value.trim(),
+        blockTitle.value.trim() ||
+        colorGuidance[blockColor.value]?.defaultTitle ||
+        "Information",
       icon:
         selectedIcon(),
       text:
@@ -2643,6 +2770,17 @@ function openFicheEditor() {
   blockType.addEventListener(
     "change",
     updateBlockFields
+  );
+
+  blockColor.addEventListener(
+    "change",
+    () => {
+      updateColorGuidance();
+
+      if (!blockTitle.value.trim()) {
+        blockTitle.value = "";
+      }
+    }
   );
 
   imageFileInput.addEventListener(
