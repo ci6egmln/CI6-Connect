@@ -1,9 +1,8 @@
 ---
-title: Le comportement individuel
-icon: assets/cards/reglement-comportement.png
+title: "Le comportement individuel"
+icon: "assets/cards/reglement-mixite.png"
 quote: "La première impression ne dépend pas uniquement de la tenue portée, mais de la façon dont elle est portée et de l'attitude de celui qui la porte."
 ---
-
 <!-- ===========================================================
                      GUIDE DE RÉDACTION CI6 CONNECT
 
@@ -38,7 +37,7 @@ Insérer une photo :
 GALERIE DE PHOTOS
 ==========================
 
-:::galerie
+:::galerie Galerie
 assets/photos/photo1.png | Description de la photo 1
 assets/photos/photo2.png | Description de la photo 2
 assets/photos/photo3.png | Description de la photo 3
@@ -69,6 +68,3 @@ Autre document | assets/documents/autre-document.pdf
 - Suite des directives.
  ![description du contenu de la photo](assets/photos/domaine-nom1.png)
 :::
-
-
-
