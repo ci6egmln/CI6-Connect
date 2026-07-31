@@ -1013,7 +1013,7 @@ window.CI6_RUBRIQUES = [
     title: "Espace cadres",
     description: "Consignes, outils et ressources réservés aux cadres.",
     slug: "espace-cadres",
-    card: "assets/cards/cadres.png",
+    card: "assets/cards/cadres.svg",
 
     /*
      * Visible uniquement pour les cadres.
