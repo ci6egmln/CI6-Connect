@@ -1097,7 +1097,7 @@
 .consultations-panel{margin-top:22px;padding:24px;border:1px solid rgba(214,173,58,.5);border-radius:13px;background:rgba(8,10,12,.94)}
 .consultations-panel h2{margin:5px 0 10px;color:var(--gold-light)}
 .consultations-description{margin:0 0 20px;color:var(--muted);line-height:1.6}
-.consultations-filters{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(180px,.8fr) auto;gap:12px;align-items:end}
+.consultations-filters{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:12px;align-items:end}
 .consultations-field label{display:block;margin-bottom:8px;font-weight:700}
 .consultations-field input{width:100%;min-height:46px;padding:10px 13px;color:var(--text);font:inherit;border:1px solid rgba(214,173,58,.7);border-radius:8px;outline:none;background:#020304}
 .consultations-field input:focus{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(214,173,58,.14)}
@@ -1116,6 +1116,109 @@
 .consultations-error{color:#ffdada;border:1px solid rgba(255,90,90,.58);background:rgba(110,20,20,.3)}
 @media(max-width:760px){.consultations-panel{padding:18px}.consultations-filters{grid-template-columns:1fr}.consultations-filter-actions{flex-direction:column}.consultations-filter-actions button{width:100%}}
 
+
+  /* ==========================================================
+     PARAMÈTRES DE LA PROMOTION
+     ========================================================== */
+
+  .promotion-settings {
+    margin-top: 24px;
+    padding: 18px;
+    border: 1px solid rgba(214, 173, 58, 0.45);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .promotion-settings-title {
+    margin: 0 0 14px;
+    color: var(--gold-light);
+    font-size: 18px;
+  }
+
+  .promotion-settings-grid {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .promotion-settings-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--silver);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .promotion-settings-field input {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 12px;
+    color: var(--text);
+    font: inherit;
+    border: 1px solid rgba(214, 173, 58, 0.65);
+    border-radius: 8px;
+    outline: none;
+    background: #020304;
+  }
+
+  .promotion-settings-field input:focus {
+    border-color: var(--gold-light);
+    box-shadow:
+      0 0 0 3px rgba(214, 173, 58, 0.14);
+  }
+
+  .promotion-settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .promotion-settings-message {
+    margin-top: 14px;
+  }
+
+  .promotion-settings-success,
+  .promotion-settings-error,
+  .promotion-settings-info {
+    padding: 12px 14px;
+    line-height: 1.5;
+    border-radius: 8px;
+  }
+
+  .promotion-settings-success {
+    color: #eaffea;
+    border: 1px solid rgba(70, 190, 100, 0.65);
+    background: rgba(25, 90, 45, 0.3);
+  }
+
+  .promotion-settings-error {
+    color: #ffdada;
+    border: 1px solid rgba(255, 90, 90, 0.6);
+    background: rgba(110, 20, 20, 0.3);
+  }
+
+  .promotion-settings-info {
+    color: #dcecff;
+    border: 1px solid rgba(80, 145, 220, 0.65);
+    background: rgba(25, 65, 110, 0.28);
+  }
+
+  @media (max-width: 650px) {
+    .promotion-settings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .promotion-settings-actions {
+      flex-direction: column;
+    }
+
+    .promotion-settings-actions button {
+      width: 100%;
+    }
+  }
+
 </style>
 </head>
 
@@ -1133,6 +1236,58 @@
           Retour à CI6 Connect
         </a>
       </div>
+
+      <section class="promotion-settings">
+        <h2 class="promotion-settings-title">
+          Paramètres de la promotion
+        </h2>
+
+        <form id="promotionSettingsForm">
+          <div class="promotion-settings-grid">
+            <div class="promotion-settings-field">
+              <label for="promotionNumber">
+                Numéro de promotion
+              </label>
+
+              <input
+                id="promotionNumber"
+                type="text"
+                maxlength="80"
+                placeholder="Ex. 463e promotion"
+                required
+              >
+            </div>
+
+            <div class="promotion-settings-field">
+              <label for="promotionIncorporationDate">
+                Date d’incorporation
+              </label>
+
+              <input
+                id="promotionIncorporationDate"
+                type="date"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="promotion-settings-actions">
+            <button
+              id="savePromotionSettingsButton"
+              class="primary-button"
+              type="submit"
+            >
+              Enregistrer les paramètres
+            </button>
+          </div>
+        </form>
+
+        <div
+          id="promotionSettingsMessage"
+          class="promotion-settings-message"
+        ></div>
+      </section>
+
     </header>
     <section class="search-panel">
       <h2>Rechercher un compte</h2>
@@ -1445,17 +1600,12 @@
     <h2>Suivi des consultations</h2>
   </div>
   <p class="consultations-description">
-    Saisissez un NIGEND pour afficher ses 10 consultations les plus récentes, ou ****** pour toute la compagnie. L’export CSV contient toutes les consultations depuis la date d’incorporation.
+    Saisissez un NIGEND pour afficher ses 10 consultations les plus récentes, ou ****** pour toute la compagnie. La date d’incorporation enregistrée ci-dessus est utilisée automatiquement.
   </p>
   <form id="consultationsFilterForm" class="consultations-filters">
     <div class="consultations-field">
       <label for="consultationsUsername">NIGEND</label>
       <input id="consultationsUsername" type="text" maxlength="6" placeholder="NIGEND ou ******">
-    </div>
-
-    <div class="consultations-field">
-      <label for="consultationsStartDate">Date d’incorporation</label>
-      <input id="consultationsStartDate" type="date" required>
     </div>
 
     <div class="consultations-filter-actions">
@@ -3139,7 +3289,6 @@ downloadCredentialsButton.addEventListener(
 
 const consultationsFilterForm=document.getElementById("consultationsFilterForm");
 const consultationsUsername=document.getElementById("consultationsUsername");
-const consultationsStartDate=document.getElementById("consultationsStartDate");
 const consultationsTableBody=document.getElementById("consultationsTableBody");
 const consultationsCount=document.getElementById("consultationsCount");
 const consultationsMessage=document.getElementById("consultationsMessage");
@@ -3196,18 +3345,17 @@ function renderConsultations(rows){
 }
 function validateConsultationFilters(){
   const username=consultationsUsername.value.trim();
-  const startDate=consultationsStartDate.value;
+
   if(username!=="******"&&!/^\d{6}$/.test(username)){
     throw new Error("Saisissez un NIGEND à six chiffres ou ****** pour toute la compagnie.");
   }
-  if(!startDate){
-    throw new Error("Renseignez la date d’incorporation.");
-  }
-  return {username,startDate};
+
+  return {username};
 }
+
 async function requestConsultations(mode){
-  const {username,startDate}=validateConsultationFilters();
-  const params=new URLSearchParams({username,startDate,mode});
+  const {username}=validateConsultationFilters();
+  const params=new URLSearchParams({username,mode});
   const response=await fetch(`/admin/consultations?${params.toString()}`,{
     headers:{Accept:"application/json"},
     cache:"no-store",
@@ -3244,13 +3392,12 @@ async function loadConsultations(){
 consultationsFilterForm.addEventListener("submit",event=>{event.preventDefault();loadConsultations();});
 resetConsultationsButton.addEventListener("click",()=>{
   consultationsUsername.value="";
-  consultationsStartDate.value="";
   loadedConsultations=[];
   consultationsCount.textContent="Aucune donnée chargée";
   exportConsultationsButton.disabled=true;
   consultationsMessage.className="";
   consultationsMessage.textContent="";
-  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND ou ******, puis la date d’incorporation.</td></tr>';
+  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND ou ******, puis lancez la recherche.</td></tr>';
   consultationsUsername.focus();
 });
 function csvConsultationValue(value){
@@ -3284,6 +3431,220 @@ exportConsultationsButton.addEventListener("click",async()=>{
   }
 });
 consultationsUsername.focus();
+
+
+const promotionSettingsForm =
+  document.getElementById("promotionSettingsForm");
+
+const promotionNumber =
+  document.getElementById("promotionNumber");
+
+const promotionIncorporationDate =
+  document.getElementById(
+    "promotionIncorporationDate"
+  );
+
+const savePromotionSettingsButton =
+  document.getElementById(
+    "savePromotionSettingsButton"
+  );
+
+const promotionSettingsMessage =
+  document.getElementById(
+    "promotionSettingsMessage"
+  );
+
+let loadedPromotionSettings = null;
+
+async function loadPromotionSettings() {
+  savePromotionSettingsButton.disabled = true;
+
+  promotionSettingsMessage.className =
+    "promotion-settings-message promotion-settings-info";
+
+  promotionSettingsMessage.textContent =
+    "Chargement des paramètres…";
+
+  try {
+    const response = await fetch(
+      "/admin/promotion-settings",
+      {
+        method: "GET",
+        headers: {
+          "Accept": "application/json"
+        },
+        cache: "no-store",
+        credentials: "same-origin"
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        "Impossible de charger les paramètres."
+      );
+    }
+
+    loadedPromotionSettings = {
+      promotionNumber:
+        data.promotionNumber || "",
+      incorporationDate:
+        data.incorporationDate || ""
+    };
+
+    promotionNumber.value =
+      loadedPromotionSettings.promotionNumber;
+
+    promotionIncorporationDate.value =
+      loadedPromotionSettings.incorporationDate;
+
+    promotionSettingsMessage.className =
+      "promotion-settings-message";
+
+    promotionSettingsMessage.textContent = "";
+
+  } catch (error) {
+    promotionSettingsMessage.className =
+      "promotion-settings-message promotion-settings-error";
+
+    promotionSettingsMessage.textContent =
+      error.message;
+
+  } finally {
+    savePromotionSettingsButton.disabled = false;
+  }
+}
+
+promotionSettingsForm.addEventListener(
+  "submit",
+  async event => {
+    event.preventDefault();
+
+    const newPromotionNumber =
+      promotionNumber.value.trim();
+
+    const newIncorporationDate =
+      promotionIncorporationDate.value;
+
+    if (!newPromotionNumber) {
+      promotionSettingsMessage.className =
+        "promotion-settings-message promotion-settings-error";
+
+      promotionSettingsMessage.textContent =
+        "Le numéro de promotion est obligatoire.";
+
+      return;
+    }
+
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(
+        newIncorporationDate
+      )
+    ) {
+      promotionSettingsMessage.className =
+        "promotion-settings-message promotion-settings-error";
+
+      promotionSettingsMessage.textContent =
+        "La date d’incorporation est invalide.";
+
+      return;
+    }
+
+    const changed =
+      !loadedPromotionSettings ||
+      newPromotionNumber !==
+        loadedPromotionSettings.promotionNumber ||
+      newIncorporationDate !==
+        loadedPromotionSettings.incorporationDate;
+
+    if (!changed) {
+      promotionSettingsMessage.className =
+        "promotion-settings-message promotion-settings-info";
+
+      promotionSettingsMessage.textContent =
+        "Aucune modification à enregistrer.";
+
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Êtes-vous sûr de vouloir modifier les paramètres de la promotion ?\n\n" +
+      "Cette modification affectera la période utilisée pour le suivi et les exports des consultations."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    savePromotionSettingsButton.disabled = true;
+
+    promotionSettingsMessage.className =
+      "promotion-settings-message promotion-settings-info";
+
+    promotionSettingsMessage.textContent =
+      "Enregistrement en cours…";
+
+    try {
+      const response = await fetch(
+        "/admin/promotion-settings",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            "Accept":
+              "application/json"
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            promotionNumber:
+              newPromotionNumber,
+            incorporationDate:
+              newIncorporationDate
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "Impossible d’enregistrer les paramètres."
+        );
+      }
+
+      loadedPromotionSettings = {
+        promotionNumber:
+          data.promotionNumber,
+        incorporationDate:
+          data.incorporationDate
+      };
+
+      promotionSettingsMessage.className =
+        "promotion-settings-message promotion-settings-success";
+
+      promotionSettingsMessage.textContent =
+        data.message ||
+        "Paramètres enregistrés.";
+
+    } catch (error) {
+      promotionSettingsMessage.className =
+        "promotion-settings-message promotion-settings-error";
+
+      promotionSettingsMessage.textContent =
+        error.message;
+
+    } finally {
+      savePromotionSettingsButton.disabled = false;
+    }
+  }
+);
+
+loadPromotionSettings();
+
 
 </script>
 </body>
