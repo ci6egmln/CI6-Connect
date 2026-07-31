@@ -57,7 +57,13 @@ export async function onRequestPost(context) {
 
     const username = String(body.username || "").trim();
     const password = String(body.password || "");
-    const role = body.role === "cadre" ? "cadre" : "eleve";
+    const requestedRole =
+      String(body.role || "").trim();
+
+    const role =
+      ["eleve", "cadre", "visiteur"].includes(requestedRole)
+        ? requestedRole
+        : "eleve";
 
     if (!/^\d{6}$/.test(username)) {
       return jsonResponse(
