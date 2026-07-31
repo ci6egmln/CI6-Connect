@@ -1013,7 +1013,7 @@ window.CI6_RUBRIQUES = [
     title: "Espace cadres",
     description: "Consignes, outils et ressources réservés aux cadres.",
     slug: "cadres",
-    card: "assets/cards/cadres.svg",
+    card: "assets/cards/cadres.png",
 
     /*
      * L'administrateur est aussi considéré comme cadre
