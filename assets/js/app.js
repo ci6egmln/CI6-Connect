@@ -3382,11 +3382,85 @@ function renderEmptyFicheForCadre(path, item) {
 }
 
 
+function createVisitorDemoMarkdown(item) {
+  return [
+    "---",
+    `title: "${String(item?.title || "Fiche de démonstration").replace(/"/g, '\\"')}"`,
+    'quote: "Aperçu de l’organisation d’une fiche CI6 Connect"',
+    "---",
+    "",
+    ":::bloc bleu | Contenu de démonstration | ℹ️",
+    "Le contenu réel de cette fiche est masqué en mode visiteur.",
+    ":::",
+    "",
+    ":::bloc gris | Fonctionnement de l’éditeur | ✏️",
+    "Vous pouvez tester l’ajout, la modification, le déplacement ou la suppression de blocs. Aucune modification ne pourra être publiée.",
+    ":::"
+  ].join("\n");
+}
+
+function renderVisitorDemoFiche(
+  path,
+  item,
+  addHistory = true
+) {
+  const markdown =
+    createVisitorDemoMarkdown(item);
+
+  detailContent.innerHTML =
+    markdownToHtml(markdown);
+
+  setDetailView();
+
+  renderFicheEditButton(
+    path,
+    markdown,
+    item
+  );
+
+  if (addHistory) {
+    const hash =
+      item?.slug ||
+      path
+        .replace("content/", "")
+        .replace(".md", "");
+
+    history.pushState(
+      {
+        type: "content",
+        path
+      },
+      "",
+      "#" + hash
+    );
+  }
+}
+
 async function openContent(
   path,
   addHistory = true
 ) {
   currentParent = null;
+
+  const visitorItem =
+    findItemByContent(path);
+
+  /*
+   * En mode visiteur, le vrai fichier Markdown
+   * et ses photos ne sont jamais chargés.
+   * Une fiche fictive sert uniquement de démonstration.
+   */
+  if (isVisitorMode()) {
+    await closeActiveConsultation();
+
+    renderVisitorDemoFiche(
+      path,
+      visitorItem,
+      addHistory
+    );
+
+    return;
+  }
 
   /*
    * Si une autre fiche est ouverte,
