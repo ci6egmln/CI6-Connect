@@ -806,7 +806,89 @@ function renderOnlineVideoBlock(title, content) {
 }
 
 
+
+function renderImageTextBlock(header, content) {
+  const parts =
+    String(header || "")
+      .split("|")
+      .map(part => part.trim());
+
+  const color = parts[0] || "gris";
+  const title = parts[1] || "Illustration";
+  const icon = parts[2] || "🖼️";
+
+  const lines =
+    String(content || "")
+      .split("\n");
+
+  const mediaLineIndex =
+    lines.findIndex(line => line.trim());
+
+  if (mediaLineIndex < 0) {
+    return "";
+  }
+
+  const mediaLine =
+    lines[mediaLineIndex].trim();
+
+  const [src, caption] =
+    mediaLine
+      .split("|")
+      .map(part => part.trim());
+
+  const text =
+    lines
+      .slice(mediaLineIndex + 1)
+      .join("\n")
+      .trim();
+
+  return `
+    <section class="fiche-card fiche-card-${escapeHtml(color)}">
+      <div class="fiche-card-head">
+        <span class="fiche-card-icon">${escapeHtml(icon)}</span>
+        <strong>${formatInline(title)}</strong>
+      </div>
+
+      <div class="fiche-card-body">
+        <figure class="media-card">
+          <img
+            src="${escapeHtml(src)}"
+            alt="${escapeHtml(caption || title)}"
+            loading="lazy"
+          >
+          ${caption ? `
+            <figcaption class="media-caption">
+              ${formatInline(caption)}
+            </figcaption>
+          ` : ""}
+        </figure>
+
+        ${text ? basicMarkdownToHtml(text) : ""}
+      </div>
+    </section>
+  `;
+}
+
 function renderCustomBlocks(markdown) {
+
+    /*
+     * BLOC TEXTE AVEC IMAGE
+     *
+     * :::image-texte couleur | Titre | Icône
+     * assets/photos/photo.jpg | Légende
+     *
+     * Texte du bloc
+     * :::
+     */
+    markdown = markdown.replace(
+        /^[ \t]*:::image-texte(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, header, content) =>
+          renderImageTextBlock(
+            header ? header.trim() : "",
+            content.trim()
+          )
+    );
+
 
     /*
      * VIDÉO EN LIGNE
@@ -1307,23 +1389,64 @@ function editorBlockMarkdown({
   icon,
   text,
   mediaUrl,
-  caption
+  caption,
+  galleryImages = []
 }) {
-  if (type === "image") {
-    if (!mediaUrl) {
-      throw new Error("Renseignez l’adresse ou le chemin de l’image.");
+  if (type === "texte") {
+    if (!text.trim()) {
+      throw new Error("Renseignez le texte du bloc.");
     }
 
     return [
-      `:::image ${title || "Illustration"}`,
+      `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
+      text.trim(),
+      ":::"
+    ].join("\n");
+  }
+
+  if (type === "texte-image") {
+    if (!mediaUrl) {
+      throw new Error(
+        "Ajoutez d’abord une photo pour ce bloc."
+      );
+    }
+
+    if (!text.trim()) {
+      throw new Error(
+        "Renseignez le texte qui accompagne la photo."
+      );
+    }
+
+    return [
+      `:::image-texte ${color || "gris"} | ${title || "Illustration"} | ${icon || "🖼️"}`,
       `${mediaUrl}${caption ? ` | ${caption}` : ""}`,
+      "",
+      text.trim(),
+      ":::"
+    ].join("\n");
+  }
+
+  if (type === "galerie") {
+    if (!Array.isArray(galleryImages) || galleryImages.length === 0) {
+      throw new Error(
+        "Ajoutez au moins une photo à la galerie."
+      );
+    }
+
+    return [
+      `:::galerie ${title || "Galerie"}`,
+      ...galleryImages.map(image =>
+        `${image.path}${image.caption ? ` | ${image.caption}` : ""}`
+      ),
       ":::"
     ].join("\n");
   }
 
   if (type === "video") {
     if (!mediaUrl) {
-      throw new Error("Renseignez le lien de la vidéo en ligne.");
+      throw new Error(
+        "Renseignez le lien de la vidéo en ligne."
+      );
     }
 
     return onlineVideoMarkdown(
@@ -1333,26 +1456,7 @@ function editorBlockMarkdown({
     );
   }
 
-  if (type === "texte") {
-    if (!text.trim()) {
-      throw new Error("Renseignez le texte du bloc.");
-    }
-
-    return [
-      title ? `## ${title}` : "",
-      text.trim()
-    ].filter(Boolean).join("\n\n");
-  }
-
-  if (!text.trim()) {
-    throw new Error("Renseignez le texte du bloc.");
-  }
-
-  return [
-    `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
-    text.trim(),
-    ":::"
-  ].join("\n");
+  throw new Error("Type de bloc inconnu.");
 }
 
 function renderFicheEditButton(path, markdown, item) {
@@ -1498,9 +1602,9 @@ function openFicheEditor() {
               Type de bloc
             </label>
             <select id="editorBlockType">
-              <option value="bloc">Bloc coloré</option>
-              <option value="texte">Texte simple</option>
-              <option value="image">Image</option>
+              <option value="texte">Bloc texte</option>
+              <option value="texte-image">Bloc texte avec image</option>
+              <option value="galerie">Galerie d’images</option>
               <option value="video">Vidéo en ligne</option>
             </select>
           </div>
@@ -1605,6 +1709,11 @@ function openFicheEditor() {
               id="editorImageUploadStatus"
               class="fiche-editor-upload-status"
             ></div>
+
+            <div
+              id="editorGalleryList"
+              class="fiche-editor-upload-status success"
+            ></div>
           </div>
 
           <div
@@ -1707,6 +1816,23 @@ function openFicheEditor() {
   const blockTypeSelect =
     overlay.querySelector("#editorBlockType");
 
+  const colorField =
+    overlay
+      .querySelector("#editorBlockColor")
+      .closest(".fiche-editor-field");
+
+  const iconField =
+    overlay
+      .querySelector(
+        'input[name="editorBlockIcon"]'
+      )
+      .closest("fieldset");
+
+  const textField =
+    overlay
+      .querySelector("#editorBlockText")
+      .closest(".fiche-editor-field");
+
   const imageUploadBox =
     overlay.querySelector("#editorImageUploadBox");
 
@@ -1725,90 +1851,219 @@ function openFicheEditor() {
   const uploadStatus =
     overlay.querySelector("#editorImageUploadStatus");
 
+  const galleryList =
+    overlay.querySelector("#editorGalleryList");
+
   const mediaUrlInput =
     overlay.querySelector("#editorMediaUrl");
 
   const uploadImageButton =
     overlay.querySelector("#uploadEditorImageButton");
 
-  function updateMediaFields() {
-    const type = blockTypeSelect.value;
-    imageUploadBox.hidden = type !== "image";
-    onlineMediaBox.hidden = type !== "video";
+  let galleryImages = [];
+
+  function refreshGalleryList() {
+    if (galleryImages.length === 0) {
+      galleryList.textContent = "";
+      return;
+    }
+
+    galleryList.innerHTML = `
+      <strong>
+        ${galleryImages.length}
+        photo${galleryImages.length > 1 ? "s" : ""}
+        dans la galerie :
+      </strong>
+      <br>
+      ${galleryImages
+        .map((image, index) =>
+          `${index + 1}. ${escapeHtml(image.path)}`
+        )
+        .join("<br>")}
+    `;
   }
 
-  blockTypeSelect.addEventListener("change", updateMediaFields);
+  function updateMediaFields() {
+    const type = blockTypeSelect.value;
+
+    const needsImage =
+      type === "texte-image" ||
+      type === "galerie";
+
+    imageUploadBox.hidden = !needsImage;
+    onlineMediaBox.hidden = type !== "video";
+
+    colorField.hidden =
+      type === "galerie" ||
+      type === "video";
+
+    iconField.hidden =
+      type === "galerie" ||
+      type === "video";
+
+    textField.hidden =
+      type === "galerie" ||
+      type === "video";
+
+    uploadImageButton.textContent =
+      type === "galerie"
+        ? "Ajouter cette photo à la galerie"
+        : "Envoyer la photo dans GitHub";
+
+    if (type !== "galerie") {
+      galleryImages = [];
+      refreshGalleryList();
+    }
+  }
+
+  blockTypeSelect.addEventListener(
+    "change",
+    updateMediaFields
+  );
+
   updateMediaFields();
 
-  imageFileInput.addEventListener("change", () => {
-    const file = imageFileInput.files?.[0];
+  imageFileInput.addEventListener(
+    "change",
+    () => {
+      const file =
+        imageFileInput.files?.[0];
 
-    selectedFileName.textContent =
-      file ? `Fichier sélectionné : ${file.name}` : "";
+      selectedFileName.textContent =
+        file
+          ? `Fichier sélectionné : ${file.name}`
+          : "";
 
-    uploadStatus.textContent = "";
-    uploadStatus.className = "fiche-editor-upload-status";
-  });
-
-  uploadImageButton.addEventListener("click", async () => {
-    const file = imageFileInput.files?.[0];
-    const requestedName = imageNameInput.value.trim();
-
-    if (!file) {
-      uploadStatus.textContent = "Choisissez d’abord une photo.";
-      uploadStatus.className = "fiche-editor-upload-status error";
-      return;
+      uploadStatus.textContent = "";
+      uploadStatus.className =
+        "fiche-editor-upload-status";
     }
+  );
 
-    if (!requestedName) {
-      uploadStatus.textContent = "Renseignez le nom de la photo.";
-      uploadStatus.className = "fiche-editor-upload-status error";
-      return;
-    }
+  uploadImageButton.addEventListener(
+    "click",
+    async () => {
+      const file =
+        imageFileInput.files?.[0];
 
-    uploadImageButton.disabled = true;
-    uploadStatus.textContent = "Envoi de la photo dans GitHub…";
-    uploadStatus.className = "fiche-editor-upload-status";
+      const requestedName =
+        imageNameInput.value.trim();
 
-    try {
-      const formData = new FormData();
-
-      formData.append("photo", file);
-      formData.append("photoName", requestedName);
-      formData.append("fichePath", currentEditableFiche.path);
-      formData.append(
-        "ficheTitle",
-        overlay.querySelector("#editorFicheTitle").value.trim()
-      );
-
-      const response = await fetch("/cadres/photo-upload", {
-        method: "POST",
-        credentials: "same-origin",
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.error || "L’envoi de la photo a échoué."
-        );
+      if (!file) {
+        uploadStatus.textContent =
+          "Choisissez d’abord une photo.";
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+        return;
       }
 
-      mediaUrlInput.value = data.path;
+      if (!requestedName) {
+        uploadStatus.textContent =
+          "Renseignez le nom de la photo.";
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+        return;
+      }
 
+      uploadImageButton.disabled = true;
       uploadStatus.textContent =
-        `Photo enregistrée : ${data.path}`;
-
+        "Envoi de la photo dans GitHub…";
       uploadStatus.className =
-        "fiche-editor-upload-status success";
-    } catch (error) {
-      uploadStatus.textContent = error.message;
-      uploadStatus.className = "fiche-editor-upload-status error";
-    } finally {
-      uploadImageButton.disabled = false;
+        "fiche-editor-upload-status";
+
+      try {
+        const formData =
+          new FormData();
+
+        formData.append("photo", file);
+        formData.append("photoName", requestedName);
+        formData.append(
+          "fichePath",
+          currentEditableFiche.path
+        );
+        formData.append(
+          "ficheTitle",
+          overlay
+            .querySelector("#editorFicheTitle")
+            .value
+            .trim()
+        );
+
+        const response = await fetch(
+          "/cadres/photo-upload",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData
+          }
+        );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "L’envoi de la photo a échoué."
+          );
+        }
+
+        if (blockTypeSelect.value === "galerie") {
+          const caption =
+            overlay
+              .querySelector("#editorMediaCaption")
+              .value
+              .trim();
+
+          galleryImages.push({
+            path: data.path,
+            caption
+          });
+
+          refreshGalleryList();
+
+          uploadStatus.textContent =
+            `Photo ajoutée à la galerie : ${data.fileName}`;
+
+          const addAnother =
+            window.confirm(
+              "La photo a été ajoutée à la galerie.\n\n" +
+              "Voulez-vous ajouter une autre photo ?"
+            );
+
+          imageFileInput.value = "";
+          imageNameInput.value = "";
+          selectedFileName.textContent = "";
+          overlay
+            .querySelector("#editorMediaCaption")
+            .value = "";
+
+          if (addAnother) {
+            imageFileInput.click();
+          }
+        } else {
+          mediaUrlInput.value =
+            data.path;
+
+          uploadStatus.textContent =
+            `Photo enregistrée : ${data.path}`;
+        }
+
+        uploadStatus.className =
+          "fiche-editor-upload-status success";
+
+      } catch (error) {
+        uploadStatus.textContent =
+          error.message;
+
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+
+      } finally {
+        uploadImageButton.disabled = false;
+      }
     }
-  });
+  );
 
   function buildCompleteMarkdown() {
     return (
@@ -1839,7 +2094,7 @@ function openFicheEditor() {
         const block =
           editorBlockMarkdown({
             type:
-              overlay.querySelector("#editorBlockType").value,
+              blockTypeSelect.value,
             color:
               overlay.querySelector("#editorBlockColor").value,
             title:
@@ -1849,11 +2104,12 @@ function openFicheEditor() {
             text:
               overlay.querySelector("#editorBlockText").value,
             mediaUrl:
-              blockTypeSelect.value === "image"
+              blockTypeSelect.value === "texte-image"
                 ? mediaUrlInput.value.trim()
                 : overlay.querySelector("#editorMediaUrl").value.trim(),
             caption:
-              overlay.querySelector("#editorMediaCaption").value.trim()
+              overlay.querySelector("#editorMediaCaption").value.trim(),
+            galleryImages
           });
 
         source.value =
@@ -1874,6 +2130,8 @@ function openFicheEditor() {
         uploadStatus.textContent = "";
         uploadStatus.className =
           "fiche-editor-upload-status";
+        galleryImages = [];
+        refreshGalleryList();
 
         message.hidden = false;
         message.className = "fiche-editor-message";
