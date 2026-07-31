@@ -1143,10 +1143,10 @@ function injectFicheEditorStyles() {
     }
 
     .fiche-editor-dialog {
-      width: min(1040px,100%);
-      max-height: 94vh;
+      width: min(1440px,calc(100vw - 40px));
+      max-height: calc(100dvh - 36px);
       overflow: auto;
-      padding: 22px;
+      padding: clamp(16px,2vw,28px);
       border: 1px solid rgba(214,173,58,.65);
       border-radius: 14px;
       background: #080a0c;
@@ -1229,6 +1229,20 @@ function injectFicheEditorStyles() {
       min-height: 150px;
       resize: vertical;
       line-height: 1.5;
+    }
+
+    .fiche-editor-header-panel textarea {
+      width: 100%;
+      min-height: 78px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .fiche-editor-dialog input,
+    .fiche-editor-dialog select,
+    .fiche-editor-dialog textarea,
+    .fiche-editor-dialog button {
+      max-width: 100%;
     }
 
     .fiche-editor-color-help {
@@ -1428,13 +1442,119 @@ function injectFicheEditorStyles() {
       margin-top: 16px;
     }
 
+    @media (min-width: 1280px) {
+      .fiche-editor-dialog {
+        width: min(1500px,calc(100vw - 56px));
+      }
+
+      .fiche-editor-preview {
+        padding: 20px;
+      }
+    }
+
     @media (max-width: 820px) {
+      .fiche-editor-overlay {
+        display: block;
+        padding: 0;
+        background: #080a0c;
+      }
+
+      .fiche-editor-dialog {
+        width: 100%;
+        min-height: 100dvh;
+        max-height: 100dvh;
+        padding: 14px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
       .fiche-editor-grid {
         grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .fiche-editor-panel {
+        padding: 12px;
+      }
+
+      .fiche-editor-head {
+        position: sticky;
+        top: -14px;
+        z-index: 20;
+        margin: -14px -14px 14px;
+        padding: 12px 14px;
+        background: rgba(8,10,12,.96);
+        border-bottom: 1px solid rgba(214,173,58,.35);
+        backdrop-filter: blur(8px);
+      }
+
+      .fiche-editor-head h2 {
+        font-size: 19px;
+      }
+
+      .fiche-editor-head p {
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+
+      .fiche-editor-close {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
       }
 
       .fiche-editor-radio-grid {
         grid-template-columns: repeat(4,minmax(42px,1fr));
+      }
+
+      .fiche-editor-block-toolbar {
+        position: static;
+        justify-content: flex-start;
+      }
+
+      .fiche-editor-block-shell {
+        padding-top: 0;
+      }
+
+      .fiche-editor-block-content {
+        padding: 8px;
+      }
+
+      .fiche-editor-actions {
+        align-items: stretch;
+      }
+
+      .fiche-editor-actions .fiche-editor-button {
+        width: 100%;
+      }
+
+      .fiche-editor-mini-button {
+        flex: 1 1 auto;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .fiche-editor-dialog {
+        padding: 10px;
+      }
+
+      .fiche-editor-head {
+        top: -10px;
+        margin: -10px -10px 12px;
+        padding: 10px;
+      }
+
+      .fiche-editor-panel {
+        padding: 10px;
+      }
+
+      .fiche-editor-radio-grid {
+        grid-template-columns: repeat(3,minmax(42px,1fr));
+      }
+
+      .fiche-editor-preview {
+        padding: 8px;
       }
     }
   `;
@@ -1861,11 +1981,11 @@ function openFicheEditor() {
             <label for="editorFicheQuote">
               Citation ou sous-titre
             </label>
-            <input
+            <textarea
               id="editorFicheQuote"
-              type="text"
-              value="${escapeHtml(meta.quote || "")}"
-            >
+              rows="3"
+              placeholder="Saisissez une citation ou un sous-titre sur une ou plusieurs lignes…"
+            >${escapeHtml(meta.quote || "")}</textarea>
           </div>
 
           <div class="fiche-editor-field">
