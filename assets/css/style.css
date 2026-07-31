@@ -1367,4 +1367,10 @@ input[type=search]:focus {
     letter-spacing: .02em !important;
   }
 }
+.pelotons-grid .peloton-tile {
+  aspect-ratio: 179 / 295 !important;
+}
 
+.pelotons-grid .peloton-tile .tile-bg {
+  object-fit: contain !important;
+}
