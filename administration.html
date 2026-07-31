@@ -1097,7 +1097,7 @@
 .consultations-panel{margin-top:22px;padding:24px;border:1px solid rgba(214,173,58,.5);border-radius:13px;background:rgba(8,10,12,.94)}
 .consultations-panel h2{margin:5px 0 10px;color:var(--gold-light)}
 .consultations-description{margin:0 0 20px;color:var(--muted);line-height:1.6}
-.consultations-filters{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(240px,1.4fr) auto;gap:12px;align-items:end}
+.consultations-filters{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:12px;align-items:end}
 .consultations-field label{display:block;margin-bottom:8px;font-weight:700}
 .consultations-field input{width:100%;min-height:46px;padding:10px 13px;color:var(--text);font:inherit;border:1px solid rgba(214,173,58,.7);border-radius:8px;outline:none;background:#020304}
 .consultations-field input:focus{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(214,173,58,.14)}
@@ -1445,18 +1445,14 @@
     <h2>Suivi des consultations</h2>
   </div>
   <p class="consultations-description">
-    Chaque ligne correspond à l’ouverture d’une fiche depuis un compte individuel.
-    Sans fermeture transmise, elle est estimée huit minutes après l’ouverture.
+    Saisissez un NIGEND pour afficher toutes les fiches consultées par ce compte individuel. Sans fermeture transmise, elle est estimée huit minutes après l’ouverture.
   </p>
   <form id="consultationsFilterForm" class="consultations-filters">
     <div class="consultations-field">
       <label for="consultationsUsername">NIGEND</label>
       <input id="consultationsUsername" type="text" inputmode="numeric" maxlength="6" placeholder="Tous les comptes">
     </div>
-    <div class="consultations-field">
-      <label for="consultationsFiche">Fiche</label>
-      <input id="consultationsFiche" type="search" placeholder="Titre ou chemin de la fiche">
-    </div>
+
     <div class="consultations-filter-actions">
       <button id="loadConsultationsButton" class="primary-button" type="submit">Rechercher</button>
       <button id="resetConsultationsButton" class="secondary-button" type="button">Effacer</button>
@@ -1471,7 +1467,7 @@
     <table class="consultations-table">
       <thead><tr><th>NIGEND</th><th>Rôle</th><th>Fiche</th><th>Ouverture</th><th>Fermeture</th><th>Durée</th></tr></thead>
       <tbody id="consultationsTableBody">
-        <tr><td class="consultations-empty" colspan="6">Chargement…</td></tr>
+        <tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND puis lancez la recherche.</td></tr>
       </tbody>
     </table>
   </div>
@@ -3138,7 +3134,7 @@ downloadCredentialsButton.addEventListener(
 
 const consultationsFilterForm=document.getElementById("consultationsFilterForm");
 const consultationsUsername=document.getElementById("consultationsUsername");
-const consultationsFiche=document.getElementById("consultationsFiche");
+
 const consultationsTableBody=document.getElementById("consultationsTableBody");
 const consultationsCount=document.getElementById("consultationsCount");
 const consultationsMessage=document.getElementById("consultationsMessage");
@@ -3192,23 +3188,61 @@ function renderConsultations(rows){
   }).join("");
 }
 async function loadConsultations(){
-  const username=consultationsUsername.value.trim(),fiche=consultationsFiche.value.trim();
-  if(username&&!/^\d{6}$/.test(username)){
+  const username=consultationsUsername.value.trim();
+
+  if(!/^\d{6}$/.test(username)){
     consultationsMessage.className="consultations-error";
-    consultationsMessage.textContent="Le NIGEND doit contenir exactement six chiffres.";
+    consultationsMessage.textContent="Saisissez un NIGEND à six chiffres.";
+    consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Aucune recherche effectuée.</td></tr>';
+    consultationsCount.textContent="Aucune donnée chargée";
+    exportConsultationsButton.disabled=true;
     return;
   }
-  const params=new URLSearchParams({limit:"200"});
-  if(username)params.set("username",username);
-  if(fiche)params.set("fiche",fiche);
+
+  const params=new URLSearchParams({
+    username,
+    limit:"200"
+  });
+
   loadConsultationsButton.disabled=true;
   consultationsMessage.className="consultations-info";
   consultationsMessage.textContent="Chargement des consultations…";
+
   try{
-    const response=await fetch(`/admin/consultations?${params}`,{headers:{Accept:"application/json"},cache:"no-store",credentials:"same-origin"});
-    const data=await response.json();
-    if(!response.ok)throw new Error(data.error||"Impossible de charger les consultations.");
-    renderConsultations(Array.isArray(data.consultations)?data.consultations:[]);
+    const response=await fetch(
+      `/admin/consultations?${params.toString()}`,
+      {
+        headers:{Accept:"application/json"},
+        cache:"no-store",
+        credentials:"same-origin"
+      }
+    );
+
+    const contentType=response.headers.get("content-type")||"";
+    const raw=await response.text();
+
+    if(!contentType.includes("application/json")){
+      throw new Error(
+        response.status===404
+          ? "La fonction /admin/consultations est introuvable."
+          : "Le serveur n’a pas renvoyé une réponse JSON."
+      );
+    }
+
+    const data=JSON.parse(raw);
+
+    if(!response.ok){
+      throw new Error(
+        data.error||"Impossible de charger les consultations."
+      );
+    }
+
+    renderConsultations(
+      Array.isArray(data.consultations)
+        ? data.consultations
+        : []
+    );
+
     consultationsMessage.className="";
     consultationsMessage.textContent="";
   }catch(error){
@@ -3221,7 +3255,16 @@ async function loadConsultations(){
   }
 }
 consultationsFilterForm.addEventListener("submit",event=>{event.preventDefault();loadConsultations();});
-resetConsultationsButton.addEventListener("click",()=>{consultationsUsername.value="";consultationsFiche.value="";loadConsultations();});
+resetConsultationsButton.addEventListener("click",()=>{
+  consultationsUsername.value="";
+  loadedConsultations=[];
+  consultationsCount.textContent="Aucune donnée chargée";
+  exportConsultationsButton.disabled=true;
+  consultationsMessage.className="";
+  consultationsMessage.textContent="";
+  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND puis lancez la recherche.</td></tr>';
+  consultationsUsername.focus();
+});
 function csvConsultationValue(value){
   const text=String(value??"");
   return /[;"\r\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
@@ -3240,7 +3283,7 @@ exportConsultationsButton.addEventListener("click",()=>{
   link.download=`consultations-ci6-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
 });
-loadConsultations();
+consultationsUsername.focus();
 
 </script>
 </body>
