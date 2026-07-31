@@ -11,3 +11,7 @@ La compagnie se déplace toujours en ordre serré.
 - L'élève de jour conduit la troupe
 - La compagnie chante si aucune autre unité ne chante
 :::
+
+:::bloc vert | Test | 💡
+Ceci est un test
+:::
