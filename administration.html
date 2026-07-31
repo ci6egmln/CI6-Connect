@@ -1666,12 +1666,12 @@
     <h2>Suivi des consultations</h2>
   </div>
   <p class="consultations-description">
-    Saisissez un NIGEND pour afficher ses 10 consultations les plus récentes, ou ****** pour toute la compagnie. La date d’incorporation enregistrée ci-dessus est utilisée automatiquement.
+    Saisissez le NIGEND d’un élève pour afficher ses 10 consultations les plus récentes, ou ****** pour afficher les consultations de l’ensemble des élèves. Les cadres, administrateurs et visiteurs sont exclus. La date d’incorporation enregistrée ci-dessus est utilisée automatiquement.
   </p>
   <form id="consultationsFilterForm" class="consultations-filters">
     <div class="consultations-field">
       <label for="consultationsUsername">NIGEND</label>
-      <input id="consultationsUsername" type="text" maxlength="6" placeholder="NIGEND ou ******">
+      <input id="consultationsUsername" type="text" maxlength="6" placeholder="NIGEND élève ou ******">
     </div>
 
     <div class="consultations-filter-actions">
@@ -3467,7 +3467,7 @@ function validateConsultationFilters(){
   const username=consultationsUsername.value.trim();
 
   if(username!=="******"&&!/^\d{6}$/.test(username)){
-    throw new Error("Saisissez un NIGEND à six chiffres ou ****** pour toute la compagnie.");
+    throw new Error("Saisissez le NIGEND d’un élève à six chiffres ou ****** pour tous les élèves.");
   }
 
   return {username};
@@ -3517,7 +3517,7 @@ resetConsultationsButton.addEventListener("click",()=>{
   exportConsultationsButton.disabled=true;
   consultationsMessage.className="";
   consultationsMessage.textContent="";
-  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND ou ******, puis lancez la recherche.</td></tr>';
+  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez le NIGEND d’un élève ou ****** pour tous les élèves, puis lancez la recherche.</td></tr>';
   consultationsUsername.focus();
 });
 function csvConsultationValue(value){
@@ -3539,7 +3539,7 @@ exportConsultationsButton.addEventListener("click",async()=>{
     const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
     const url=URL.createObjectURL(blob),link=document.createElement("a");
     link.href=url;
-    link.download=`consultations-ci6-${consultationsUsername.value.trim()==="******"?"compagnie":consultationsUsername.value.trim()}-${new Date().toISOString().slice(0,10)}.csv`;
+    link.download=`consultations-ci6-${consultationsUsername.value.trim()==="******"?"eleves":consultationsUsername.value.trim()}-${new Date().toISOString().slice(0,10)}.csv`;
     document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
     consultationsMessage.className="";
     consultationsMessage.textContent="";
