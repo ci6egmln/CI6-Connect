@@ -61,7 +61,8 @@ export async function onRequestGet(context){
           SELECT id,username,role,fiche_id,fiche_title,fiche_path,
                  fiche_version,promotion,opened_at,closed_at
           FROM fiche_consultations
-          WHERE opened_at >= ?
+          WHERE role = 'eleve'
+            AND opened_at >= ?
           ORDER BY opened_at DESC
           ${limitClause}
         `
@@ -70,6 +71,7 @@ export async function onRequestGet(context){
                  fiche_version,promotion,opened_at,closed_at
           FROM fiche_consultations
           WHERE username = ?
+            AND role = 'eleve'
             AND opened_at >= ?
           ORDER BY opened_at DESC
           ${limitClause}
@@ -107,6 +109,7 @@ export async function onRequestGet(context){
       success:true,
       mode,
       wholeCompany,
+      studentsOnly:true,
       incorporationDate,
       count:consultations.length,
       consultations
