@@ -739,6 +739,8 @@ export async function onRequest(context) {
       roleLabel = "cadre";
     } else if (session.role === "eleve") {
       roleLabel = "élève";
+    } else if (session.role === "visiteur") {
+      roleLabel = "visiteur";
     }
 
     return new Response(
@@ -820,10 +822,10 @@ export async function onRequest(context) {
   ) {
     if (
       session.type !== "user" ||
-      session.role !== "admin"
+      !["admin", "visiteur"].includes(session.role)
     ) {
       return new Response(
-        "Accès réservé aux administrateurs.",
+        "Accès réservé aux administrateurs et aux visiteurs autorisés.",
         {
           status: 403,
           headers: {
