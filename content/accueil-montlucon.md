@@ -15,7 +15,7 @@ Elle connut un essor à partir de la seconde moitié du XIXe siècle, l'activit�
 :::galerie Quelques vue de la ville
 assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon.jpg
 assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon-2.jpg | Chateau des ducs de Bourbon
-assets/photos/accueil-montlucon-centre-historique.jpg
-assets/photos/accueil-montlucon-mupop.jpg | musée de la musique populaire
-assets/photos/accueil-montlucon-vue-du-ciel.jpg
+assets/photos/accueil-montlucon-mupop-2.jpg | musée de la musique populaire
+assets/photos/accueil-montlucon-centre-ancien.jpg
+assets/photos/accueil-montlucon-vue-du-ciel-2.jpg
 :::
