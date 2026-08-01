@@ -11,3 +11,8 @@ Située dans l'ouest de la province du Bourbonnais, elle fut longtemps rivale de
 
 Elle connut un essor à partir de la seconde moitié du XIXe siècle, l'activité industrielle s'y développa grâce au canal de Berry et à la présence de houille dans la région. Des firmes, comme Dunlop, s'y installèrent et firent la renommée de cette cité mais le déclin industriel et démographique vint après les Trente Glorieuses. C'est également la ville où a grandi Audrey Tautou.
 :::
+
+:::galerie Quelques vue de la ville
+assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon.jpg
+assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon-2.jpg | Chateau des ducs de Bourbon
+:::
