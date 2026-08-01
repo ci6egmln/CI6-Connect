@@ -1762,6 +1762,20 @@ function onlineVideoMarkdown(title, url, caption) {
   ].join("\n");
 }
 
+function documentsMarkdownList(documents = []) {
+  if (!Array.isArray(documents) || documents.length === 0) {
+    return "";
+  }
+
+  return [
+    "",
+    "**Documents à télécharger**",
+    ...documents.map(document =>
+      `- [${document.label}](${document.url})`
+    )
+  ].join("\n");
+}
+
 function editorBlockMarkdown({
   type,
   color,
@@ -1770,7 +1784,8 @@ function editorBlockMarkdown({
   text,
   mediaUrl,
   caption,
-  galleryImages = []
+  galleryImages = [],
+  documents = []
 }) {
   if (type === "texte") {
     if (!text.trim()) {
@@ -1779,7 +1794,7 @@ function editorBlockMarkdown({
 
     return [
       `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
-      text.trim(),
+      text.trim() + documentsMarkdownList(documents),
       ":::"
     ].join("\n");
   }
@@ -1801,7 +1816,7 @@ function editorBlockMarkdown({
       `:::image-texte ${color || "gris"} | ${title || "Illustration"} | ${icon || "🖼️"}`,
       `${mediaUrl}${caption ? ` | ${caption}` : ""}`,
       "",
-      text.trim(),
+      text.trim() + documentsMarkdownList(documents),
       ":::"
     ].join("\n");
   }
@@ -1817,6 +1832,22 @@ function editorBlockMarkdown({
       `:::galerie ${title || "Galerie"}`,
       ...galleryImages.map(image =>
         `${image.path}${image.caption ? ` | ${image.caption}` : ""}`
+      ),
+      ":::"
+    ].join("\n");
+  }
+
+  if (type === "documents") {
+    if (!Array.isArray(documents) || documents.length === 0) {
+      throw new Error(
+        "Ajoutez au moins un document à télécharger."
+      );
+    }
+
+    return [
+      ":::telechargements",
+      ...documents.map(document =>
+        `- ${document.label} | ${document.url}`
       ),
       ":::"
     ].join("\n");
@@ -1887,6 +1918,43 @@ function parseEditorBlocks(markdownBody) {
   const blocks = [];
   let plainLines = [];
 
+  function extractEmbeddedDocuments(value) {
+    const sourceText = String(value || "");
+
+    const marker = /\n?\*\*Documents à télécharger\*\*\s*\n((?:- \[[^\]]+\]\([^)]+\)\s*\n?)*)\s*$/i;
+    const match = sourceText.match(marker);
+
+    if (!match) {
+      return {
+        text: sourceText.trim(),
+        documents: []
+      };
+    }
+
+    const documents = match[1]
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        const documentMatch = line.match(
+          /^- \[([^\]]+)\]\(([^)]+)\)$/
+        );
+
+        return documentMatch
+          ? {
+              label: documentMatch[1].trim(),
+              url: documentMatch[2].trim()
+            }
+          : null;
+      })
+      .filter(Boolean);
+
+    return {
+      text: sourceText.slice(0, match.index).trim(),
+      documents
+    };
+  }
+
   function flushPlain() {
     const text = plainLines.join("\n").trim();
 
@@ -1906,7 +1974,7 @@ function parseEditorBlocks(markdownBody) {
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const opening = line.match(
-      /^\s*:::(bloc|image-texte|galerie|video-lien|image)\b(?:\s+(.*))?\s*$/
+      /^\s*:::(bloc|image-texte|galerie|video-lien|image|telechargements)\b(?:\s+(.*))?\s*$/
     );
 
     if (!opening) {
@@ -1936,12 +2004,16 @@ function parseEditorBlocks(markdownBody) {
       const [color, title, icon] =
         header.split("|").map(part => part.trim());
 
+      const extracted =
+        extractEmbeddedDocuments(content);
+
       blocks.push({
         type: "texte",
         color: color || "gris",
         title: title || "Information",
         icon: icon || "ℹ️",
-        text: content
+        text: extracted.text,
+        documents: extracted.documents
       });
 
       continue;
@@ -1958,14 +2030,20 @@ function parseEditorBlocks(markdownBody) {
       const [mediaUrl, caption] =
         mediaLine.split("|").map(part => part.trim());
 
+      const extracted =
+        extractEmbeddedDocuments(
+          contentParts.join("\n").trim()
+        );
+
       blocks.push({
         type: "texte-image",
         color: color || "gris",
         title: title || "Illustration",
         icon: icon || "🖼️",
-        text: contentParts.join("\n").trim(),
+        text: extracted.text,
         mediaUrl: mediaUrl || "",
-        caption: caption || ""
+        caption: caption || "",
+        documents: extracted.documents
       });
 
       continue;
@@ -2016,6 +2094,35 @@ function parseEditorBlocks(markdownBody) {
       continue;
     }
 
+    if (kind === "telechargements") {
+      const documents =
+        content
+          .split(/\r?\n/)
+          .map(lineValue => lineValue.trim())
+          .filter(lineValue => lineValue.startsWith("-"))
+          .map(lineValue => {
+            const [label, url] =
+              lineValue
+                .replace(/^-\s*/, "")
+                .split("|")
+                .map(part => part.trim());
+
+            return {
+              label: label || "Document",
+              url: url || ""
+            };
+          })
+          .filter(document => document.url);
+
+      blocks.push({
+        type: "documents",
+        title: "Documents à télécharger",
+        documents
+      });
+
+      continue;
+    }
+
     if (kind === "image") {
       const firstLine =
         content
@@ -2055,7 +2162,8 @@ function serializeEditorBlock(block) {
     text: block.text || "",
     mediaUrl: block.mediaUrl || "",
     caption: block.caption || "",
-    galleryImages: block.galleryImages || []
+    galleryImages: block.galleryImages || [],
+    documents: block.documents || []
   });
 }
 
@@ -2089,6 +2197,7 @@ function openFicheEditor() {
 
   let editingIndex = null;
   let galleryImages = [];
+  let blockDocuments = [];
 
   const overlay = document.createElement("div");
   overlay.className = "fiche-editor-overlay";
@@ -2237,6 +2346,9 @@ function openFicheEditor() {
                 </option>
                 <option value="video">
                   Vidéo en ligne
+                </option>
+                <option value="documents">
+                  Documents à télécharger
                 </option>
                 <option value="contenu">
                   Contenu existant
@@ -2399,6 +2511,46 @@ function openFicheEditor() {
                 type="text"
               >
             </div>
+
+            <div
+              id="editorDocumentsBox"
+              class="fiche-editor-upload-box"
+            >
+              <div class="fiche-editor-field">
+                <label for="editorDocumentLabel">
+                  Nom du document
+                </label>
+                <input
+                  id="editorDocumentLabel"
+                  type="text"
+                  placeholder="Ex. Règlement intérieur"
+                >
+              </div>
+
+              <div class="fiche-editor-field">
+                <label for="editorDocumentUrl">
+                  Lien du fichier
+                </label>
+                <input
+                  id="editorDocumentUrl"
+                  type="text"
+                  placeholder="assets/documents/fichier.pdf ou https://…"
+                >
+              </div>
+
+              <button
+                type="button"
+                id="addEditorDocumentButton"
+                class="fiche-editor-button secondary"
+              >
+                Ajouter ce document
+              </button>
+
+              <div
+                id="editorDocumentsList"
+                class="fiche-editor-upload-status success"
+              ></div>
+            </div>
           </div>
         </div>
 
@@ -2500,6 +2652,21 @@ function openFicheEditor() {
 
   const mediaCaption =
     overlay.querySelector("#editorMediaCaption");
+
+  const documentsBox =
+    overlay.querySelector("#editorDocumentsBox");
+
+  const documentLabel =
+    overlay.querySelector("#editorDocumentLabel");
+
+  const documentUrl =
+    overlay.querySelector("#editorDocumentUrl");
+
+  const addDocumentButton =
+    overlay.querySelector("#addEditorDocumentButton");
+
+  const documentsList =
+    overlay.querySelector("#editorDocumentsList");
 
   const imageFileInput =
     overlay.querySelector("#editorImageFile");
@@ -2807,6 +2974,47 @@ function openFicheEditor() {
     renderIconsForColor(icon);
   }
 
+  function refreshDocumentsList() {
+    if (blockDocuments.length === 0) {
+      documentsList.textContent =
+        "Aucun document ajouté.";
+      return;
+    }
+
+    documentsList.innerHTML =
+      blockDocuments
+        .map((document, index) => `
+          <div>
+            <strong>${escapeHtml(document.label)}</strong><br>
+            <span>${escapeHtml(document.url)}</span>
+            <button
+              type="button"
+              class="fiche-editor-mini-button danger"
+              data-document-remove="${index}"
+            >
+              Retirer
+            </button>
+          </div>
+        `)
+        .join("<br>");
+
+    documentsList
+      .querySelectorAll("[data-document-remove]")
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            blockDocuments.splice(
+              Number(button.dataset.documentRemove),
+              1
+            );
+
+            refreshDocumentsList();
+          }
+        );
+      });
+  }
+
   function refreshGalleryList() {
     if (galleryImages.length === 0) {
       galleryList.textContent = "";
@@ -2867,20 +3075,34 @@ function openFicheEditor() {
     blockColorField.hidden =
       type === "galerie" ||
       type === "video" ||
+      type === "documents" ||
       type === "contenu";
 
     blockIconField.hidden =
       type === "galerie" ||
       type === "video" ||
+      type === "documents" ||
       type === "contenu";
 
     blockTextField.hidden =
       type === "galerie" ||
-      type === "video";
+      type === "video" ||
+      type === "documents";
 
     mediaCaptionField.hidden =
       type === "texte" ||
+      type === "documents" ||
       type === "contenu";
+
+    blockTitle.parentElement.hidden =
+      type === "documents";
+
+    documentsBox.hidden =
+      ![
+        "texte",
+        "texte-image",
+        "documents"
+      ].includes(type);
 
     uploadImageButton.textContent =
       type === "galerie"
@@ -2900,8 +3122,12 @@ function openFicheEditor() {
     selectedFileName.textContent = "";
     uploadStatus.textContent = "";
     galleryImages = [];
+    blockDocuments = [];
+    documentLabel.value = "";
+    documentUrl.value = "";
     updateColorGuidance();
     refreshGalleryList();
+    refreshDocumentsList();
     updateBlockFields();
   }
 
@@ -2945,11 +3171,19 @@ function openFicheEditor() {
             }))
           : [];
 
+      blockDocuments =
+        Array.isArray(block.documents)
+          ? block.documents.map(document => ({
+              ...document
+            }))
+          : [];
+
       updateColorGuidance(
         block.icon || ""
       );
 
       refreshGalleryList();
+      refreshDocumentsList();
     } else {
       blockFormTitle.textContent =
         "Ajouter un bloc";
@@ -3007,6 +3241,10 @@ function openFicheEditor() {
       galleryImages:
         galleryImages.map(image => ({
           ...image
+        })),
+      documents:
+        blockDocuments.map(document => ({
+          ...document
         }))
     };
 
@@ -3065,6 +3303,34 @@ function openFicheEditor() {
   blockType.addEventListener(
     "change",
     updateBlockFields
+  );
+
+  addDocumentButton.addEventListener(
+    "click",
+    () => {
+      const label =
+        documentLabel.value.trim();
+
+      const url =
+        documentUrl.value.trim();
+
+      if (!label || !url) {
+        window.alert(
+          "Renseignez le nom du document et son lien."
+        );
+        return;
+      }
+
+      blockDocuments.push({
+        label,
+        url
+      });
+
+      documentLabel.value = "";
+      documentUrl.value = "";
+      refreshDocumentsList();
+      documentLabel.focus();
+    }
   );
 
   blockColor.addEventListener(
