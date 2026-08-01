@@ -3835,9 +3835,9 @@ connectedActions.className =
       document.querySelector("main");
 
     if (main) {
-      main.prepend(connectedBox);
+      main.appendChild(connectedBox);
     } else {
-      document.body.prepend(connectedBox);
+      document.body.appendChild(connectedBox);
     }
 
   } catch (error) {
