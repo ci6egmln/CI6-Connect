@@ -243,16 +243,15 @@ input[type=search]:focus {
 }
 
 /*
- * Page d’accueil : conserver entièrement les tuiles rectangulaires.
- * Certaines images ont un ratio légèrement différent du cadre ;
- * « contain » évite de rogner le haut et le bas.
+ * Page d’accueil : toutes les tuiles doivent garder exactement
+ * la même taille visuelle, sans bandes noires.
+ * L’image remplit donc entièrement le cadre.
  */
 #cardsGrid > * > img,
 #cardsGrid .card-bg,
 #cardsGrid .tile-bg {
-  object-fit: contain!important;
+  object-fit: cover!important;
   object-position: center center!important;
-  background: var(--bg)!important;
 }
 #cardsGrid > ::before,
 .card::before,
