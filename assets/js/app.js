@@ -1304,6 +1304,28 @@ function injectFicheEditorStyles() {
       border-color: rgba(223,227,232,.4);
     }
 
+    #cancelEditorBlockButton {
+      min-height: 38px;
+      padding: 7px 14px;
+      color: #c8c2b7 !important;
+      border-color: rgba(200,194,183,.32) !important;
+      background: rgba(20,22,25,.82) !important;
+      font-weight: 700;
+    }
+
+    #cancelEditorBlockButton:hover,
+    #cancelEditorBlockButton:focus-visible {
+      color: #ffffff !important;
+      border-color: rgba(244,215,122,.55) !important;
+      background: #24272b !important;
+    }
+
+    #saveFicheButton {
+      width: 100%;
+      min-height: 52px;
+      font-size: 17px;
+    }
+
     .fiche-editor-button.danger {
       background: #6d2020;
       border-color: rgba(255,120,120,.65);
@@ -1835,6 +1857,17 @@ function injectFicheEditorStyles() {
         width: 100%;
       }
 
+      #ficheEditorBlockForm .fiche-editor-actions {
+        display: grid;
+        grid-template-columns: minmax(0,1fr) auto;
+        align-items: center;
+      }
+
+      #ficheEditorBlockForm #cancelEditorBlockButton {
+        width: auto;
+        min-height: 44px;
+      }
+
       .fiche-editor-mini-button {
         flex: 1 1 auto;
       }
@@ -1945,16 +1978,18 @@ function editorBlockMarkdown({
   }
 
   if (type === "texte-image") {
-    if (!mediaUrl) {
+    if (!text.trim()) {
       throw new Error(
-        "Ajoutez d’abord une photo pour ce bloc."
+        "Renseignez le texte du bloc."
       );
     }
 
-    if (!text.trim()) {
-      throw new Error(
-        "Renseignez le texte qui accompagne la photo."
-      );
+    if (!mediaUrl) {
+      return [
+        `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
+        text.trim() + documentsMarkdownList(documents),
+        ":::"
+      ].join("\n");
     }
 
     return [
@@ -2491,9 +2526,8 @@ function openFicheEditor() {
                 Type de bloc
               </label>
               <select id="editorBlockType">
-                <option value="texte">Bloc texte</option>
                 <option value="texte-image">
-                  Bloc texte avec image
+                  Bloc texte, image et documents
                 </option>
                 <option value="galerie">
                   Galerie d’images
@@ -2503,9 +2537,6 @@ function openFicheEditor() {
                 </option>
                 <option value="documents">
                   Documents à télécharger
-                </option>
-                <option value="contenu">
-                  Contenu existant
                 </option>
               </select>
             </div>
@@ -2722,7 +2753,7 @@ function openFicheEditor() {
             id="validateEditorBlockButton"
             class="fiche-editor-button"
           >
-            Valider ce bloc
+            Enregistrer le bloc
           </button>
 
           <button
@@ -2747,12 +2778,6 @@ function openFicheEditor() {
             : "Valider et publier la fiche"}
         </button>
 
-        <button
-          type="button"
-          class="fiche-editor-button secondary fiche-editor-cancel"
-        >
-          Fermer sans publier
-        </button>
       </div>
 
       <div
@@ -3248,14 +3273,12 @@ function openFicheEditor() {
     blockColorField.hidden =
       type === "galerie" ||
       type === "video" ||
-      type === "documents" ||
-      type === "contenu";
+      type === "documents";
 
     blockIconField.hidden =
       type === "galerie" ||
       type === "video" ||
-      type === "documents" ||
-      type === "contenu";
+      type === "documents";
 
     blockTextField.hidden =
       type === "galerie" ||
@@ -3263,16 +3286,13 @@ function openFicheEditor() {
       type === "documents";
 
     mediaCaptionField.hidden =
-      type === "texte" ||
-      type === "documents" ||
-      type === "contenu";
+      type === "documents";
 
     blockTitle.parentElement.hidden =
       type === "documents";
 
     documentsBox.hidden =
       ![
-        "texte",
         "texte-image",
         "documents"
       ].includes(type);
@@ -3284,7 +3304,7 @@ function openFicheEditor() {
   }
 
   function resetBlockForm() {
-    blockType.value = "texte";
+    blockType.value = "texte-image";
     blockColor.value = "gris";
     blockTitle.value = "";
     blockText.value = "";
@@ -3320,7 +3340,13 @@ function openFicheEditor() {
         "Modifier le bloc";
 
       blockType.value =
-        block.type || "texte";
+        [
+          "texte",
+          "texte-image",
+          "contenu"
+        ].includes(block.type)
+          ? "texte-image"
+          : block.type || "texte-image";
 
       blockColor.value =
         block.color || "gris";
@@ -3381,20 +3407,6 @@ function openFicheEditor() {
     const type =
       blockType.value;
 
-    if (type === "contenu") {
-      if (!blockText.value.trim()) {
-        throw new Error(
-          "Le contenu du bloc ne peut pas être vide."
-        );
-      }
-
-      return {
-        type: "contenu",
-        title: "Contenu",
-        text: blockText.value.trim()
-      };
-    }
-
     const block = {
       type,
       color:
@@ -3438,7 +3450,7 @@ function openFicheEditor() {
 
   overlay
     .querySelector(".fiche-editor-cancel")
-    .addEventListener(
+    ?.addEventListener(
       "click",
       closeEditor
     );
