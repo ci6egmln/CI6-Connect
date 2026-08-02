@@ -1586,8 +1586,13 @@ function injectFicheEditorStyles() {
       align-items: center;
     }
 
-    .fiche-editor-cover-file {
-      flex: 1 1 280px;
+    .fiche-editor-cover-actions .fiche-editor-button {
+      flex: 1 1 220px;
+    }
+
+    .fiche-editor-cover-actions
+      .fiche-editor-button.secondary {
+      flex: 0 1 auto;
     }
 
     .fiche-editor-cover-status {
@@ -2928,7 +2933,18 @@ function openFicheEditor() {
                 class="fiche-editor-cover-file"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
+                hidden
               >
+
+              <button
+                id="chooseEditorFicheCover"
+                type="button"
+                class="fiche-editor-button"
+              >
+                ${meta.cover
+                  ? "Remplacer la bannière"
+                  : "Ajouter une bannière"}
+              </button>
 
               <button
                 id="removeEditorFicheCover"
@@ -3277,6 +3293,9 @@ function openFicheEditor() {
   const coverFileInput =
     overlay.querySelector("#editorFicheCoverFile");
 
+  const chooseCoverButton =
+    overlay.querySelector("#chooseEditorFicheCover");
+
   const coverPreview =
     overlay.querySelector("#editorFicheCoverPreview");
 
@@ -3407,6 +3426,19 @@ function openFicheEditor() {
   let selectedCoverObjectUrl = "";
   let coverDragState = null;
 
+  function coverPreviewUrl(path) {
+    const value = String(path || "").trim();
+
+    if (
+      !value ||
+      /^(?:https?:|data:|blob:|\/)/i.test(value)
+    ) {
+      return value;
+    }
+
+    return `/${value.replace(/^\.\//, "")}`;
+  }
+
   function updateCoverPreview(path) {
     const value = String(path || "").trim();
 
@@ -3415,8 +3447,13 @@ function openFicheEditor() {
     coverEmpty.hidden = Boolean(value);
     removeCoverButton.disabled = !value;
 
+    chooseCoverButton.textContent =
+      value
+        ? "Remplacer la bannière"
+        : "Ajouter une bannière";
+
     if (value) {
-      coverPreview.src = value;
+      coverPreview.src = coverPreviewUrl(value);
     } else {
       coverPreview.removeAttribute("src");
     }
@@ -3425,6 +3462,7 @@ function openFicheEditor() {
   function closeCoverCrop() {
     coverCropOverlay.hidden = true;
     coverDragState = null;
+    coverFileInput.value = "";
   }
 
   function coverCropMetrics() {
@@ -3599,6 +3637,25 @@ function openFicheEditor() {
         isVisitorMode();
     }
   }
+
+  coverPreview.addEventListener(
+    "error",
+    () => {
+      coverPreview.hidden = true;
+      coverEmpty.hidden = false;
+      coverEmpty.textContent =
+        "La bannière actuelle ne peut pas être affichée. Vous pouvez la remplacer.";
+    }
+  );
+
+  updateCoverPreview(coverInput.value);
+
+  chooseCoverButton.addEventListener(
+    "click",
+    () => {
+      coverFileInput.click();
+    }
+  );
 
   coverFileInput.addEventListener(
     "change",
