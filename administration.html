@@ -1374,6 +1374,11 @@
     
         <dl class="user-details">
           <div>
+            <dt>Nom</dt>
+            <dd id="resultNom"></dd>
+          </div>
+
+          <div>
             <dt>Rôle</dt>
             <dd id="resultRole"></dd>
           </div>
@@ -1452,6 +1457,21 @@
           </div>
     
           <div class="form-field">
+            <label for="createNom">
+              Nom de l’utilisateur
+            </label>
+
+            <input
+              id="createNom"
+              name="nom"
+              type="text"
+              maxlength="120"
+              placeholder="Ex. DUPONT Jean"
+              required
+            >
+          </div>
+
+          <div class="form-field">
             <label for="createRole">
               Rôle
             </label>
@@ -1526,8 +1546,9 @@
   </div>
 
   <p class="import-description">
-    Le fichier doit contenir deux colonnes :
-    <strong>nigend</strong> et
+    Le fichier doit contenir trois colonnes :
+    <strong>nigend</strong>,
+    <strong>nom</strong> et
     <strong>role</strong>.
     Les rôles acceptés sont
     <strong>eleve</strong> et
@@ -1535,9 +1556,9 @@
   </p>
 
   <div class="csv-example">
-    <code>nigend;role</code>
-    <code>123456;eleve</code>
-    <code>123457;cadre</code>
+    <code>nigend;nom;role</code>
+    <code>123456;DUPONT Jean;eleve</code>
+    <code>123457;MARTIN Paul;cadre</code>
   </div>
 
   <div class="import-field">
@@ -1573,6 +1594,7 @@
           <tr>
             <th>Ligne</th>
             <th>NIGEND</th>
+            <th>Nom</th>
             <th>Rôle</th>
             <th>Contrôle</th>
           </tr>
@@ -1686,9 +1708,9 @@
   </div>
   <div class="consultations-table-wrapper">
     <table class="consultations-table">
-      <thead><tr><th>NIGEND</th><th>Rôle</th><th>Fiche</th><th>Ouverture</th><th>Fermeture</th><th>Durée</th></tr></thead>
+      <thead><tr><th>NIGEND</th><th>Nom</th><th>Rôle</th><th>Fiche</th><th>Ouverture</th><th>Fermeture</th><th>Durée</th></tr></thead>
       <tbody id="consultationsTableBody">
-        <tr><td class="consultations-empty" colspan="6">Saisissez un NIGEND puis lancez la recherche.</td></tr>
+        <tr><td class="consultations-empty" colspan="7">Saisissez un NIGEND puis lancez la recherche.</td></tr>
       </tbody>
     </table>
   </div>
@@ -1908,6 +1930,10 @@
               ? "status-active"
               : "status-disabled"
           );
+
+        document.getElementById(
+          "resultNom"
+        ).textContent = user.nom || "Non renseigné";
 
         document.getElementById(
           "resultRole"
@@ -2370,6 +2396,9 @@
 const createUsername =
   document.getElementById("createUsername");
 
+const createNom =
+  document.getElementById("createNom");
+
 const createRole =
   document.getElementById("createRole");
 
@@ -2498,6 +2527,9 @@ createAccountForm.addEventListener(
     const username =
       createUsername.value.trim();
 
+    const nom =
+      createNom.value.trim();
+
     const password =
       createPassword.value;
 
@@ -2524,6 +2556,7 @@ createAccountForm.addEventListener(
           },
           body: JSON.stringify({
             username,
+            nom,
             password,
             role
           })
@@ -2546,6 +2579,8 @@ createAccountForm.addEventListener(
         <strong>✓ Compte créé avec succès</strong><br>
         Identifiant :
         <strong>${data.username}</strong><br>
+        Nom :
+        <strong>${data.nom}</strong><br>
         Rôle :
         <strong>
           ${data.role === "cadre"
@@ -2780,6 +2815,14 @@ csvFile.addEventListener(
         ].includes(header)
       );
 
+    const nomIndex =
+      headers.findIndex(header =>
+        [
+          "nom",
+          "name"
+        ].includes(header)
+      );
+
     const roleIndex =
       headers.findIndex(header =>
         [
@@ -2790,13 +2833,14 @@ csvFile.addEventListener(
 
     if (
       usernameIndex === -1 ||
+      nomIndex === -1 ||
       roleIndex === -1
     ) {
       importMessage.className =
         "import-error";
 
       importMessage.textContent =
-        "Les colonnes nigend et role sont obligatoires.";
+        "Les colonnes nigend, nom et role sont obligatoires.";
 
       csvPreview.hidden = true;
       return;
@@ -2814,12 +2858,21 @@ csvFile.addEventListener(
             columns[usernameIndex] || ""
           ).trim();
 
+        const nom =
+          String(
+            columns[nomIndex] || ""
+          ).trim();
+
         const role =
           normalizeCsvRole(
             columns[roleIndex]
           );
 
         const errors = [];
+
+        if (!nom) {
+          errors.push("Nom manquant");
+        }
 
         if (!/^\d{6}$/.test(username)) {
           errors.push(
@@ -2851,6 +2904,7 @@ csvFile.addEventListener(
 
         return {
           username,
+          nom,
           role,
           lineNumber: index + 2,
           errors
@@ -2872,6 +2926,7 @@ csvFile.addEventListener(
         <tr>
           <td>${user.lineNumber}</td>
           <td>${user.username || "—"}</td>
+          <td>${user.nom || "—"}</td>
           <td>${user.role || "—"}</td>
           <td class="${
             user.errors.length
@@ -3061,6 +3116,7 @@ function createCredentialsCsv(accounts) {
   const lines = [
     [
       "nigend",
+      "nom",
       "role",
       "mot_de_passe_provisoire"
     ].join(";")
@@ -3070,6 +3126,7 @@ function createCredentialsCsv(accounts) {
     lines.push(
       [
         escapeCsvValue(account.username),
+        escapeCsvValue(account.nom),
         escapeCsvValue(account.role),
         escapeCsvValue(
           account.temporaryPassword
@@ -3448,13 +3505,14 @@ function renderConsultations(rows){
   consultationsCount.textContent=`${rows.length} consultation${rows.length>1?"s":""} affichée${rows.length>1?"s":""}`;
   exportConsultationsButton.disabled=false;
   if(!rows.length){
-    consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Aucune consultation ne correspond aux critères.</td></tr>';
+    consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="7">Aucune consultation ne correspond aux critères.</td></tr>';
     return;
   }
   consultationsTableBody.innerHTML=rows.map(row=>{
     const estimated=!row.closedAt,closing=consultationEnd(row);
     return `<tr>
       <td><strong>${adminEscape(row.username)}</strong></td>
+      <td>${adminEscape(row.nom || "—")}</td>
       <td>${adminEscape(formatRole(row.role))}</td>
       <td><strong>${adminEscape(row.ficheTitle)}</strong><br><span class="consultations-muted">${adminEscape(row.fichePath||row.ficheId)}</span></td>
       <td>${adminEscape(formatConsultationDate(row.openedAt))}</td>
@@ -3517,7 +3575,7 @@ resetConsultationsButton.addEventListener("click",()=>{
   exportConsultationsButton.disabled=true;
   consultationsMessage.className="";
   consultationsMessage.textContent="";
-  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="6">Saisissez le NIGEND d’un élève ou ****** pour tous les élèves, puis lancez la recherche.</td></tr>';
+  consultationsTableBody.innerHTML='<tr><td class="consultations-empty" colspan="7">Saisissez le NIGEND d’un élève ou ****** pour tous les élèves, puis lancez la recherche.</td></tr>';
   consultationsUsername.focus();
 });
 function csvConsultationValue(value){
@@ -3531,10 +3589,10 @@ exportConsultationsButton.addEventListener("click",async()=>{
   try{
     const rows=await requestConsultations("export");
     if(!rows.length)throw new Error("Aucune consultation à exporter.");
-    const lines=[["nigend","role","fiche","chemin","ouverture","fermeture","fermeture_estimee","duree"].join(";")];
+    const lines=[["nigend","nom","role","fiche","chemin","ouverture","fermeture","fermeture_estimee","duree"].join(";")];
     rows.forEach(row=>{
       const estimated=!row.closedAt,closing=consultationEnd(row);
-      lines.push([row.username,row.role,row.ficheTitle,row.fichePath||row.ficheId,formatConsultationDate(row.openedAt),closing?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing):"—",estimated?"oui":"non",consultationDuration(row)].map(csvConsultationValue).join(";"));
+      lines.push([row.username,row.nom||"",row.role,row.ficheTitle,row.fichePath||row.ficheId,formatConsultationDate(row.openedAt),closing?new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"medium"}).format(closing):"—",estimated?"oui":"non",consultationDuration(row)].map(csvConsultationValue).join(";"));
     });
     const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
     const url=URL.createObjectURL(blob),link=document.createElement("a");
