@@ -1446,16 +1446,31 @@ function injectFicheEditorStyles() {
       background: rgba(214,173,58,.045);
     }
 
+    .fiche-editor-section-title {
+      margin: 0;
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: .01em;
+    }
+
+    .fiche-editor-section-title.block {
+      color: #7fa8d8;
+    }
+
     .fiche-editor-upload-title {
       margin: 0 0 16px;
-      color: #f4d77a;
       font-size: 18px;
       font-weight: 800;
       line-height: 1.25;
+      letter-spacing: .01em;
+    }
+
+    .fiche-editor-upload-title.photo {
+      color: #ad8bd8;
     }
 
     .fiche-editor-upload-title.document {
-      color: #dfe3e8;
+      color: #c97f91;
     }
 
     .fiche-editor-upload-box[hidden] {
@@ -1932,6 +1947,12 @@ function renderFicheEditButton(path, markdown, item) {
     return;
   }
 
+  /*
+   * Les styles doivent être chargés dès l'affichage de la fiche,
+   * et non seulement après l'ouverture de l'éditeur.
+   */
+  injectFicheEditorStyles();
+
   currentEditableFiche = {
     path,
     markdown,
@@ -2374,7 +2395,10 @@ function openFicheEditor() {
         hidden
       >
         <div class="fiche-editor-form-title">
-          <h3 id="ficheEditorBlockFormTitle">
+          <h3
+            id="ficheEditorBlockFormTitle"
+            class="fiche-editor-section-title block"
+          >
             Ajouter un bloc
           </h3>
 
@@ -2491,7 +2515,7 @@ function openFicheEditor() {
               class="fiche-editor-upload-box"
               hidden
             >
-              <div class="fiche-editor-upload-title">
+              <div class="fiche-editor-upload-title photo">
                 Insérer une photo
               </div>
 
