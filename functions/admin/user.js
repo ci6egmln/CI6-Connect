@@ -31,6 +31,7 @@ export async function onRequestGet(context) {
       .prepare(`
         SELECT
           username,
+          nom,
           active,
           role,
           must_change_password,
@@ -55,6 +56,7 @@ export async function onRequestGet(context) {
       success: true,
       user: {
         username: user.username,
+        nom: user.nom || "",
         active: Number(user.active) === 1,
         role: user.role,
         mustChangePassword:

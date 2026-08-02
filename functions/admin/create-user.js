@@ -56,6 +56,7 @@ export async function onRequestPost(context) {
     const body = await context.request.json();
 
     const username = String(body.username || "").trim();
+    const nom = String(body.nom || "").trim();
     const password = String(body.password || "");
     const requestedRole =
       String(body.role || "").trim();
@@ -71,6 +72,13 @@ export async function onRequestPost(context) {
           error:
             "L’identifiant doit contenir exactement 6 chiffres."
         },
+        400
+      );
+    }
+
+    if (!nom || nom.length > 120) {
+      return jsonResponse(
+        { error: "Le nom est obligatoire et limité à 120 caractères." },
         400
       );
     }
@@ -109,6 +117,7 @@ export async function onRequestPost(context) {
       .prepare(`
         INSERT INTO users (
           username,
+          nom,
           password_hash,
           password_salt,
           active,
@@ -116,10 +125,11 @@ export async function onRequestPost(context) {
           must_change_password,
           session_version
         )
-        VALUES (?, ?, ?, 1, ?, 1, 1)
+        VALUES (?, ?, ?, ?, 1, ?, 1, 1)
       `)
       .bind(
         username,
+        nom,
         passwordHash,
         bytesToBase64(salt),
         role
@@ -130,6 +140,7 @@ export async function onRequestPost(context) {
       {
         success: true,
         username,
+        nom,
         role,
         must_change_password: true
       },

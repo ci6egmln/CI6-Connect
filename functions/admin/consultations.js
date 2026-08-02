@@ -96,6 +96,7 @@ export async function onRequestGet(context){
         id:row.id,
         username:row.username,
         role:row.role,
+        nom:row.nom || "",
         ficheId:row.fiche_id,
         ficheTitle:row.fiche_title,
         fichePath:row.fiche_path,

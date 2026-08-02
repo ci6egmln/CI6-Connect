@@ -172,11 +172,24 @@ export async function onRequestPost(context) {
     const username =
       String(rawUser.username || "").trim();
 
+    const nom =
+      String(rawUser.nom || "").trim();
+
     const role =
       normalizeRole(rawUser.role);
 
     const lineNumber =
       Number(rawUser.lineNumber || index + 1);
+
+    if (!nom || nom.length > 120) {
+      validationErrors.push({
+        lineNumber,
+        username,
+        error: "Le nom est obligatoire et limité à 120 caractères."
+      });
+
+      return;
+    }
 
     if (!/^\d{6}$/.test(username)) {
       validationErrors.push({
@@ -218,6 +231,7 @@ export async function onRequestPost(context) {
 
     validatedUsers.push({
       username,
+      nom,
       role,
       lineNumber
     });
@@ -267,6 +281,7 @@ export async function onRequestPost(context) {
       ) {
         existingUsers.push({
           username: user.username,
+          nom: user.nom,
           role: user.role,
           lineNumber: user.lineNumber,
           status: "existing"
@@ -315,6 +330,7 @@ export async function onRequestPost(context) {
             .prepare(`
               INSERT INTO users (
                 username,
+                nom,
                 password_hash,
                 password_salt,
                 active,
@@ -322,10 +338,11 @@ export async function onRequestPost(context) {
                 must_change_password,
                 session_version
               )
-              VALUES (?, ?, ?, 1, ?, 1, 1)
+              VALUES (?, ?, ?, ?, 1, ?, 1, 1)
             `)
             .bind(
               user.username,
+              user.nom,
               user.passwordHash,
               user.passwordSalt,
               user.role
@@ -341,6 +358,7 @@ export async function onRequestPost(context) {
       success: true,
       created: accountsToCreate.map(user => ({
         username: user.username,
+        nom: user.nom,
         role: user.role,
         temporaryPassword:
           user.temporaryPassword,
