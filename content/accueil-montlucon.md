@@ -14,8 +14,11 @@ Elle connut un essor à partir de la seconde moitié du XIXe siècle, l'activit�
 
 :::galerie Quelques vue de la ville
 assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon.jpg
-assets/photos/accueil-montlucon-chateau-des-ducs-de-bourbon-2.jpg | Chateau des ducs de Bourbon
 assets/photos/accueil-montlucon-mupop-2.jpg | musée de la musique populaire
 assets/photos/accueil-montlucon-centre-ancien.jpg
 assets/photos/accueil-montlucon-vue-du-ciel-2.jpg
+assets/photos/accueil-montlucon-rue-centre-historique.jpg | Une rue du centre historique
+assets/photos/accueil-montlucon-musee-du-chateau.jpg | Musée du château
+assets/photos/accueil-montlucon-musee-chateau.jpg | Musée du château - Histoire de Montluçon
+assets/photos/accueil-montlucon-jules-guesde.jpg | Buste de Jules Guesde - Musée du château
 :::
