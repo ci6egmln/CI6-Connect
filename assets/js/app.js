@@ -1255,13 +1255,47 @@ function injectFicheEditorStyles() {
     .fiche-editor-button {
       min-height: 42px;
       padding: 10px 16px;
-      border: 1px solid rgba(214,173,58,.75);
+      border: 1px solid #f4d77a !important;
       border-radius: 9px;
-      color: #fff;
-      background: linear-gradient(135deg,#5d3b08,#b88318);
+      color: #090a0b !important;
+      background:
+        linear-gradient(
+          135deg,
+          #f4d77a,
+          #b88318
+        ) !important;
+      -webkit-appearance: none;
+      appearance: none;
       font: inherit;
-      font-weight: 700;
+      font-weight: 800;
+      line-height: 1.2;
+      text-shadow: none !important;
+      opacity: 1 !important;
       cursor: pointer;
+    }
+
+    .fiche-edit-button:hover,
+    .fiche-edit-button:focus-visible {
+      color: #050607 !important;
+      background:
+        linear-gradient(
+          135deg,
+          #ffe99d,
+          #d19a29
+        ) !important;
+      outline: 3px solid rgba(244,215,122,.25);
+      outline-offset: 2px;
+    }
+
+    .fiche-edit-button:disabled {
+      color: #090a0b !important;
+      background:
+        linear-gradient(
+          135deg,
+          #e5ca76,
+          #a97618
+        ) !important;
+      opacity: .65 !important;
     }
 
     .fiche-editor-button.secondary {
@@ -1614,6 +1648,17 @@ function injectFicheEditorStyles() {
     }
 
     @media (max-width: 820px) {
+      .fiche-edit-toolbar {
+        justify-content: stretch;
+      }
+
+      .fiche-edit-button {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px;
+        text-align: center;
+      }
+
       .fiche-editor-overlay {
         display: block;
         padding: 0;
