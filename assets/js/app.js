@@ -1245,6 +1245,109 @@ function injectFicheEditorStyles() {
   const style = document.createElement("style");
   style.id = "ci6FicheEditorStyles";
   style.textContent = `
+
+    .fiche-non-lus-button {
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 1px solid rgba(126,163,201,.72);
+      border-radius: 9px;
+      color: #d9e9f8;
+      background: rgba(22,48,72,.9);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .fiche-non-lus-button:hover,
+    .fiche-non-lus-button:focus-visible {
+      background: rgba(34,72,106,.98);
+      outline: 3px solid rgba(126,163,201,.2);
+      outline-offset: 2px;
+    }
+
+    .fiche-non-lus-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10050;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0,0,0,.78);
+    }
+
+    .fiche-non-lus-dialog {
+      width: min(760px,100%);
+      max-height: calc(100dvh - 36px);
+      overflow: auto;
+      padding: 22px;
+      border: 1px solid rgba(126,163,201,.7);
+      border-radius: 14px;
+      background: #0b1015;
+      box-shadow: 0 24px 70px rgba(0,0,0,.62);
+    }
+
+    .fiche-non-lus-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .fiche-non-lus-head h2 {
+      margin: 0;
+      color: #9bc3e8;
+    }
+
+    .fiche-non-lus-close {
+      min-width: 40px;
+      min-height: 40px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 50%;
+      color: #fff;
+      background: #171b20;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .fiche-non-lus-summary {
+      margin: 0 0 14px;
+      color: #dfe7ef;
+    }
+
+    .fiche-non-lus-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .fiche-non-lus-list li {
+      display: grid;
+      grid-template-columns: 110px minmax(0,1fr);
+      gap: 12px;
+      padding: 11px 13px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      background: rgba(255,255,255,.035);
+    }
+
+    @media (max-width: 820px) {
+      .fiche-edit-toolbar {
+        flex-wrap: wrap;
+      }
+
+      .fiche-non-lus-button {
+        width: 100%;
+      }
+
+      .fiche-non-lus-list li {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+    }
+
     .fiche-edit-toolbar {
       display: flex;
       justify-content: flex-end;
@@ -2050,6 +2153,72 @@ function editorBlockMarkdown({
   throw new Error("Type de bloc inconnu.");
 }
 
+async function openUnreadStudentsDialog(path, item) {
+  const overlay = document.createElement("div");
+  overlay.className = "fiche-non-lus-overlay";
+  overlay.innerHTML = `
+    <section class="fiche-non-lus-dialog" role="dialog" aria-modal="true">
+      <div class="fiche-non-lus-head">
+        <div>
+          <h2>Élèves n’ayant pas lu la fiche</h2>
+          <p>${escapeHtml(item?.title || path)}</p>
+        </div>
+        <button type="button" class="fiche-non-lus-close" aria-label="Fermer">×</button>
+      </div>
+      <p class="fiche-non-lus-summary">Chargement…</p>
+      <ul class="fiche-non-lus-list"></ul>
+    </section>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector(".fiche-non-lus-close").addEventListener("click", close);
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) close();
+  });
+
+  try {
+    const params = new URLSearchParams({
+      fichePath: path,
+      ficheId: item?.slug || "",
+      ficheTitle: item?.title || ""
+    });
+
+    const response = await fetch(
+      `/admin/fiche-non-lue?${params.toString()}`,
+      {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        credentials: "same-origin"
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Impossible de charger la liste.");
+    }
+
+    const students = Array.isArray(data.students) ? data.students : [];
+    overlay.querySelector(".fiche-non-lus-summary").textContent =
+      `${students.length} élève${students.length > 1 ? "s" : ""} n’${students.length > 1 ? "ont" : "a"} pas encore consulté cette fiche.`;
+
+    const list = overlay.querySelector(".fiche-non-lus-list");
+    list.innerHTML = students.length
+      ? students.map(student => `
+          <li>
+            <strong>${escapeHtml(student.username)}</strong>
+            <span>${escapeHtml(student.nom || "Nom non renseigné")}</span>
+          </li>
+        `).join("")
+      : "<li><span>Tous les élèves actifs ont consulté cette fiche.</span></li>";
+  } catch (error) {
+    overlay.querySelector(".fiche-non-lus-summary").textContent =
+      error.message;
+  }
+}
+
 function renderFicheEditButton(path, markdown, item) {
   if (!isCadreMode()) {
     return;
@@ -2076,6 +2245,20 @@ function renderFicheEditButton(path, markdown, item) {
   const toolbar = document.createElement("div");
   toolbar.className = "fiche-edit-toolbar";
   toolbar.innerHTML = `
+    ${
+      currentSession.role === "admin"
+        ? `
+          <button
+            type="button"
+            class="fiche-non-lus-button"
+            id="unreadCurrentFicheButton"
+          >
+            👁️ Élèves n’ayant pas lu
+          </button>
+        `
+        : ""
+    }
+
     <button
       type="button"
       class="fiche-edit-button"
@@ -2090,6 +2273,13 @@ function renderFicheEditButton(path, markdown, item) {
   toolbar
     .querySelector("#editCurrentFicheButton")
     .addEventListener("click", openFicheEditor);
+
+  toolbar
+    .querySelector("#unreadCurrentFicheButton")
+    ?.addEventListener(
+      "click",
+      () => openUnreadStudentsDialog(path, item)
+    );
 }
 
 
@@ -2721,23 +2911,36 @@ function openFicheEditor() {
               </div>
 
               <div class="fiche-editor-field">
-                <label for="editorDocumentUrl">
-                  Lien du fichier
+                <label for="editorDocumentFile">
+                  Choisir le fichier
                 </label>
                 <input
-                  id="editorDocumentUrl"
-                  type="text"
-                  placeholder="assets/documents/fichier.pdf ou https://…"
+                  id="editorDocumentFile"
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip"
                 >
               </div>
 
+              <div
+                id="editorDocumentSelectedFile"
+                class="fiche-editor-upload-status"
+              ></div>
+
               <button
                 type="button"
-                id="addEditorDocumentButton"
+                id="uploadEditorDocumentButton"
                 class="fiche-editor-button secondary"
+                ${isVisitorMode() ? "disabled" : ""}
               >
-                Ajouter ce document
+                ${isVisitorMode()
+                  ? "Envoi indisponible en mode visiteur"
+                  : "Envoyer le document"}
               </button>
+
+              <div
+                id="editorDocumentUploadStatus"
+                class="fiche-editor-upload-status"
+              ></div>
 
               <div
                 id="editorDocumentsList"
@@ -2846,11 +3049,17 @@ function openFicheEditor() {
   const documentLabel =
     overlay.querySelector("#editorDocumentLabel");
 
-  const documentUrl =
-    overlay.querySelector("#editorDocumentUrl");
+  const documentFileInput =
+    overlay.querySelector("#editorDocumentFile");
 
-  const addDocumentButton =
-    overlay.querySelector("#addEditorDocumentButton");
+  const documentSelectedFile =
+    overlay.querySelector("#editorDocumentSelectedFile");
+
+  const uploadDocumentButton =
+    overlay.querySelector("#uploadEditorDocumentButton");
+
+  const documentUploadStatus =
+    overlay.querySelector("#editorDocumentUploadStatus");
 
   const documentsList =
     overlay.querySelector("#editorDocumentsList");
@@ -3305,7 +3514,7 @@ function openFicheEditor() {
 
   function resetBlockForm() {
     blockType.value = "texte-image";
-    blockColor.value = "gris";
+    blockColor.value = "bleu";
     blockTitle.value = "";
     blockText.value = "";
     mediaUrl.value = "";
@@ -3317,7 +3526,9 @@ function openFicheEditor() {
     galleryImages = [];
     blockDocuments = [];
     documentLabel.value = "";
-    documentUrl.value = "";
+    documentFileInput.value = "";
+    documentSelectedFile.textContent = "";
+    documentUploadStatus.textContent = "";
     updateColorGuidance();
     refreshGalleryList();
     refreshDocumentsList();
@@ -3349,7 +3560,7 @@ function openFicheEditor() {
           : block.type || "texte-image";
 
       blockColor.value =
-        block.color || "gris";
+        block.color || "bleu";
 
       blockTitle.value =
         block.title || "";
@@ -3490,31 +3701,108 @@ function openFicheEditor() {
     updateBlockFields
   );
 
-  addDocumentButton.addEventListener(
-    "click",
+  documentFileInput.addEventListener(
+    "change",
     () => {
+      const file = documentFileInput.files?.[0];
+
+      documentSelectedFile.textContent =
+        file
+          ? `Fichier sélectionné : ${file.name}`
+          : "";
+
+      if (file && !documentLabel.value.trim()) {
+        documentLabel.value =
+          file.name.replace(/\.[^.]+$/, "");
+      }
+
+      documentUploadStatus.textContent = "";
+      documentUploadStatus.className =
+        "fiche-editor-upload-status";
+    }
+  );
+
+  uploadDocumentButton.addEventListener(
+    "click",
+    async () => {
+      const file =
+        documentFileInput.files?.[0];
+
       const label =
         documentLabel.value.trim();
 
-      const url =
-        documentUrl.value.trim();
-
-      if (!label || !url) {
-        window.alert(
-          "Renseignez le nom du document et son lien."
-        );
+      if (!file) {
+        window.alert("Choisissez d’abord un document.");
         return;
       }
 
-      blockDocuments.push({
-        label,
-        url
-      });
+      if (!label) {
+        window.alert("Renseignez le nom du document.");
+        return;
+      }
 
-      documentLabel.value = "";
-      documentUrl.value = "";
-      refreshDocumentsList();
-      documentLabel.focus();
+      uploadDocumentButton.disabled = true;
+      documentUploadStatus.className =
+        "fiche-editor-upload-status";
+      documentUploadStatus.textContent =
+        "Envoi du document en cours…";
+
+      try {
+        const formData = new FormData();
+        formData.append("document", file);
+        formData.append("documentName", label);
+        formData.append(
+          "fichePath",
+          currentEditableFiche?.path || ""
+        );
+        formData.append(
+          "ficheTitle",
+          ficheTitle.value.trim() ||
+          currentEditableFiche?.item?.title ||
+          ""
+        );
+
+        const response = await fetch(
+          "/cadres/document-upload",
+          {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin"
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "L’envoi du document a échoué."
+          );
+        }
+
+        blockDocuments.push({
+          label,
+          url: data.path
+        });
+
+        documentFileInput.value = "";
+        documentSelectedFile.textContent = "";
+        documentLabel.value = "";
+        documentUploadStatus.className =
+          "fiche-editor-upload-status success";
+        documentUploadStatus.textContent =
+          "Document envoyé et ajouté au bloc.";
+
+        refreshDocumentsList();
+      } catch (error) {
+        documentUploadStatus.className =
+          "fiche-editor-upload-status error";
+        documentUploadStatus.textContent =
+          error.message;
+      } finally {
+        uploadDocumentButton.disabled =
+          isVisitorMode();
+      }
     }
   );
 
