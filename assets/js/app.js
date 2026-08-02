@@ -1453,8 +1453,29 @@ function injectFicheEditorStyles() {
       letter-spacing: .01em;
     }
 
-    .fiche-editor-section-title.block {
-      color: #7fa8d8;
+    /*
+     * Zone « Ajouter un bloc » :
+     * texte bleu nuit sur fond bleu clair.
+     */
+    #ficheEditorBlockForm {
+      border-color: #526f8a;
+      background: #cbd8e6;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.35);
+    }
+
+    #ficheEditorBlockForm .fiche-editor-section-title.block {
+      color: #18324a;
+    }
+
+    #ficheEditorBlockForm > .fiche-editor-form-title {
+      padding: 2px 2px 12px;
+      border-bottom: 1px solid rgba(24,50,74,.22);
+    }
+
+    #ficheEditorBlockForm .fiche-editor-field > label,
+    #ficheEditorBlockForm .fiche-editor-legend {
+      color: #263d52;
     }
 
     .fiche-editor-upload-title {
@@ -1465,12 +1486,50 @@ function injectFicheEditorStyles() {
       letter-spacing: .01em;
     }
 
+    /*
+     * Zone photo :
+     * texte aubergine sur fond mauve clair.
+     */
+    #editorImageUploadBox {
+      border-color: #76517a;
+      background: #ddcfe0;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.3);
+    }
+
     .fiche-editor-upload-title.photo {
-      color: #ad8bd8;
+      color: #4a214e;
+    }
+
+    #editorImageUploadBox .fiche-editor-field > label {
+      color: #432c46;
+    }
+
+    /*
+     * Zone documents :
+     * texte bordeaux sur fond rosé clair.
+     */
+    #editorDocumentsBox {
+      border-color: #86475a;
+      background: #e1c8ce;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.3);
     }
 
     .fiche-editor-upload-title.document {
-      color: #c97f91;
+      color: #5e1f2e;
+    }
+
+    #editorDocumentsBox .fiche-editor-field > label {
+      color: #542c36;
+    }
+
+    #editorImageUploadBox .fiche-editor-file-name {
+      color: #4a214e;
+    }
+
+    #editorDocumentsBox .fiche-editor-upload-status.success {
+      color: #416642;
     }
 
     .fiche-editor-upload-box[hidden] {
