@@ -1455,27 +1455,33 @@ function injectFicheEditorStyles() {
 
     /*
      * Zone « Ajouter un bloc » :
-     * texte bleu nuit sur fond bleu clair.
+     * anthracite bleuté, titre bleu clair.
      */
     #ficheEditorBlockForm {
-      border-color: #526f8a;
-      background: #cbd8e6;
+      border-color: rgba(76,112,146,.72);
+      background:
+        linear-gradient(
+          145deg,
+          rgba(20,31,43,.98),
+          rgba(10,15,20,.98)
+        );
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.35);
+        inset 0 0 0 1px rgba(130,170,210,.08);
     }
 
     #ficheEditorBlockForm .fiche-editor-section-title.block {
-      color: #18324a;
+      color: #89b9e8;
+      text-shadow: 0 1px 0 rgba(0,0,0,.55);
     }
 
     #ficheEditorBlockForm > .fiche-editor-form-title {
       padding: 2px 2px 12px;
-      border-bottom: 1px solid rgba(24,50,74,.22);
+      border-bottom: 1px solid rgba(93,137,178,.28);
     }
 
     #ficheEditorBlockForm .fiche-editor-field > label,
     #ficheEditorBlockForm .fiche-editor-legend {
-      color: #263d52;
+      color: #d7e4f0;
     }
 
     .fiche-editor-upload-title {
@@ -1488,48 +1494,56 @@ function injectFicheEditorStyles() {
 
     /*
      * Zone photo :
-     * texte aubergine sur fond mauve clair.
+     * fond aubergine très sombre, titre mauve clair.
      */
     #editorImageUploadBox {
-      border-color: #76517a;
-      background: #ddcfe0;
+      border-color: rgba(132,84,142,.78);
+      background:
+        linear-gradient(
+          145deg,
+          rgba(42,25,47,.98),
+          rgba(18,12,21,.98)
+        );
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.3);
+        inset 0 0 0 1px rgba(176,125,190,.08);
     }
 
     .fiche-editor-upload-title.photo {
-      color: #4a214e;
+      color: #c79add;
+      text-shadow: 0 1px 0 rgba(0,0,0,.55);
     }
 
     #editorImageUploadBox .fiche-editor-field > label {
-      color: #432c46;
+      color: #eadff0;
     }
 
     /*
      * Zone documents :
-     * texte bordeaux sur fond rosé clair.
+     * fond bordeaux très sombre, titre rose bordeaux clair.
      */
     #editorDocumentsBox {
-      border-color: #86475a;
-      background: #e1c8ce;
+      border-color: rgba(145,69,88,.8);
+      background:
+        linear-gradient(
+          145deg,
+          rgba(49,24,31,.98),
+          rgba(21,11,14,.98)
+        );
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.3);
+        inset 0 0 0 1px rgba(190,102,124,.08);
     }
 
     .fiche-editor-upload-title.document {
-      color: #5e1f2e;
+      color: #d994a7;
+      text-shadow: 0 1px 0 rgba(0,0,0,.55);
     }
 
     #editorDocumentsBox .fiche-editor-field > label {
-      color: #542c36;
-    }
-
-    #editorImageUploadBox .fiche-editor-file-name {
-      color: #4a214e;
+      color: #f0dce2;
     }
 
     #editorDocumentsBox .fiche-editor-upload-status.success {
-      color: #416642;
+      color: #a9d7ac;
     }
 
     .fiche-editor-upload-box[hidden] {
