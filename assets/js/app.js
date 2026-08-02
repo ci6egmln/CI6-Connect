@@ -1446,6 +1446,18 @@ function injectFicheEditorStyles() {
       background: rgba(214,173,58,.045);
     }
 
+    .fiche-editor-upload-title {
+      margin: 0 0 16px;
+      color: #f4d77a;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .fiche-editor-upload-title.document {
+      color: #dfe3e8;
+    }
+
     .fiche-editor-upload-box[hidden] {
       display: none;
     }
@@ -2479,9 +2491,13 @@ function openFicheEditor() {
               class="fiche-editor-upload-box"
               hidden
             >
+              <div class="fiche-editor-upload-title">
+                Insérer une photo
+              </div>
+
               <div class="fiche-editor-field">
                 <label for="editorImageFile">
-                  Choisir une photo
+                  Choisir le fichier
                 </label>
                 <input
                   id="editorImageFile"
@@ -2507,6 +2523,19 @@ function openFicheEditor() {
                 >
               </div>
 
+            <div
+              id="editorMediaCaptionField"
+              class="fiche-editor-field"
+            >
+              <label for="editorMediaCaption">
+                Légende facultative
+              </label>
+              <input
+                id="editorMediaCaption"
+                type="text"
+              >
+            </div>
+
               <button
                 type="button"
                 id="uploadEditorImageButton"
@@ -2515,7 +2544,7 @@ function openFicheEditor() {
               >
                 ${isVisitorMode()
                   ? "Envoi indisponible en mode visiteur"
-                  : "Envoyer la photo dans GitHub"}
+                  : "Envoyer la photo"}
               </button>
 
               <div
@@ -2545,22 +2574,13 @@ function openFicheEditor() {
             </div>
 
             <div
-              id="editorMediaCaptionField"
-              class="fiche-editor-field"
-            >
-              <label for="editorMediaCaption">
-                Légende facultative
-              </label>
-              <input
-                id="editorMediaCaption"
-                type="text"
-              >
-            </div>
-
-            <div
               id="editorDocumentsBox"
               class="fiche-editor-upload-box"
             >
+              <div class="fiche-editor-upload-title document">
+                Document à télécharger
+              </div>
+
               <div class="fiche-editor-field">
                 <label for="editorDocumentLabel">
                   Nom du document
@@ -3117,6 +3137,17 @@ function openFicheEditor() {
     onlineMediaBox.hidden =
       type !== "video";
 
+    if (type === "video") {
+      onlineMediaBox.appendChild(
+        mediaCaptionField
+      );
+    } else if (needsImage) {
+      imageUploadBox.insertBefore(
+        mediaCaptionField,
+        uploadImageButton
+      );
+    }
+
     blockColorField.hidden =
       type === "galerie" ||
       type === "video" ||
@@ -3152,7 +3183,7 @@ function openFicheEditor() {
     uploadImageButton.textContent =
       type === "galerie"
         ? "Ajouter cette photo à la galerie"
-        : "Envoyer la photo dans GitHub";
+        : "Envoyer la photo";
   }
 
   function resetBlockForm() {
