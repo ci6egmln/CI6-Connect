@@ -1336,6 +1336,7 @@ function injectFicheEditorStyles() {
     @media (max-width: 820px) {
       .fiche-edit-toolbar {
         flex-wrap: wrap;
+        gap: 12px;
       }
 
       .fiche-non-lus-button {
@@ -1351,6 +1352,7 @@ function injectFicheEditorStyles() {
     .fiche-edit-toolbar {
       display: flex;
       justify-content: flex-end;
+      gap: 14px;
       margin: 0 0 18px;
     }
 
@@ -1739,7 +1741,7 @@ function injectFicheEditorStyles() {
     }
 
     .fiche-editor-message {
-      margin-top: 14px;
+      margin: 16px 0 4px;
       padding: 12px 14px;
       border-radius: 8px;
       color: #dcecff;
@@ -2083,7 +2085,7 @@ function editorBlockMarkdown({
   if (type === "texte-image") {
     if (!text.trim()) {
       throw new Error(
-        "Renseignez le texte du bloc."
+        "Bloc non enregistré : aucune modification n’a été apportée."
       );
     }
 
@@ -2969,6 +2971,11 @@ function openFicheEditor() {
         </div>
       </section>
 
+      <div
+        id="ficheEditorMessage"
+        hidden
+      ></div>
+
       <div class="fiche-editor-actions">
         <button
           type="button"
@@ -2980,13 +2987,7 @@ function openFicheEditor() {
             ? "Publication indisponible en mode visiteur"
             : "Valider et publier la fiche"}
         </button>
-
       </div>
-
-      <div
-        id="ficheEditorMessage"
-        hidden
-      ></div>
     </section>
   `;
 
