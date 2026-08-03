@@ -381,7 +381,7 @@ window.CI6_RUBRIQUES = [
         title: "matériel demandé par les sections",
         slug: "materiel-section",
         description: "Connaître le matériel à emporter pour les cours donnés par les sections",
-			keywords : ["matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", "cadre de permanence"],
+			keywords : ["matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", " de permanence"],
 
         content: "content/materiel-section.md",
         card: "assets/cards/materiel-section.png"
@@ -452,16 +452,16 @@ window.CI6_RUBRIQUES = [
     slug: "vh-compte-rendu",
     card: "assets/cards/vh.png",
     children: [ 
-		/* PRÉSENTATION DES CADRES */
+		/* PRÉSENTATION DES S */
 		{
-        id: "cadres",
-        title: "Les cadres de la compagnie",
-        slug: "vh-cadres",
-        description: "Connaître le rôle des cadres",
+        id: "s",
+        title: "Les s de la compagnie",
+        slug: "vh-s",
+        description: "Connaître le rôle des s",
 				keywords : ["respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
 
-        content: "content/vh-cadres.md",
-        card: "assets/cards/vh-cadres.png"
+        content: "content/vh-s.md",
+        card: "assets/cards/vh-s.png"
     }, 
 		/* HIÉRARCHIE COMPAGNIE ET AU SEIN DE L'ÉCOLE */
 		{
@@ -1055,6 +1055,22 @@ window.CI6_RUBRIQUES = [
     /*
      * Les futurs sous-domaines seront ajoutés ici.
      */
-    children: []
+    children: [
+		{
+        id: "service",
+        title: "Planning prévisionnel et feuille hebdomadaire",
+        slug: "cadre-service",
+        description: "Planning prévisionnel et feuille hebdomadaire",
+        content: "content/cadre-service.md",
+        card: "assets/cards/cadre-service.png"
+    },{
+        id: "Documents",
+        title: "Documents utiles",
+        slug: "cadre-documents",
+        description: "Recueil des documents utiles",
+        content: "content/cadre-documents.md",
+        card: "assets/cards/cadre-documents.png"
+    }		
+	]
   }
  ];
