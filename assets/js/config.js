@@ -13,7 +13,7 @@ window.CI6_RUBRIQUES = [
     title: "Livret d'accueil",
     description: "Toutes informations utiles avant l'incorporation.",
     slug: "livret-accueil",
-    card: "assets/cards/accueil.png",
+    card: "assets/cards/accueil.webp",
     children: [ 
 		/* MOT DU CDU */
 		{
@@ -23,7 +23,7 @@ window.CI6_RUBRIQUES = [
         description: "Mot du commandant de la 6ème compagnie",
 		keywords : ["capitaine", "accueil", "mot", "bienvenue"],
         content: "content/accueil-cdu.md",
-        card: "assets/cards/accueil-cdu.png"
+        card: "assets/cards/accueil-cdu.webp"
     }, 
 		/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
 	    {
@@ -33,7 +33,7 @@ window.CI6_RUBRIQUES = [
         description: "Vivre sa scolarité dans la ville de Montluçon",
 		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
         content: "content/accueil-montlucon.md",
-        card: "assets/cards/accueil-montlucon.png"
+        card: "assets/cards/accueil-montlucon.webp"
     }, 
 		/* PRÉSENTATION DE L'ÉCOLE ET SES SERVICES SANS LES DÉTAILLER */
 		{
@@ -43,7 +43,7 @@ window.CI6_RUBRIQUES = [
         description: "L'école de gendarmerie de Montluçon",
 		keywords : ["école", "services", "mess", "infirmerie", "bar", "boutique", "vente", "coiffeuse"],
         content: "content/accueil-ecole.md",
-        card: "assets/cards/accueil-ecole.png"
+        card: "assets/cards/accueil-ecole.webp"
     }, 
 		/* PRÉSENTATION DE LA COMPAGNIE AU SEIN DE L'ÉCOLE */
 		{
@@ -54,7 +54,7 @@ window.CI6_RUBRIQUES = [
 		keywords : ["dragon", "noir", "combats", "tu lê", "indochine", "logement", "hébergement"],
 
         content: "content/accueil-compagnie.md",
-        card: "assets/cards/accueil-compagnie.png"
+        card: "assets/cards/accueil-compagnie.webp"
     }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
@@ -65,7 +65,7 @@ window.CI6_RUBRIQUES = [
 		keywords : ["matériel", "vêtements", "toilette", "cirage", "chaussure", "valise", "boussole"],
 
         content: "content/accueil-fournitures.md",
-        card: "assets/cards/accueil-fournitures.png"
+        card: "assets/cards/accueil-fournitures.webp"
     }, 
 		/* COMMENT SE RENDRE À L'ÉCOLE, TRAIN, COVOITURAGE */
 		{
@@ -76,7 +76,7 @@ window.CI6_RUBRIQUES = [
 		keywords : ["gare", "train", "voiture", "stationnement", "covoiturage"],
 
         content: "content/accueil-transport.md",
-        card: "assets/cards/accueil-transport.png"
+        card: "assets/cards/accueil-transport.webp"
     }, 
 		/* PRÉSENTATION RAPIDE DES ROLES, FONCTIONS ET RESPONSABILITÉS POUR LESQUELLES LES EG DEVRONT SE PORTER VOLONTAIRES */
 		{
@@ -87,7 +87,7 @@ window.CI6_RUBRIQUES = [
 		keywords : ["tam", "popotier", "magasinier", "secrétaire", "président", "promotion", "commission"],
 
         content: "content/accueil-roles.md",
-        card: "assets/cards/accueil-roles.png"
+        card: "assets/cards/accueil-roles.webp"
     } ]
 }, 
     /*****************************************************************************************/
@@ -99,7 +99,7 @@ window.CI6_RUBRIQUES = [
     title: "Règlement intérieur",
     description: "Les règles essentielles de vie, de discipline et d'organisation de la compagnie.",
     slug: "reglement",
-    card: "assets/cards/reglement.png",
+    card: "assets/cards/reglement.webp",
     children: [ 
 
 		/* LES DÉPLACEMENTS */
@@ -111,7 +111,7 @@ window.CI6_RUBRIQUES = [
 		keywords : ["ordre", "serré", "chant", "pas", "cadence", "deux", "salut"],
 
  	  content: "content/reglement-deplacement.md",
-  	  card: "assets/cards/reglement-deplacement.png"
+  	  card: "assets/cards/reglement-deplacement.webp"
   	  },
   	  /* LES HORAIRES D'UNE JOURNÉE TYPE + VENDREDIS */
 		{
@@ -122,7 +122,7 @@ window.CI6_RUBRIQUES = [
 	  keywords : ["heure", "lever", "coucher", "etude", "sport", "cours", "repas"],
 
  	  content: "content/reglement-horaires.md",
-  	  card: "assets/cards/reglement-horaires.png"
+  	  card: "assets/cards/reglement-horaires.webp"
   	  },
 		/* DESCRIPTION ET PORT DES TENUES */
 		{
@@ -133,7 +133,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["51", "53", "31", "32", "11", "13", "treillis", "service courant", "polaire", "survêtement", "coiffure", "calot", "képi", "casquette", "sac noir"],
 
           content: "content/reglement-tenue.md",
-          card: "assets/cards/reglement-tenue.png"
+          card: "assets/cards/reglement-tenue.webp"
     	  },
     	/* RÈGLES DE SALUT ET DE PRÉSENTATION - EN ET HORS CASERNE */  
 		{
@@ -144,7 +144,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["salut", "respect", "grade", "bonjour", "garde à vous", "demi tour", "bureau", "téléphone", "civil", "rue", "commerce"],
 
           content: "content/reglement-presentation.md",
-          card: "assets/cards/reglement-presentation.png"
+          card: "assets/cards/reglement-presentation.webp"
     	  },
 		/* RÈGLES DE COMPORTEMENT À ADOPTER EN ET HORS CASERNE */
     	  {
@@ -155,7 +155,7 @@ window.CI6_RUBRIQUES = [
 			  		keywords : ["comportement", "ville", "rue", "civil", "soirée", "alcool", "discothèque", "one", "grinta", "restaurant"],
 
           content: "content/reglement-comportement.md",
-          card: "assets/cards/reglement-comportement.png"
+          card: "assets/cards/reglement-comportement.webp"
     	  },
 		/* RÈGLES RELATIVES À LA MIXITÉ */
     	  {
@@ -166,7 +166,7 @@ window.CI6_RUBRIQUES = [
 			  		keywords : ["mixité", "sexe", "fille", "femme", "homme", "garcon"],
 
           content: "content/reglement-mixite.md",
-          card: "assets/cards/reglement-mixite.png"
+          card: "assets/cards/reglement-mixite.webp"
     	  },
     	/* USAGE DU TÉLÉPHONE, SEMAINE BLANCHE, REMISE ET PERCEPTION */ 
 		{
@@ -177,7 +177,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["semaine", "blanche", "téléphone", "remise", "caisse"],
 
 		  content: "content/reglement-telephone.md",
- 		  card: "assets/cards/reglement-telephone.png"
+ 		  card: "assets/cards/reglement-telephone.webp"
 		  }, 
     	/* RÈGLES D'USAGE DE LA CIGARETTE */ 
 		{
@@ -188,7 +188,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["cigarette", "fumeur", "mery", "stand", "mess"],
 
 		  content: "content/reglement-cigarette.md",
- 		  card: "assets/cards/reglement-cigarette.png"
+ 		  card: "assets/cards/reglement-cigarette.webp"
 		  } ] 
 },
    /*****************************************************************************************/
@@ -199,7 +199,7 @@ window.CI6_RUBRIQUES = [
     title: "Usage et entretien des locaux de la compagnie",
     description: "L'état des locaux est le miroir de ceux qui les occupent.",
     slug: "utilisation-entretien-locaux",
-    card: "assets/cards/locaux.png",
+    card: "assets/cards/locaux.webp",
     children: [ 
 		/* ACCÈS AUTORISÉS ET INTERDITS */
 		{
@@ -210,7 +210,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["locaux", "compagnie", "module", "chambre", "bureau", "douche", "sanitaire", "silence", "extinction", "feux"],
 
         content: "content/locaux-circulation.md",
-        card: "assets/cards/locaux-circulation.png"
+        card: "assets/cards/locaux-circulation.webp"
     }, 
 		/* CONSIGNES TIG ET TOURS DE ROTATION */
 		{
@@ -221,7 +221,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["tig", "produit", "entretien", "seau", "serpillère", "balais", "extérieur", "véhicule", "carburant", "lavage"],
 
         content: "content/locaux-tig.md",
-        card: "assets/cards/locaux-tig.png"
+        card: "assets/cards/locaux-tig.webp"
     } ]
 }, 
    /*****************************************************************************************/
@@ -232,7 +232,7 @@ window.CI6_RUBRIQUES = [
     title: "Le cercle mixte",
     description: "Restauration, détente et convivialité.",
     slug: "cercle-mixte",
-    card: "assets/cards/cercle-mixte.png",
+    card: "assets/cards/cercle-mixte.webp",
     children: [ 
 		/* il manque le comptoire des ventes *************************************************/
 		
@@ -245,7 +245,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["mess", "carte", "pass", "horaire", "chaine", "repas", "plateau"],
 
         content: "content/cercle-mess.md",
-        card: "assets/cards/cercle-mess.png"
+        card: "assets/cards/cercle-mess.webp"
     }, 
 		/* PRÉSENTATION DE L'ESPACE DÉTENTE ET CONDITIONS D'ACCÈS */
 		{
@@ -256,7 +256,7 @@ window.CI6_RUBRIQUES = [
 					keywords : ["bar", "jeux", "game", "zone", "billard", "babyfoot", "alcool", "soft", "cigarette", "telephone"],
 
         content: "content/cercle-detente.md",
-        card: "assets/cards/cercle-detente.png"
+        card: "assets/cards/cercle-detente.webp"
     },
 		/* SALON DE COIFFURE DE L'ÉCOLE */
 		{
@@ -267,7 +267,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["coiffeuse", "salon", "coiffure", "coupe", "tarif", "réglementaire", "dégradé", "cheveux"],
 			
         content: "content/cercle-coiffeuse.md",
-        card: "assets/cards/cercle-coiffeuse.png"
+        card: "assets/cards/cercle-coiffeuse.webp"
     },
 		/* COMPTOIR DES VENTES */
 		{
@@ -277,7 +277,7 @@ window.CI6_RUBRIQUES = [
         description: "La boutique de l'école, tenues, nécessaires, cadeaux.",
 			keywords : ["comptoir", "vente", "bimbeloterie", "achat", "matériel", "vetement", "chaussure", "dentifrice", "toilette", "cadeau"],
         content: "content/cercle-comptoir.md",
-        card: "assets/cards/cercle-comptoir.png"
+        card: "assets/cards/cercle-comptoir.webp"
     },
 		/* HOTEL COUTELOT - RÉSERATION PAR LES ÉLÈVES */
 		{
@@ -287,7 +287,7 @@ window.CI6_RUBRIQUES = [
         description: "Un hébergement pratique pour vos familles et visiteurs.",
 			keywords : ["hotel", "reservation", "chambre", "famille", "visiteurs", "petit déjeuner"],
         content: "content/cercle-hotel.md",
-        card: "assets/cards/cercle-hotel.png"
+        card: "assets/cards/cercle-hotel.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -298,7 +298,7 @@ window.CI6_RUBRIQUES = [
     title: "Vivre en collectivité",
     description: "Camaraderie, cohésion et respect mutuel.",
     slug: "vivre-collectivite",
-    card: "assets/cards/collectivite.png",
+    card: "assets/cards/collectivite.webp",
     children: [ 
 		/* HYGIÈNE */
 		{
@@ -308,7 +308,7 @@ window.CI6_RUBRIQUES = [
         description: "L'hygiène est essentielle en collectivité",
 			keywords : ["hygine", "toilette", "douche", "odeur", "sale", "rasage", "raser", "entretien", "rangement"],
         content: "content/collectivite-hygiene.md",
-        card: "assets/cards/collectivite-hygiene.png"
+        card: "assets/cards/collectivite-hygiene.webp"
     }, 
 		/* RESPECT D'AUTRUI - EXPRESSION - COMPORTEMENT */
 		{
@@ -318,7 +318,7 @@ window.CI6_RUBRIQUES = [
         description: "Favoriser une cohabitation harmonieuse entre camarades.",
 			keywords : ["respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "alcool", "soft", "cigarette", "telephone"],
         content: "content/collectivite-respect.md",
-        card: "assets/cards/collectivite-respect.png"
+        card: "assets/cards/collectivite-respect.webp"
     },
 		/* HORAIRES EXTINCTION DES FEUX - SILENCE ÉTUDES */
 		{
@@ -329,7 +329,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["respect", "silence", "travail", "extinction des feux", "nuit", "lumière", "heures ouvrables", "bureau"],
 
         content: "content/collectivite-silence.md",
-        card: "assets/cards/collectivite-silence.png"
+        card: "assets/cards/collectivite-silence.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -340,7 +340,7 @@ window.CI6_RUBRIQUES = [
     title: "Préparer et respecter le matériel",
     description: "Un matériel prêt, contrôlé et entretenu est le gage d'une mission réussie.",
     slug: "materiel",
-    card: "assets/cards/materiel.png",
+    card: "assets/cards/materiel.webp",
     children: [ 
 		/* MATÉRIEL INDIVIDUEL PERCU À LA COMPAGNIE */
 		{
@@ -351,7 +351,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["matériel", "perception", "entretien", "musette", "sac", "treillis", "déclassé", "brelage", "duvet", "sac de couchage"],
 
         content: "content/materiel-individuel.md",
-        card: "assets/cards/materiel-individuel.png"
+        card: "assets/cards/materiel-individuel.webp"
     }, 
 		/* ARMEMENT INDIVIDUEL - PACK ARMEMENT - ARMEMENT COLLECTIF */
 		{
@@ -362,7 +362,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["armement", "PA", "sig pro", "famas", "hk", "pistolet", "pack", "entretien", "armurerie", "tam"],
 
         content: "content/materiel-armement.md",
-        card: "assets/cards/materiel-armement.png"
+        card: "assets/cards/materiel-armement.webp"
     },
 		/* PERCEPTION ET ENTRETIEN DU MATÉRIEL PRÊTÉ (MO, IT ...) */
 		{
@@ -373,7 +373,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["perception", "materiel", "bache", "famas", "sac F1"],
 
         content: "content/materiel-pret.md",
-        card: "assets/cards/materiel-pret.png"
+        card: "assets/cards/materiel-pret.webp"
     },
 		/* LISTE DU MATÉRIEL, ÉQUIPEMENT, TENUE PRÉCONISÉS PAR LES SECTIONS */
 		{
@@ -384,7 +384,7 @@ window.CI6_RUBRIQUES = [
 			keywords : ["matériel", "instruction", "section", "sefi", "sestmob", "protection", "gant", "ceinturon", "arme", "tam", " de permanence"],
 
         content: "content/materiel-section.md",
-        card: "assets/cards/materiel-section.png"
+        card: "assets/cards/materiel-section.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -395,7 +395,7 @@ window.CI6_RUBRIQUES = [
     title: "S’investir dans sa formation",
     description: "Apprendre, progresser, réussir.",
     slug: "formation",
-    card: "assets/cards/formation.png",
+    card: "assets/cards/formation.webp",
     children: [ 
 		/* ÉTUDE OBLIGATOIRE ET PRATIQUE DU SPORT */
 		{
@@ -406,7 +406,7 @@ window.CI6_RUBRIQUES = [
 						keywords : ["etude", "sport", "horaire", "entrainement physique"],
 
         content: "content/formation-etude.md",
-        card: "assets/cards/formation-etude.png"
+        card: "assets/cards/formation-etude.webp"
     }, 
 		/* RÉUSSIR SA FORMATION - PRÉPARER LES COURS - ETRE VOLONTAIRE */
 		{
@@ -417,7 +417,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["etude", "revision", "preparation", "cours", "volontaire", "mise en situation", "mes", "pratique", "livre", "book"],
 
         content: "content/formation-reussir.md",
-        card: "assets/cards/formation-reussir.png"
+        card: "assets/cards/formation-reussir.webp"
     },
 		/* ENTRAINEMENT SPORTIF INDIVIDUEL - CSLG - ÉQUIPEMENTS À DISPOSITION */
 		{
@@ -428,7 +428,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["sport", "entrainement", "pompes", "gainage", "traction", "corde", "bareme", "3 km", "8 km", "PO", "parcours d'obstacle"],
 
         content: "content/formation-sport.md",
-        card: "assets/cards/formation-sport.png"
+        card: "assets/cards/formation-sport.webp"
     },  
 		/* PROGRAMME DE LA FORMATION - BARÊME ET CALCUL DES MOYENNES - PRÉSENTATION NA ? */
 		{
@@ -439,7 +439,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["programme", "examen", "prog", "programmation", "coefficients", "notes", "bareme", "cours", "échéance", "phase"],
 
         content: "content/formation-examen.md",
-        card: "assets/cards/formation-examen.png"
+        card: "assets/cards/formation-examen.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -450,7 +450,7 @@ window.CI6_RUBRIQUES = [
     title: "VH et compte rendu",
     description: "Savoir à qui s'adresser, rendre compte utilement.",
     slug: "vh-compte-rendu",
-    card: "assets/cards/vh.png",
+    card: "assets/cards/vh.webp",
     children: [ 
 		/* PRÉSENTATION DES CADRES */
 		{
@@ -461,7 +461,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
 
         content: "content/vh-cadres.md",
-        card: "assets/cards/vh-cadres.png"
+        card: "assets/cards/vh-cadres.webp"
     }, 
 		/* HIÉRARCHIE COMPAGNIE ET AU SEIN DE L'ÉCOLE */
 		{
@@ -472,7 +472,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["hiérarchie", "dialogue", "interlocuteur", "voie", "vh"],
 
         content: "content/vh-vh.md",
-        card: "assets/cards/vh-vh.png"
+        card: "assets/cards/vh-vh.webp"
     },
 		/* LE COMPTE RENDU */
 		{
@@ -483,7 +483,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["rendre compte", "écrits", "manuscrit", "format", "marges", "forme", "fond", "sanction", "felicitation", "accident"],
 
         content: "content/vh-cr.md",
-        card: "assets/cards/vh-cr.png"
+        card: "assets/cards/vh-cr.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -494,7 +494,7 @@ window.CI6_RUBRIQUES = [
     title: "Sécurité",
     description: "La sécurité de tous passe par la vigilance de chacun.",
     slug: "securite",
-    card: "assets/cards/securite.png",
+    card: "assets/cards/securite.webp",
     children: [ 
 		/* SÉCURITÉ DE L'ARMEMENT - USAGE ET STOCKAGE - RÉINTÉGRATION WEEK END */
 		{
@@ -505,7 +505,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["stockage", "PA", "sig pro", "famas", "hk", "armement", "pack", "entretien", "armurerie", "tam"],
 
         content: "content/securite-armement.md",
-        card: "assets/cards/securite-armement.png"
+        card: "assets/cards/securite-armement.webp"
     },
 		/* SÉCURITÉ DES MOYENS INFORMATIQUES ET NEO */
 		{
@@ -516,7 +516,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["sécurité", "système", "informatique", "carte professionnelle", "mot de passe", "neogend", "ubiquity", "confidentialite", "cle usb", "reseau"],
 
         content: "content/securite-ssi.md",
-        card: "assets/cards/securite-ssi.png"
+        card: "assets/cards/securite-ssi.webp"
     },
 		/* MATÉRIELS ÉLECTRIQUES AUTORISÉS OU INTEDITS ET BRANCHEMENT DANS LES MODULES */
 		{
@@ -527,7 +527,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["branchement", "appareil", "electrique", "multiprise", "risque", "incendie"],
 
         content: "content/securite-appareils.md",
-        card: "assets/cards/securite-appareils.png"
+        card: "assets/cards/securite-appareils.webp"
     }, 
 		/* SÉCURITÉ INCENDIE */
 		{
@@ -538,7 +538,7 @@ window.CI6_RUBRIQUES = [
 				keywords : ["ssi", "alarme", "voyant", "detecteur", "controle"],
 
         content: "content/securite-incendie.md",
-        card: "assets/cards/securite-incendie.png"
+        card: "assets/cards/securite-incendie.webp"
     },
 		/* ÉVACUATION COMPAGNIE */
 		{
@@ -548,7 +548,7 @@ window.CI6_RUBRIQUES = [
         description: "Consignes de sécurité et d'évacuation en cas d'incendie",
 				keywords : ["ssi", "alarme", "voyant", "detecteur", "controle", "evacuation", "serre file", "vehicule", "appel", "fiche T"],
         content: "content/securite-evacuation.md",
-        card: "assets/cards/securite-evacuation.png"
+        card: "assets/cards/securite-evacuation.webp"
     } ]
 }, 
 	
@@ -561,7 +561,7 @@ window.CI6_RUBRIQUES = [
     description: "Retrouver rapidement les informations et supports utiles.",
     slug: "documents-utiles",
     content: "content/news.md",
-    card: "assets/cards/news.png"
+    card: "assets/cards/news.webp"
 }, 
 	/*****************************************************************************************/
 	/*********************** PRÉSENTATION DES SERVICES DE L'ÉCOLE ****************************/
@@ -571,7 +571,7 @@ window.CI6_RUBRIQUES = [
     title: "Services de l’école",
     description: "Identifier les ressources utiles au quotidien.",
     slug: "services-ecole",
-    card: "assets/cards/services.png",
+    card: "assets/cards/services.webp",
     children: [ 
 	/**********************IL MANQUE SPPE ********************/
 		{
@@ -581,7 +581,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-bgp",
         description: "Bureau de gestion du personnel",
         content: "content/service-bgp.md",
-        card: "assets/cards/service-bgp.png"
+        card: "assets/cards/service-bgp.webp"
     }, 
 		{
         /* SECTION PLANIFICATION PROGRAMMATION EXAMEN */
@@ -590,7 +590,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-sppe",
         description: "SECTION PLANIFICATION PROGRAMMATION EXAMEN",
         content: "content/service-sppe.md",
-        card: "assets/cards/service-sppe.png"
+        card: "assets/cards/service-sppe.webp"
     }, 
 		/* CELLULE DIFFUSION */
 		{
@@ -599,7 +599,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-diffusion",
         description: "Reproduction d'affiches, documents, photographies et graphismes",
         content: "content/service-diffusion.md",
-        card: "assets/cards/service-diffusion.png"
+        card: "assets/cards/service-diffusion.webp"
     }, 
 		/* DÉTACHEMENT DU SERVICE OPÉRATIONNEL DE LUTTE CONTRE LA CYBERCRIMINALITÉ */
 		{
@@ -608,7 +608,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-dsolc",
         description: "Dépannage informatique, radio et Néogend",
         content: "content/service-dsolc.md",
-        card: "assets/cards/service-dsolc.png"
+        card: "assets/cards/service-dsolc.webp"
     }, 
 		/* HOTEL COUTELOT, SUCCINCT, RENVOYER VERS CERCLE MIXTE VOIRE LE SUPPRIMER D'ICI */
 		{
@@ -617,7 +617,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-hotel",
         description: "Réservation de chambre, hôtel Coutelot",
         content: "content/service-hotel.md",
-        card: "assets/cards/service-hotel.png"
+        card: "assets/cards/service-hotel.webp"
     }, 
 		/* VAGUEMESTRE */
 		{
@@ -626,7 +626,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-vaguemestre",
         description: "Courrier et réception de colis",
         content: "content/service-vaguemestre.md",
-        card: "assets/cards/service-vaguemestre.png"
+        card: "assets/cards/service-vaguemestre.webp"
     }, 
 		/* ANTENNE MÉDICALE - RDV - CR - IRC */
 		{
@@ -635,7 +635,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-amg",
         description: "Visite périodique et consultation médicale",
         content: "content/service-amg.md",
-        card: "assets/cards/service-amg.png"
+        card: "assets/cards/service-amg.webp"
     },
 		/* SERVICE HABILLEMENT */
 		{
@@ -644,7 +644,7 @@ window.CI6_RUBRIQUES = [
         slug: "service-habillement",
         description: "Essayage, commande et livraison d'effets militaires",
         content: "content/service-habillement.md",
-        card: "assets/cards/service-habillement.png"
+        card: "assets/cards/service-habillement.webp"
     } ]
 }, 
 	/*****************************************************************************************/
@@ -655,7 +655,7 @@ window.CI6_RUBRIQUES = [
     title: "Vie de la promotion",
     description: "Traditions, cohésion et esprit de promotion.",
     slug: "promotion",
-    card: "assets/cards/promotion.png",
+    card: "assets/cards/promotion.webp",
     children: [ 
 		/* BUREAU PROMO */
 		{
@@ -664,7 +664,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-bureau",
         description: "Constitution du bureau promotion et rôles",
         content: "content/promotion-bureau.md",
-        card: "assets/cards/promotion-bureau.png"
+        card: "assets/cards/promotion-bureau.webp"
     }, 
 		/* LA TRADITION AU SEIN DE L'ÉCOLE */
 		{
@@ -673,7 +673,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-tradition",
         description: "La tradition au sein de l'école",
         content: "content/promotion-tradition.md",
-        card: "assets/cards/promotion-tradition.png"
+        card: "assets/cards/promotion-tradition.webp"
     }, 
 		/* LES COMMISSIONS */
 		{
@@ -681,7 +681,7 @@ window.CI6_RUBRIQUES = [
         title: "Les commissions",
         slug: "promotion-commission",
         description: "Constitution des commissions et attendus",
-        card: "assets/cards/promotion-commissions.png",
+        card: "assets/cards/promotion-commissions.webp",
         children: [ 
 		/* COMMISSION PARRAIN */
 			{
@@ -690,7 +690,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-parrain",
         description: "Recherches sur la vie, la carrière, la famille du parrain et organisation de l'hommage.",
         content: "content/commission-parrain.md",
-        card: "assets/cards/commission-parrain.png"
+        card: "assets/cards/commission-parrain.webp"
  	   }, 
 		/* COMMISSION GALA - TRAITEUR - DECO - ANIMATION */	
 			{
@@ -699,7 +699,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-gala",
         description: "Organisation de la soirée de gala, choix de salle, de traiteur, des animations",
         content: "content/commission-gala.md",
-        card: "assets/cards/commission-gala.png"
+        card: "assets/cards/commission-gala.webp"
  	   }, 
 			/* COMMISSION RENDEZ-VOUS TRADITION */
 			{
@@ -708,7 +708,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-rdv",
         description: "Organiser les sorties tradition",
         content: "content/commission-rdv.md",
-        card: "assets/cards/commission-rdv.png"
+        card: "assets/cards/commission-rdv.webp"
  		}, 
 			/* COMMISSION DÉFI SOCIAL */
 			{
@@ -717,7 +717,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-defi",
         description: "Choisir une association à soutenir et organiser le défi social",
         content: "content/commission-defi.md",
-        card: "assets/cards/commission-defi.png"
+        card: "assets/cards/commission-defi.webp"
 	    }, 
 			/* COMMISSION COMMUNICATION */
 			{
@@ -726,7 +726,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-communication",
         description: "Développer les outils de communication et promouvoir les activités de la promotion.",
         content: "content/commission-communication.md",
-        card: "assets/cards/commission-communication.png"
+        card: "assets/cards/commission-communication.webp"
 	    }, 
 			/* COMMISSION CHANT PARRAIN */
 			{
@@ -735,7 +735,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-chant",
         description: "Créer parole et musique pour un chant parrain",
         content: "content/commission-chant.md",
-        card: "assets/cards/commission-chant.png"
+        card: "assets/cards/commission-chant.webp"
 	    }, 
 			/* COMMISSION STE GENEVIEVE - CONSTITUTION DES ÉQUIPES - ANIMATION */
 			{
@@ -744,7 +744,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-genevieve",
         description: "Organiser la participation de la promotion aux compétitions de la Sainte-Geneviève : constitution des équipes, coordination logistique et animation des groupes de supporters.",
         content: "content/commission-genevieve.md",
-        card: "assets/cards/commission-genevieve.png"
+        card: "assets/cards/commission-genevieve.webp"
 	    }, 
 			/* COMMISSION CÉRÉMONIE RELIGIEUSE */
 			{
@@ -753,7 +753,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-messe",
         description: "Préparation de la cérémonie religieuse de fin de promotion",
         content: "content/commission-messe.md",
-        card: "assets/cards/commission-messe.png"
+        card: "assets/cards/commission-messe.webp"
 	    }, 
 			/* COMMISSION PARTENARIAT AVEC LES COMMUNES */
 			{
@@ -762,7 +762,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-communes",
         description: "Proposer des actions avec les municipalités partenaires",
         content: "content/commission-communes.md",
-        card: "assets/cards/commission-communes.png"
+        card: "assets/cards/commission-communes.webp"
 	    }, 
 			/* COMMISSION CLASSE DÉFENSE PAUL CONSTANS */
 			{
@@ -771,7 +771,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-defense",
         description: "Proposer des actions avec les lycées de la classe défense",
         content: "content/commission-defense.md",
-        card: "assets/cards/commission-defense.png"
+        card: "assets/cards/commission-defense.webp"
 	    }, 
 			/* COMMISSION DESIGN ET CRÉATION ARTISTIQUE */
 			{
@@ -780,7 +780,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-design",
         description: "Créer les symboles et les supports graphiques de la promotion.",
         content: "content/commission-design.md",
-        card: "assets/cards/commission-design.png"
+        card: "assets/cards/commission-design.webp"
 	    }, 
 			/* COMMISSION GOODIES */
 			{
@@ -789,7 +789,7 @@ window.CI6_RUBRIQUES = [
         slug: "commission-goodies",
         description: "Conception, achat et vente des goodies de la promotion et de l'association.",
         content: "content/commission-goodies.md",
-        card: "assets/cards/commission-goodies.png"
+        card: "assets/cards/commission-goodies.webp"
 	    } ]
 	}, 
 		/* ÉCHÉANCIER POUR NE RIEN LOUPER */
@@ -799,7 +799,7 @@ window.CI6_RUBRIQUES = [
         slug: "promotion-echeances",
         description: "Anticiper chaque échéance afin de ne rien manquer.",
         content: "content/promotion-echeancier.md",
-        card: "assets/cards/promotion-echeancier.png"
+        card: "assets/cards/promotion-echeancier.webp"
  		}
     ]
 }, 
@@ -811,7 +811,7 @@ window.CI6_RUBRIQUES = [
     title: "Consignes pour l'exercice des responsabilités.",
     description: "S’engager, assumer, montrer l’exemple.",
     slug: "responsabilites",
-    card: "assets/cards/responsabilite.png",
+    card: "assets/cards/responsabilite.webp",
      children: [ 
 		 /* MAGASINIER */
 		 {
@@ -820,7 +820,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-magasinier",
         description: "Organiser, distribuer, contrôler",
         content: "content/responsabilite-magasinier.md",
-        card: "assets/cards/responsabilite-magasinier.png"
+        card: "assets/cards/responsabilite-magasinier.webp"
     }, 
 		 /* POPOTIER */
 		 {
@@ -829,7 +829,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-popotier",
         description: "Contribuer au moral et à la cohésion du peloton.",
         content: "content/responsabilite-popotier.md",
-        card: "assets/cards/responsabilite-popotier.png"
+        card: "assets/cards/responsabilite-popotier.webp"
     }, 
 		 /* SECOURISTES */
 		 {
@@ -838,7 +838,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-secouriste",
         description: "Apporter les premiers soins avant la prise en charge médicale.",
         content: "content/responsabilite-secouriste.md",
-        card: "assets/cards/responsabilite-secouriste.png"
+        card: "assets/cards/responsabilite-secouriste.webp"
     }, 
 		 /* TAM */
 		 {
@@ -847,7 +847,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-tam",
         description: "Une mission exigeante qui requiert rigueur, organisation et sens des responsabilités pour assurer la gestion complète de l'armement d'instruction.",
         content: "content/responsabilite-tam.md",
-        card: "assets/cards/responsabilite-tam.png"
+        card: "assets/cards/responsabilite-tam.webp"
     }, 
 		 /* VAGUEMESTRE */
 		 {
@@ -856,7 +856,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-vaguemestre",
         description: "Assurer la réception et la distribution du courrier et des colis.",
         content: "content/responsabilite-vaguemestre.md",
-        card: "assets/cards/responsabilite-vaguemestre.png"
+        card: "assets/cards/responsabilite-vaguemestre.webp"
     }, 
 		 /* TRI DES ORDURES */
 		 {
@@ -865,7 +865,7 @@ window.CI6_RUBRIQUES = [
         slug: "responsabilite-tri",
         description: "Sensibiliser et veiller au bon tri des déchets par l'ensemble des élèves.",
         content: "content/responsabilite-tri.md",
-        card: "assets/cards/responsabilite-tri.png"
+        card: "assets/cards/responsabilite-tri.webp"
     } ]
 }, 
     /*****************************************************************************************/
@@ -876,7 +876,7 @@ window.CI6_RUBRIQUES = [
     title: "Consignes élèves de jour",
     description: "Organisation, rigueur et transmission des consignes.",
     slug: "consignes",
-    card: "assets/cards/consignes.png",
+    card: "assets/cards/consignes.webp",
     children: [ 
 		/* CONSIGNES MDR ET BRI */
 		{
@@ -885,7 +885,7 @@ window.CI6_RUBRIQUES = [
         slug: "consignes-mdl",
         description: "Assurer la continuité du commandement et le bon ordre de la compagnie.",
         content: "content/consignes-mdl.md",
-        card: "assets/cards/consignes-mdl.png"
+        card: "assets/cards/consignes-mdl.webp"
     }, 
 		/* CONSIGNES ÉLÈVES DE JOUR PELOTON */
 		{
@@ -894,14 +894,14 @@ window.CI6_RUBRIQUES = [
         slug: "consignes-peloton",
         description: "Veiller à la ponctualité, à la présentation et au bon ordre du peloton.",
         content: "content/consignes-eleve-peloton.md",
-        card: "assets/cards/consignes-eleve-peloton.png"
+        card: "assets/cards/consignes-eleve-peloton.webp"
     } ]      
 }, {
     id: "faq",
     title: "FAQ",
     description: "Réponses aux questions fréquentes.",
     slug: "faq",
-    card: "assets/cards/faq.png",
+    card: "assets/cards/faq.webp",
     /* créer children par thème : formation, fin de promotion, vie de l'unité */      
     children: [ {
         id: "faq-incorpo",
@@ -909,35 +909,35 @@ window.CI6_RUBRIQUES = [
         slug: "faq-incorpo",
         description: "Toutes les questions sur votre arrivée à l'école de Montluçon",
         content: "content/faq-incorpo.md",
-        card: "assets/cards/faq-incorpo.png"
+        card: "assets/cards/faq-incorpo.webp"
     },{
         id: "faq-formation",
         title: "Déroulé de la formation",
         slug: "faq-formation",
         description: "Cours, entraînement physique, matériel pédagogique",
         content: "content/faq-formation.md",
-        card: "assets/cards/faq-formation.png"
+        card: "assets/cards/faq-formation.webp"
     }, {
         id: "faq-materiel",
         title: "Matériel et tenue",
         slug: "faq-materiel",
         description: "Question relative au matériel et à la tenue",
         content: "content/faq-materiel.md",
-        card: "assets/cards/faq-materiel.png"
+        card: "assets/cards/faq-materiel.webp"
     },{
         id: "compagnie",
         title: "Conditions de vie dans la compagnie",
         slug: "faq-compagnie",
         description: "Entretien, rangement, conditions de vie",
         content: "content/faq-compagnie.md",
-        card: "assets/cards/faq-compagnie.png"
+        card: "assets/cards/faq-compagnie.webp"
     },{
         id: "sortie",
         title: "Le grand départ",
         slug: "faq-sortie",
         description: "Cérémonies, gala, départ, mutation",
         content: "content/faq-sortie.md",
-        card: "assets/cards/faq-sortie.png"
+        card: "assets/cards/faq-sortie.webp"
     } ]     
 }, 
 	/*****************************************************************************************/
@@ -948,7 +948,7 @@ window.CI6_RUBRIQUES = [
     title: "SIF",
     description: "Participer au fonctionnement quotidien de l'école avec rigueur et esprit de service.",
     slug: "sif",
-    card: "assets/cards/S-sif.png",
+    card: "assets/cards/S-sif.webp",
     children: [ 
 		/* POSTE DE SÉCURITÉ */
 		{
@@ -957,7 +957,7 @@ window.CI6_RUBRIQUES = [
         description: "Accueil, surveillance et transmissions.",
         slug: "sif-poste",
         content: "content/sif-poste.md",
-        card: "assets/cards/sif-poste.png"
+        card: "assets/cards/sif-poste.webp"
     }, 
 		/* MESS */
 		{
@@ -966,7 +966,7 @@ window.CI6_RUBRIQUES = [
         description: "Service au mess.",
         slug: "sif-mess",
         content: "content/sif-mess.md",
-        card: "assets/cards/sif-mess.png"
+        card: "assets/cards/sif-mess.webp"
     }, 
 		/* NETTOYAGE BATIMENT, SALLES D'INSTRUCTIONS, AMPHI */
 		{
@@ -975,7 +975,7 @@ window.CI6_RUBRIQUES = [
         description: "Nettoyage des salles de cours, amphithéâtre et gymnase.",
         slug: "sif-nettoyage",
         content: "content/sif-nettoyage.md",
-        card: "assets/cards/sif-nettoyage.png"
+        card: "assets/cards/sif-nettoyage.webp"
     }, 
 		/* CONSIGNES PLASTRONS */
 		{
@@ -984,7 +984,7 @@ window.CI6_RUBRIQUES = [
         description: "Missions des plastrons et règles de sécurité.",
         slug: "sif-plastrons",
         content: "content/sif-plastrons.md",
-        card: "assets/cards/sif-plastrons.png"
+        card: "assets/cards/sif-plastrons.webp"
     }, 
 		/* CHAUFFEURS DE PERMANENCE */
 		{
@@ -993,7 +993,7 @@ window.CI6_RUBRIQUES = [
         description: "Consignes des chauffeurs de permanence.",
         slug: "sif-chauffeurs",
         content: "content/sif-chauffeurs.md",
-        card: "assets/cards/sif-chauffeurs.png"
+        card: "assets/cards/sif-chauffeurs.webp"
     }, 
 		/* RAMASSAGE DES POUBELLES DE L'ÉCOLE */
 		{
@@ -1002,7 +1002,7 @@ window.CI6_RUBRIQUES = [
         description: "Collecte, tri et acheminement des déchets.",
         slug: "sif-poubelles",
         content: "content/sif-poubelles.md",
-        card: "assets/cards/sif-poubelles.png"
+        card: "assets/cards/sif-poubelles.webp"
     } ]
 },
   /*****************************************************************************************/
@@ -1013,7 +1013,7 @@ window.CI6_RUBRIQUES = [
     title: "1er peloton",
     description: "",
     slug: "peloton-1",
-    card: "assets/cards/index-P1.png",
+    card: "assets/cards/index-P1.webp",
     homeGroup: "pelotons",
     children: []
   },
@@ -1022,7 +1022,7 @@ window.CI6_RUBRIQUES = [
     title: "2e peloton",
     description: "",
     slug: "peloton-2",
-    card: "assets/cards/index-P2.png",
+    card: "assets/cards/index-P2.webp",
     homeGroup: "pelotons",
     children: []
   },
@@ -1031,7 +1031,7 @@ window.CI6_RUBRIQUES = [
     title: "3e peloton",
     description: "",
     slug: "peloton-3",
-    card: "assets/cards/index-P3.png",
+    card: "assets/cards/index-P3.webp",
     homeGroup: "pelotons",
     children: []
   },
@@ -1057,7 +1057,7 @@ window.CI6_RUBRIQUES = [
     title: "Espace cadres",
     description: "Consignes, outils et ressources réservés aux cadres.",
     slug: "espace-cadres",
-    card: "assets/cards/cadres.png",
+    card: "assets/cards/cadres.webp",
 
     /*
      * Visible uniquement pour les cadres.
@@ -1075,14 +1075,14 @@ window.CI6_RUBRIQUES = [
         slug: "cadres-service",
         description: "Planning prévisionnel et feuille hebdomadaire",
         content: "content/cadres-service.md",
-        card: "assets/cards/cadres-service.png"
+        card: "assets/cards/cadres-service.webp"
     },{
         id: "Documents",
         title: "Documents utiles",
         slug: "cadres-documents",
         description: "Recueil des documents utiles",
         content: "content/cadres-documents.md",
-        card: "assets/cards/cadres-documents.png"
+        card: "assets/cards/cadres-documents.webp"
     }		
 	]
   }
