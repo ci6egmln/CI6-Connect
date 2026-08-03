@@ -1059,17 +1059,17 @@ window.CI6_RUBRIQUES = [
 		{
         id: "service",
         title: "Planning prévisionnel et feuille hebdomadaire",
-        slug: "cadre-service",
+        slug: "cadres-service",
         description: "Planning prévisionnel et feuille hebdomadaire",
-        content: "content/cadre-service.md",
-        card: "assets/cards/cadre-service.png"
+        content: "content/cadres-service.md",
+        card: "assets/cards/cadres-service.png"
     },{
         id: "Documents",
         title: "Documents utiles",
-        slug: "cadre-documents",
+        slug: "cadres-documents",
         description: "Recueil des documents utiles",
-        content: "content/cadre-documents.md",
-        card: "assets/cards/cadre-documents.png"
+        content: "content/cadres-documents.md",
+        card: "assets/cards/cadres-documents.png"
     }		
 	]
   }
