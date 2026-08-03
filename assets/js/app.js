@@ -1583,6 +1583,121 @@ function injectFicheEditorStyles() {
       gap: 18px;
     }
 
+
+    .ci6-gallery-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) 64px;
+      grid-template-rows: 56px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      background: rgba(0,0,0,.94);
+      touch-action: pan-y;
+    }
+
+    .ci6-gallery-lightbox[hidden] {
+      display: none !important;
+    }
+
+    .ci6-gallery-lightbox-close {
+      grid-column: 3;
+      grid-row: 1;
+      justify-self: end;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 50%;
+      background: rgba(20,20,20,.82);
+      color: #fff;
+      font-size: 30px;
+      cursor: pointer;
+    }
+
+    .ci6-gallery-lightbox-image-wrap {
+      grid-column: 2;
+      grid-row: 2;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .ci6-gallery-lightbox-image {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .ci6-gallery-lightbox-nav {
+      grid-row: 2;
+      align-self: center;
+      width: 52px;
+      height: 68px;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 10px;
+      background: rgba(20,20,20,.72);
+      color: #fff;
+      font-size: 38px;
+      cursor: pointer;
+    }
+
+    .ci6-gallery-lightbox-prev {
+      grid-column: 1;
+    }
+
+    .ci6-gallery-lightbox-next {
+      grid-column: 3;
+    }
+
+    .ci6-gallery-lightbox-caption {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      margin: 0;
+      padding: 10px 16px 14px;
+      color: #f1f1f1;
+      font-size: 15px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .ci6-gallery-lightbox-counter {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      color: #d7d7d7;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 760px) {
+      .ci6-gallery-lightbox {
+        grid-template-columns: 48px minmax(0, 1fr) 48px;
+        grid-template-rows: 50px minmax(0, 1fr) auto;
+        gap: 4px;
+        padding: 4px;
+      }
+
+      .ci6-gallery-lightbox-nav {
+        width: 44px;
+        height: 58px;
+        font-size: 32px;
+      }
+
+      .ci6-gallery-lightbox-caption {
+        font-size: 13px;
+        padding: 8px 10px 12px;
+      }
+    }
+
     .fiche-editor-panel {
       padding: 16px;
       border: 1px solid rgba(255,255,255,.12);
@@ -4679,6 +4794,182 @@ connectedActions.className =
     );
   }
 }
+
+
+let ci6GalleryLightbox = null;
+let ci6GalleryItems = [];
+let ci6GalleryIndex = 0;
+let ci6GalleryTouchStartX = null;
+let ci6GalleryTouchStartY = null;
+
+function ensureGalleryLightbox() {
+  if (ci6GalleryLightbox) return ci6GalleryLightbox;
+
+  const overlay = document.createElement("div");
+  overlay.className = "ci6-gallery-lightbox";
+  overlay.hidden = true;
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Visionneuse de la galerie");
+
+  overlay.innerHTML = `
+    <div class="ci6-gallery-lightbox-counter"></div>
+
+    <button type="button" class="ci6-gallery-lightbox-close" aria-label="Fermer la photo">×</button>
+
+    <button type="button" class="ci6-gallery-lightbox-nav ci6-gallery-lightbox-prev" aria-label="Photo précédente">‹</button>
+
+    <div class="ci6-gallery-lightbox-image-wrap">
+      <img class="ci6-gallery-lightbox-image" alt="">
+    </div>
+
+    <button type="button" class="ci6-gallery-lightbox-nav ci6-gallery-lightbox-next" aria-label="Photo suivante">›</button>
+
+    <p class="ci6-gallery-lightbox-caption"></p>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector(".ci6-gallery-lightbox-close")
+    .addEventListener("click", closeGalleryLightbox);
+
+  overlay.querySelector(".ci6-gallery-lightbox-prev")
+    .addEventListener("click", () => showGalleryImage(ci6GalleryIndex - 1));
+
+  overlay.querySelector(".ci6-gallery-lightbox-next")
+    .addEventListener("click", () => showGalleryImage(ci6GalleryIndex + 1));
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) closeGalleryLightbox();
+  });
+
+  overlay.addEventListener("touchstart", event => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+    ci6GalleryTouchStartX = touch.clientX;
+    ci6GalleryTouchStartY = touch.clientY;
+  }, { passive: true });
+
+  overlay.addEventListener("touchend", event => {
+    const touch = event.changedTouches?.[0];
+
+    if (
+      !touch ||
+      ci6GalleryTouchStartX === null ||
+      ci6GalleryTouchStartY === null
+    ) return;
+
+    const deltaX = touch.clientX - ci6GalleryTouchStartX;
+    const deltaY = touch.clientY - ci6GalleryTouchStartY;
+
+    ci6GalleryTouchStartX = null;
+    ci6GalleryTouchStartY = null;
+
+    if (
+      Math.abs(deltaX) < 45 ||
+      Math.abs(deltaX) <= Math.abs(deltaY)
+    ) return;
+
+    showGalleryImage(
+      deltaX < 0
+        ? ci6GalleryIndex + 1
+        : ci6GalleryIndex - 1
+    );
+  }, { passive: true });
+
+  ci6GalleryLightbox = overlay;
+  return overlay;
+}
+
+function showGalleryImage(index) {
+  if (!ci6GalleryItems.length) return;
+
+  ci6GalleryIndex =
+    (index % ci6GalleryItems.length + ci6GalleryItems.length)
+    % ci6GalleryItems.length;
+
+  const current = ci6GalleryItems[ci6GalleryIndex];
+  const overlay = ensureGalleryLightbox();
+
+  const image = overlay.querySelector(".ci6-gallery-lightbox-image");
+  const caption = overlay.querySelector(".ci6-gallery-lightbox-caption");
+  const counter = overlay.querySelector(".ci6-gallery-lightbox-counter");
+
+  image.src = current.href;
+  image.alt = current.caption || "Photo de la galerie";
+  caption.textContent = current.caption || "";
+  caption.hidden = !current.caption;
+  counter.textContent =
+    `${ci6GalleryIndex + 1} / ${ci6GalleryItems.length}`;
+}
+
+function openGalleryLightbox(link) {
+  const gallery = link.closest(".media-gallery");
+  if (!gallery) return;
+
+  const links = Array.from(
+    gallery.querySelectorAll("a.media-gallery-item")
+  );
+
+  ci6GalleryItems = links.map(item => {
+    const image = item.querySelector("img");
+    const caption =
+      item.querySelector("span")?.textContent?.trim() ||
+      image?.alt?.trim() ||
+      "";
+
+    return {
+      href: item.href,
+      caption
+    };
+  });
+
+  ci6GalleryIndex = Math.max(0, links.indexOf(link));
+
+  const overlay = ensureGalleryLightbox();
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+
+  showGalleryImage(ci6GalleryIndex);
+
+  overlay.querySelector(".ci6-gallery-lightbox-close").focus();
+}
+
+function closeGalleryLightbox() {
+  if (!ci6GalleryLightbox) return;
+
+  ci6GalleryLightbox.hidden = true;
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", event => {
+  if (!ci6GalleryLightbox || ci6GalleryLightbox.hidden) return;
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    showGalleryImage(ci6GalleryIndex - 1);
+  }
+
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    showGalleryImage(ci6GalleryIndex + 1);
+  }
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeGalleryLightbox();
+  }
+});
+
+document.addEventListener("click", event => {
+  const link = event.target.closest("a.media-gallery-item");
+  if (!link) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  openGalleryLightbox(link);
+});
+
 
 document.addEventListener(
   "click",
