@@ -1384,9 +1384,6 @@ input[type=search]:focus {
   aspect-ratio: 5 / 8 !important;
 }
 
-.pelotons-grid .peloton-tile .tile-bg {
-  object-fit: contain !important;
-}
 /* Format uniforme des tuiles d’accueil : 250 × 400 */
 
 #cardsGrid > *,
@@ -1401,4 +1398,9 @@ input[type=search]:focus {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
+}
+
+/* Aucun titre sur les trois tuiles de peloton */
+.pelotons-grid .peloton-tile .tile-text {
+  display: none !important;
 }
