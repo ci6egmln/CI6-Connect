@@ -15,6 +15,43 @@ function isVisitorMode() {
   );
 }
 
+function findItemVisibilityState(
+  slug,
+  items = getRubriques(),
+  parentHidden = false
+) {
+  for (const item of items) {
+    const hidden =
+      parentHidden ||
+      homepageTileSettings[item.slug] === false;
+
+    if (item.slug === slug) {
+      return hidden;
+    }
+
+    if (Array.isArray(item.children)) {
+      const childState =
+        findItemVisibilityState(
+          slug,
+          item.children,
+          hidden
+        );
+
+      if (childState !== null) {
+        return childState;
+      }
+    }
+  }
+
+  return null;
+}
+
+function isItemHiddenForStudents(item) {
+  return (
+    findItemVisibilityState(item.slug) === true
+  );
+}
+
 function isHomepageTileVisible(item) {
   /*
    * Les cadres, administrateurs et visiteurs voient
@@ -25,11 +62,21 @@ function isHomepageTileVisible(item) {
     return true;
   }
 
-  return homepageTileSettings[item.slug] !== false;
+  return !isItemHiddenForStudents(item);
 }
 
 function isHomepageTileHiddenForStudents(item) {
-  return homepageTileSettings[item.slug] === false;
+  return isItemHiddenForStudents(item);
+}
+
+function isItemAvailableToCurrentUser(item) {
+  return (
+    isItemVisible(item) &&
+    (
+      isCadreMode() ||
+      !isItemHiddenForStudents(item)
+    )
+  );
 }
 
 function getVisibleHomepageRubriques() {
@@ -338,7 +385,7 @@ function findVisibleItemBySlug(slug) {
     ).find(
       item =>
         item.slug === slug &&
-        isItemVisible(item)
+        isItemAvailableToCurrentUser(item)
     );
 }
 
@@ -348,7 +395,7 @@ function findVisibleItemByContent(path) {
     ).find(
       item =>
         item.content === path &&
-        isItemVisible(item)
+        isItemAvailableToCurrentUser(item)
     );
 }
 
@@ -430,6 +477,44 @@ function injectHiddenHomepageTileStyles() {
       font-weight: 900;
       line-height: 1.2;
       letter-spacing: .045em;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px #000;
+      pointer-events: none;
+    }
+
+
+    .child-nav-tile.child-nav-tile-hidden-for-students {
+      box-shadow:
+        0 0 0 3px rgba(210,55,55,.95),
+        0 14px 30px rgba(0,0,0,.38) !important;
+    }
+
+    .child-nav-tile.child-nav-tile-hidden-for-students::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      border: 3px solid rgba(210,55,55,.95);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .child-hidden-badge {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      left: 8px;
+      z-index: 6;
+      padding: 6px 8px;
+      border: 1px solid rgba(255,190,190,.78);
+      border-radius: 7px;
+      background: rgba(135,18,18,.94);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: .04em;
       text-align: center;
       text-transform: uppercase;
       text-shadow: 0 1px 3px #000;
@@ -553,7 +638,7 @@ function renderCards(filter = "") {
         const rubriques = flattenItems(
             visibleHomepageRubriques
         )
-            .filter(isItemVisible)
+            .filter(isItemAvailableToCurrentUser)
             .filter(item =>
                 itemMatchesSearch(item, query)
             );
@@ -576,14 +661,14 @@ function renderCards(filter = "") {
 
     const mainRubriques =
         visibleHomepageRubriques
-            .filter(isItemVisible)
+            .filter(isItemAvailableToCurrentUser)
             .filter(item =>
                 item.homeGroup !== "pelotons"
             );
 
     const pelotonRubriques =
         visibleHomepageRubriques
-            .filter(isItemVisible)
+            .filter(isItemAvailableToCurrentUser)
             .filter(item =>
                 item.homeGroup === "pelotons"
             );
@@ -624,7 +709,7 @@ function renderChildren(parent, addHistory = !0) {
             ? child.access
             : inheritedAccess
       }))
-      .filter(isItemVisible);
+      .filter(isItemAvailableToCurrentUser);
 
   detailContent.innerHTML = `
     <section class="subpage-header">
@@ -640,23 +725,38 @@ function renderChildren(parent, addHistory = !0) {
             class="children-grid"
             aria-label="Sous-rubriques ${parent.title}"
           >
-            ${visibleChildren.map(child => `
-              <button
-                class="child-nav-tile"
-                data-slug="${child.slug}"
-                aria-label="${child.title}"
-              >
-                <img
-                  class="child-nav-img"
-                  src="${child.card}"
-                  alt=""
-                  loading="lazy"
+            ${visibleChildren.map(child => {
+              const hiddenForStudents =
+                isCadreMode() &&
+                isItemHiddenForStudents(child);
+
+              return `
+                <button
+                  class="child-nav-tile${hiddenForStudents ? " child-nav-tile-hidden-for-students" : ""}"
+                  data-slug="${child.slug}"
+                  aria-label="${child.title}${hiddenForStudents ? " — sous-domaine masqué aux élèves" : ""}"
                 >
-                <span class="child-nav-title">
-                  ${child.title}
-                </span>
-              </button>
-            `).join("")}
+                  <img
+                    class="child-nav-img"
+                    src="${child.card}"
+                    alt=""
+                    loading="lazy"
+                  >
+
+                  ${hiddenForStudents
+                    ? `
+                      <span class="child-hidden-badge">
+                        Masquée aux élèves
+                      </span>
+                    `
+                    : ""}
+
+                  <span class="child-nav-title">
+                    ${child.title}
+                  </span>
+                </button>
+              `;
+            }).join("")}
           </section>
         `
         : `

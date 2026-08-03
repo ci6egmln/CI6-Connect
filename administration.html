@@ -1264,6 +1264,105 @@
     opacity: 0.52 !important;
   }
 
+
+  /* Gestion hiérarchique des domaines et sous-domaines */
+  .homepage-master-control {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px 18px;
+    border: 1px solid rgba(70,190,100,.52);
+    border-radius: 11px;
+    background: rgba(25,90,45,.20);
+  }
+
+  .homepage-master-control strong {
+    display: block;
+    color: #dfffe6;
+    font-size: 16px;
+  }
+
+  .homepage-master-control p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .homepage-domain-group {
+    overflow: hidden;
+    margin-bottom: 14px;
+    border: 1px solid rgba(214,173,58,.38);
+    border-radius: 11px;
+    background: rgba(255,255,255,.025);
+  }
+
+  .homepage-domain-row,
+  .homepage-child-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .homepage-domain-row {
+    background: rgba(184,131,24,.10);
+  }
+
+  .homepage-child-list {
+    border-top: 1px solid rgba(214,173,58,.22);
+  }
+
+  .homepage-child-row {
+    padding-left: 34px;
+    border-bottom: 1px solid rgba(255,255,255,.065);
+  }
+
+  .homepage-child-row:last-child {
+    border-bottom: 0;
+  }
+
+  .homepage-child-row.is-inherited-hidden {
+    opacity: .58;
+  }
+
+  .homepage-tile-level {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .homepage-domain-note {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .homepage-tile-state.is-inherited {
+    color: #ffc4c4;
+  }
+
+  @media (max-width:650px) {
+    .homepage-master-control,
+    .homepage-domain-row,
+    .homepage-child-row {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .homepage-child-row {
+      padding-left: 24px;
+    }
+  }
+
 </style>
 </head>
 
@@ -1669,9 +1768,38 @@
     <h2>Affichage des tuiles</h2>
   </div>
   <p class="homepage-tiles-description">
-    Activez les rubriques principales qui doivent apparaître sur la page d’accueil.
-    Une rubrique désactivée sera également retirée des résultats de recherche.
+    Masquez un domaine complet ou choisissez individuellement les sous-domaines
+    qui ne doivent pas apparaître pour les élèves.
   </p>
+
+  <div class="homepage-master-control">
+    <div>
+      <strong>Tout afficher</strong>
+      <p>
+        Active ou désactive toutes les tuiles et sous-tuiles en une seule fois.
+      </p>
+    </div>
+
+    <div class="homepage-tile-control">
+      <span
+        id="homepageMasterState"
+        class="homepage-tile-state"
+      >
+        Tout affiché
+      </span>
+
+      <label class="switch">
+        <input
+          id="homepageMasterToggle"
+          type="checkbox"
+          checked
+          aria-label="Afficher toutes les tuiles"
+        >
+        <span class="switch-slider"></span>
+      </label>
+    </div>
+  </div>
+
   <div id="homepageTilesList" class="homepage-tiles-list" aria-live="polite">
     <div class="homepage-tiles-info">Chargement des tuiles…</div>
   </div>
@@ -3613,6 +3741,8 @@ consultationsUsername.focus();
 
 
 const homepageTilesList=document.getElementById("homepageTilesList");
+const homepageMasterToggle=document.getElementById("homepageMasterToggle");
+const homepageMasterState=document.getElementById("homepageMasterState");
 const saveHomepageTilesButton=document.getElementById("saveHomepageTilesButton");
 const resetHomepageTilesButton=document.getElementById("resetHomepageTilesButton");
 const homepageTilesMessage=document.getElementById("homepageTilesMessage");
@@ -3620,115 +3750,460 @@ let loadedHomepageTiles={};
 let homepageTileItems=[];
 
 function getHomepageRubriques(){
-  return Array.isArray(window.CI6_RUBRIQUES)?window.CI6_RUBRIQUES:[];
+  return Array.isArray(window.CI6_RUBRIQUES)
+    ? window.CI6_RUBRIQUES
+    : [];
 }
+
 function homepageTileEscape(value){
-  return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  return String(value??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 }
+
+function flattenHomepageTileItems(
+  items=getHomepageRubriques(),
+  parentSlug=null,
+  level=0
+){
+  return items.flatMap(item=>[
+    {
+      ...item,
+      parentSlug,
+      level
+    },
+    ...(
+      Array.isArray(item.children)
+        ? flattenHomepageTileItems(
+            item.children,
+            item.slug,
+            level+1
+          )
+        : []
+    )
+  ]);
+}
+
 function currentHomepageTileSettings(){
   const settings={};
-  homepageTilesList.querySelectorAll("[data-homepage-tile-slug]").forEach(input=>{
-    settings[input.dataset.homepageTileSlug]=input.checked;
-  });
+
+  homepageTilesList
+    .querySelectorAll("[data-homepage-tile-slug]")
+    .forEach(input=>{
+      settings[input.dataset.homepageTileSlug]=
+        input.checked;
+    });
+
   return settings;
 }
+
 function homepageTilesHaveChanged(){
   const current=currentHomepageTileSettings();
-  return homepageTileItems.some(item=>current[item.slug] !== (loadedHomepageTiles[item.slug] !== false));
+
+  return homepageTileItems.some(item=>
+    current[item.slug] !==
+      (loadedHomepageTiles[item.slug] !== false)
+  );
 }
+
+function updateHomepageMasterToggle(){
+  const inputs=Array.from(
+    homepageTilesList.querySelectorAll(
+      "[data-homepage-tile-slug]"
+    )
+  );
+
+  const checkedCount=
+    inputs.filter(input=>input.checked).length;
+
+  const allChecked=
+    inputs.length>0 &&
+    checkedCount===inputs.length;
+
+  const noneChecked=
+    checkedCount===0;
+
+  homepageMasterToggle.checked=allChecked;
+  homepageMasterToggle.indeterminate=
+    !allChecked && !noneChecked;
+
+  if(allChecked){
+    homepageMasterState.textContent="Tout affiché";
+    homepageMasterState.classList.remove("is-hidden");
+  }else if(noneChecked){
+    homepageMasterState.textContent="Tout masqué";
+    homepageMasterState.classList.add("is-hidden");
+  }else{
+    homepageMasterState.textContent="Affichage partiel";
+    homepageMasterState.classList.add("is-hidden");
+  }
+}
+
 function updateHomepageTileControls(){
-  homepageTilesList.querySelectorAll("[data-homepage-tile-slug]").forEach(input=>{
-    const state=input.closest(".homepage-tile-control").querySelector(".homepage-tile-state");
-    state.textContent=input.checked?"Affichée":"Masquée";
-    state.classList.toggle("is-hidden",!input.checked);
+  const inputs=Array.from(
+    homepageTilesList.querySelectorAll(
+      "[data-homepage-tile-slug]"
+    )
+  );
+
+  const bySlug=new Map(
+    inputs.map(input=>[
+      input.dataset.homepageTileSlug,
+      input
+    ])
+  );
+
+  inputs.forEach(input=>{
+    const row=input.closest(
+      ".homepage-domain-row, .homepage-child-row"
+    );
+
+    const state=row.querySelector(
+      ".homepage-tile-state"
+    );
+
+    const parentSlug=input.dataset.parentSlug;
+    const parentInput=parentSlug
+      ? bySlug.get(parentSlug)
+      : null;
+
+    const inheritedHidden=
+      Boolean(parentInput && !parentInput.checked);
+
+    if(inheritedHidden){
+      state.textContent="Masquée avec le domaine";
+      state.classList.add(
+        "is-hidden",
+        "is-inherited"
+      );
+      row.classList.add("is-inherited-hidden");
+    }else{
+      state.textContent=
+        input.checked?"Affichée":"Masquée";
+      state.classList.toggle(
+        "is-hidden",
+        !input.checked
+      );
+      state.classList.remove("is-inherited");
+      row.classList.remove("is-inherited-hidden");
+    }
   });
+
+  updateHomepageMasterToggle();
+
   const changed=homepageTilesHaveChanged();
   saveHomepageTilesButton.disabled=!changed;
   resetHomepageTilesButton.disabled=!changed;
 }
+
+function renderHomepageChildRows(
+  children,
+  settings,
+  parentSlug
+){
+  return (children||[]).map(child=>{
+    const checked=settings[child.slug] !== false;
+    const hasChildren=
+      Array.isArray(child.children) &&
+      child.children.length>0;
+
+    return `
+      <div class="homepage-child-row">
+        <div>
+          <span class="homepage-tile-level">
+            ${hasChildren?"Sous-domaine":"Sous-tuile"}
+          </span>
+
+          <span class="homepage-tile-title">
+            ${homepageTileEscape(child.title||child.slug)}
+          </span>
+        </div>
+
+        <div class="homepage-tile-control">
+          <span class="homepage-tile-state${checked?"":" is-hidden"}">
+            ${checked?"Affichée":"Masquée"}
+          </span>
+
+          <label class="switch">
+            <input
+              type="checkbox"
+              data-homepage-tile-slug="${homepageTileEscape(child.slug)}"
+              data-parent-slug="${homepageTileEscape(parentSlug||"")}"
+              ${checked?"checked":""}
+              aria-label="Afficher ${homepageTileEscape(child.title||child.slug)}"
+            >
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      ${
+        hasChildren
+          ? renderHomepageChildRows(
+              child.children,
+              settings,
+              child.slug
+            )
+          : ""
+      }
+    `;
+  }).join("");
+}
+
 function renderHomepageTiles(settings={}){
-  homepageTileItems=getHomepageRubriques();
-  if(!homepageTileItems.length){
-    homepageTilesList.innerHTML='<div class="homepage-tiles-error">Aucune rubrique principale n’a été trouvée dans config.js.</div>';
+  const rubriques=getHomepageRubriques();
+  homepageTileItems=flattenHomepageTileItems(rubriques);
+
+  if(!rubriques.length){
+    homepageTilesList.innerHTML=
+      '<div class="homepage-tiles-error">Aucune rubrique n’a été trouvée dans config.js.</div>';
     saveHomepageTilesButton.disabled=true;
     resetHomepageTilesButton.disabled=true;
+    homepageMasterToggle.disabled=true;
     return;
   }
-  homepageTilesList.innerHTML=homepageTileItems.map(item=>{
+
+  homepageMasterToggle.disabled=false;
+
+  homepageTilesList.innerHTML=rubriques.map(item=>{
     const checked=settings[item.slug] !== false;
-    return `<div class="homepage-tile-row">
-      <div>
-        <span class="homepage-tile-title">${homepageTileEscape(item.title||item.slug)}</span>
-      </div>
-      <div class="homepage-tile-control">
-        <span class="homepage-tile-state${checked?"":" is-hidden"}">${checked?"Affichée":"Masquée"}</span>
-        <label class="switch">
-          <input type="checkbox" data-homepage-tile-slug="${homepageTileEscape(item.slug)}" ${checked?"checked":""} aria-label="Afficher ${homepageTileEscape(item.title||item.slug)}">
-          <span class="switch-slider"></span>
-        </label>
-      </div>
-    </div>`;
+    const children=Array.isArray(item.children)
+      ? item.children
+      : [];
+
+    return `
+      <section class="homepage-domain-group">
+        <div class="homepage-domain-row">
+          <div>
+            <span class="homepage-tile-level">
+              Domaine complet
+            </span>
+
+            <span class="homepage-tile-title">
+              ${homepageTileEscape(item.title||item.slug)}
+            </span>
+
+            ${
+              children.length
+                ? `
+                  <p class="homepage-domain-note">
+                    Masquer ce domaine masque automatiquement
+                    toutes ses sous-rubriques aux élèves.
+                  </p>
+                `
+                : ""
+            }
+          </div>
+
+          <div class="homepage-tile-control">
+            <span class="homepage-tile-state${checked?"":" is-hidden"}">
+              ${checked?"Affichée":"Masquée"}
+            </span>
+
+            <label class="switch">
+              <input
+                type="checkbox"
+                data-homepage-tile-slug="${homepageTileEscape(item.slug)}"
+                ${checked?"checked":""}
+                aria-label="Afficher le domaine ${homepageTileEscape(item.title||item.slug)}"
+              >
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        ${
+          children.length
+            ? `
+              <div class="homepage-child-list">
+                ${renderHomepageChildRows(
+                  children,
+                  settings,
+                  item.slug
+                )}
+              </div>
+            `
+            : ""
+        }
+      </section>
+    `;
   }).join("");
-  homepageTilesList.querySelectorAll("[data-homepage-tile-slug]").forEach(input=>input.addEventListener("change",updateHomepageTileControls));
+
+  homepageTilesList
+    .querySelectorAll("[data-homepage-tile-slug]")
+    .forEach(input=>
+      input.addEventListener(
+        "change",
+        updateHomepageTileControls
+      )
+    );
+
   updateHomepageTileControls();
 }
+
+homepageMasterToggle.addEventListener(
+  "change",
+  ()=>{
+    const showAll=homepageMasterToggle.checked;
+
+    homepageTilesList
+      .querySelectorAll("[data-homepage-tile-slug]")
+      .forEach(input=>{
+        input.checked=showAll;
+      });
+
+    updateHomepageTileControls();
+
+    homepageTilesMessage.className=
+      "homepage-tiles-message homepage-tiles-info";
+
+    homepageTilesMessage.textContent=
+      showAll
+        ? "Toutes les tuiles sont prêtes à être affichées. Cliquez sur Enregistrer l’affichage."
+        : "Toutes les tuiles sont prêtes à être masquées. Cliquez sur Enregistrer l’affichage.";
+  }
+);
+
 async function loadHomepageTiles(){
-  homepageTilesMessage.className="homepage-tiles-message homepage-tiles-info";
-  homepageTilesMessage.textContent="Chargement de la configuration…";
+  homepageTilesMessage.className=
+    "homepage-tiles-message homepage-tiles-info";
+  homepageTilesMessage.textContent=
+    "Chargement de la configuration…";
   saveHomepageTilesButton.disabled=true;
   resetHomepageTilesButton.disabled=true;
+  homepageMasterToggle.disabled=true;
+
   try{
-    const response=await fetch("/admin/homepage-tiles",{method:"GET",headers:{Accept:"application/json"},cache:"no-store",credentials:"same-origin"});
+    const response=await fetch(
+      "/admin/homepage-tiles",
+      {
+        method:"GET",
+        headers:{Accept:"application/json"},
+        cache:"no-store",
+        credentials:"same-origin"
+      }
+    );
+
     const data=await response.json();
-    if(!response.ok)throw new Error(data.error||"Impossible de charger l’affichage des tuiles.");
-    loadedHomepageTiles=data.tiles&&typeof data.tiles==="object"?data.tiles:{};
+
+    if(!response.ok){
+      throw new Error(
+        data.error||
+        "Impossible de charger l’affichage des tuiles."
+      );
+    }
+
+    loadedHomepageTiles=
+      data.tiles&&typeof data.tiles==="object"
+        ? data.tiles
+        : {};
+
     renderHomepageTiles(loadedHomepageTiles);
-    homepageTilesMessage.className="homepage-tiles-message";
+    homepageTilesMessage.className=
+      "homepage-tiles-message";
     homepageTilesMessage.textContent="";
   }catch(error){
     loadedHomepageTiles={};
     renderHomepageTiles(loadedHomepageTiles);
-    homepageTilesMessage.className="homepage-tiles-message homepage-tiles-error";
+    homepageTilesMessage.className=
+      "homepage-tiles-message homepage-tiles-error";
     homepageTilesMessage.textContent=error.message;
   }
 }
-resetHomepageTilesButton.addEventListener("click",()=>{
-  renderHomepageTiles(loadedHomepageTiles);
-  homepageTilesMessage.className="homepage-tiles-message homepage-tiles-info";
-  homepageTilesMessage.textContent="Les modifications non enregistrées ont été annulées.";
-});
-saveHomepageTilesButton.addEventListener("click",async()=>{
-  const tiles=currentHomepageTileSettings();
-  if(!window.confirm("Enregistrer l’affichage des tuiles de la page d’accueil ?"))return;
-  saveHomepageTilesButton.disabled=true;
-  resetHomepageTilesButton.disabled=true;
-  homepageTilesMessage.className="homepage-tiles-message homepage-tiles-info";
-  homepageTilesMessage.textContent="Enregistrement en cours…";
-  try{
-    const response=await fetch("/admin/homepage-tiles",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},credentials:"same-origin",body:JSON.stringify({tiles})});
-    const data=await response.json();
-    if(!response.ok)throw new Error(data.error||"Impossible d’enregistrer l’affichage des tuiles.");
-    loadedHomepageTiles=data.tiles&&typeof data.tiles==="object"?data.tiles:tiles;
+
+resetHomepageTilesButton.addEventListener(
+  "click",
+  ()=>{
     renderHomepageTiles(loadedHomepageTiles);
-    homepageTilesMessage.className="homepage-tiles-message homepage-tiles-success";
-    homepageTilesMessage.textContent=data.message||"Affichage des tuiles enregistré.";
-  }catch(error){
-    homepageTilesMessage.className="homepage-tiles-message homepage-tiles-error";
-    homepageTilesMessage.textContent=error.message;
-    updateHomepageTileControls();
+    homepageTilesMessage.className=
+      "homepage-tiles-message homepage-tiles-info";
+    homepageTilesMessage.textContent=
+      "Les modifications non enregistrées ont été annulées.";
   }
-});
-administrationModePromise.then(isVisitor => {
-  if (!isVisitor) {
+);
+
+saveHomepageTilesButton.addEventListener(
+  "click",
+  async ()=>{
+    const tiles=currentHomepageTileSettings();
+
+    if(!window.confirm(
+      "Enregistrer l’affichage des domaines et sous-domaines pour les élèves ?"
+    )){
+      return;
+    }
+
+    saveHomepageTilesButton.disabled=true;
+    resetHomepageTilesButton.disabled=true;
+    homepageMasterToggle.disabled=true;
+    homepageTilesMessage.className=
+      "homepage-tiles-message homepage-tiles-info";
+    homepageTilesMessage.textContent=
+      "Enregistrement en cours…";
+
+    try{
+      const response=await fetch(
+        "/admin/homepage-tiles",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            Accept:"application/json"
+          },
+          credentials:"same-origin",
+          body:JSON.stringify({tiles})
+        }
+      );
+
+      const data=await response.json();
+
+      if(!response.ok){
+        throw new Error(
+          data.error||
+          "Impossible d’enregistrer l’affichage des tuiles."
+        );
+      }
+
+      loadedHomepageTiles=
+        data.tiles&&typeof data.tiles==="object"
+          ? data.tiles
+          : tiles;
+
+      renderHomepageTiles(loadedHomepageTiles);
+      homepageTilesMessage.className=
+        "homepage-tiles-message homepage-tiles-success";
+      homepageTilesMessage.textContent=
+        data.message||
+        "Affichage des domaines et sous-domaines enregistré.";
+    }catch(error){
+      homepageTilesMessage.className=
+        "homepage-tiles-message homepage-tiles-error";
+      homepageTilesMessage.textContent=error.message;
+      homepageMasterToggle.disabled=false;
+      updateHomepageTileControls();
+    }
+  }
+);
+
+administrationModePromise.then(isVisitor=>{
+  if(!isVisitor){
     loadHomepageTiles();
-  } else {
-    loadedHomepageTiles = {};
+  }else{
+    loadedHomepageTiles={};
     renderHomepageTiles({});
+
     homepageTilesList
       .querySelectorAll("input")
-      .forEach(input => { input.disabled = true; });
-    saveHomepageTilesButton.disabled = true;
-    resetHomepageTilesButton.disabled = true;
+      .forEach(input=>{
+        input.disabled=true;
+      });
+
+    homepageMasterToggle.disabled=true;
+    saveHomepageTilesButton.disabled=true;
+    resetHomepageTilesButton.disabled=true;
   }
 });
 
