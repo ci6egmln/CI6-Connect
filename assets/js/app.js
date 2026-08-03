@@ -724,6 +724,96 @@ function renderImageBlock(title, content) {
   `;
 }
 
+
+const GALLERY_RETURN_STORAGE_KEY =
+  "ci6-gallery-return-position";
+
+function saveGalleryReturnPosition(link) {
+  const gallery = link.closest(".media-gallery-card");
+  const fiche = link.closest(".fiche");
+
+  if (!gallery || !fiche) return;
+
+  const galleries = Array.from(
+    fiche.querySelectorAll(".media-gallery-card")
+  );
+
+  sessionStorage.setItem(
+    GALLERY_RETURN_STORAGE_KEY,
+    JSON.stringify({
+      hash: window.location.hash,
+      galleryIndex: galleries.indexOf(gallery),
+      scrollY: window.scrollY,
+      savedAt: Date.now()
+    })
+  );
+}
+
+function restoreGalleryReturnPosition() {
+  const raw = sessionStorage.getItem(
+    GALLERY_RETURN_STORAGE_KEY
+  );
+
+  if (!raw) return;
+
+  let state;
+
+  try {
+    state = JSON.parse(raw);
+  } catch {
+    sessionStorage.removeItem(
+      GALLERY_RETURN_STORAGE_KEY
+    );
+    return;
+  }
+
+  if (
+    !state ||
+    state.hash !== window.location.hash ||
+    Date.now() - Number(state.savedAt || 0) >
+      30 * 60 * 1000
+  ) {
+    return;
+  }
+
+  sessionStorage.removeItem(
+    GALLERY_RETURN_STORAGE_KEY
+  );
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const galleries =
+        document.querySelectorAll(
+          ".fiche .media-gallery-card"
+        );
+
+      const gallery =
+        galleries[Number(state.galleryIndex || 0)];
+
+      if (gallery) {
+        gallery.scrollIntoView({
+          block: "start",
+          behavior: "auto"
+        });
+
+        window.scrollBy({
+          top: -18,
+          left: 0,
+          behavior: "auto"
+        });
+
+        return;
+      }
+
+      window.scrollTo({
+        top: Number(state.scrollY || 0),
+        left: 0,
+        behavior: "auto"
+      });
+    });
+  });
+}
+
 function renderGalleryBlock(title, content) {
   const images = content
     .split("\n")
@@ -4326,6 +4416,8 @@ async function openContent(
       item
     );
 
+    restoreGalleryReturnPosition();
+
     /*
      * Une ouverture n’est enregistrée
      * qu’après le chargement réussi.
@@ -4587,6 +4679,21 @@ connectedActions.className =
     );
   }
 }
+
+document.addEventListener(
+  "click",
+  event => {
+    const link =
+      event.target.closest(
+        "a.media-gallery-item"
+      );
+
+    if (!link) return;
+
+    saveGalleryReturnPosition(link);
+  },
+  true
+);
 
 async function initializeApplication() {
   await displayConnectedUser();
