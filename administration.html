@@ -2023,6 +2023,227 @@
   </main>
   <script src="/assets/js/config.js"></script>
   <script>
+
+/* ==========================================================
+   POSITION DE DÉFILEMENT ENTRE LES PAGES
+   ========================================================== */
+(() => {
+  const PREFIX = "ci6-scroll-position:";
+  let currentKey =
+    location.pathname +
+    location.search +
+    location.hash;
+
+  let normalHashNavigation = false;
+  let restoreRequested = false;
+
+  try {
+    history.scrollRestoration = "manual";
+  } catch {
+    /* Certains navigateurs anciens ne proposent pas cette option. */
+  }
+
+  function pageKey() {
+    return (
+      location.pathname +
+      location.search +
+      location.hash
+    );
+  }
+
+  function storageKey(key = pageKey()) {
+    return PREFIX + key;
+  }
+
+  function savePosition(key = currentKey) {
+    try {
+      sessionStorage.setItem(
+        storageKey(key),
+        JSON.stringify({
+          x: window.scrollX || 0,
+          y: window.scrollY || 0,
+          savedAt: Date.now()
+        })
+      );
+    } catch {
+      /* La navigation reste fonctionnelle sans sessionStorage. */
+    }
+  }
+
+  function readPosition(key = pageKey()) {
+    try {
+      const raw =
+        sessionStorage.getItem(
+          storageKey(key)
+        );
+
+      if (!raw) {
+        return null;
+      }
+
+      const value = JSON.parse(raw);
+
+      if (
+        !value ||
+        Date.now() - Number(value.savedAt || 0) >
+          24 * 60 * 60 * 1000
+      ) {
+        return null;
+      }
+
+      return {
+        x: Number(value.x || 0),
+        y: Number(value.y || 0)
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function applyPosition(position) {
+    const target =
+      position || { x: 0, y: 0 };
+
+    const restore = () => {
+      window.scrollTo({
+        left: target.x,
+        top: target.y,
+        behavior: "auto"
+      });
+    };
+
+    /*
+     * Plusieurs passages permettent d’attendre le rendu
+     * des fiches et des éléments chargés dynamiquement.
+     */
+    requestAnimationFrame(restore);
+    window.setTimeout(restore, 60);
+    window.setTimeout(restore, 180);
+    window.setTimeout(restore, 420);
+    window.setTimeout(restore, 800);
+  }
+
+  function restoreCurrentPage() {
+    applyPosition(
+      readPosition(pageKey())
+    );
+  }
+
+  function placeCurrentPageAtTop() {
+    applyPosition({ x: 0, y: 0 });
+  }
+
+  const navigationEntry =
+    performance
+      .getEntriesByType?.("navigation")?.[0];
+
+  const initialBackForward =
+    navigationEntry?.type === "back_forward";
+
+  window.addEventListener(
+    "pagehide",
+    () => savePosition()
+  );
+
+  window.addEventListener(
+    "beforeunload",
+    () => savePosition()
+  );
+
+  document.addEventListener(
+    "click",
+    event => {
+      const link =
+        event.target.closest?.("a[href]");
+
+      if (!link) {
+        return;
+      }
+
+      let url;
+
+      try {
+        url = new URL(
+          link.href,
+          location.href
+        );
+      } catch {
+        return;
+      }
+
+      if (url.origin !== location.origin) {
+        return;
+      }
+
+      savePosition(currentKey);
+
+      const targetKey =
+        url.pathname +
+        url.search +
+        url.hash;
+
+      /*
+       * Un clic normal ouvre la nouvelle page en haut.
+       * La position existante de cette destination ne doit
+       * servir que lors d’un véritable retour arrière.
+       */
+      if (targetKey !== currentKey) {
+        normalHashNavigation = true;
+      }
+    },
+    true
+  );
+
+  window.addEventListener(
+    "popstate",
+    () => {
+      savePosition(currentKey);
+      restoreRequested = true;
+    }
+  );
+
+  window.addEventListener(
+    "hashchange",
+    () => {
+      currentKey = pageKey();
+
+      window.setTimeout(() => {
+        if (restoreRequested) {
+          restoreRequested = false;
+          normalHashNavigation = false;
+          restoreCurrentPage();
+          return;
+        }
+
+        if (normalHashNavigation) {
+          normalHashNavigation = false;
+          placeCurrentPageAtTop();
+          return;
+        }
+
+        placeCurrentPageAtTop();
+      }, 0);
+    }
+  );
+
+  window.addEventListener(
+    "pageshow",
+    event => {
+      currentKey = pageKey();
+
+      if (
+        event.persisted ||
+        initialBackForward
+      ) {
+        restoreCurrentPage();
+      } else {
+        placeCurrentPageAtTop();
+      }
+    }
+  );
+})();
+
+
   let administrationVisitorMode = false;
 
   const administrationModePromise = fetch(
