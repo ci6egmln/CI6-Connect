@@ -22,3 +22,7 @@ assets/photos/accueil-montlucon-musee-chateau.jpg | Musée du château - Histoir
 assets/photos/accueil-montlucon-jules-guesde.jpg | Buste de Jules Guesde - Musée du château
 assets/photos/accueil-montlucon-chateau-ducs-bourbon.jpg | Château des ducs de Bourbon
 :::
+
+:::video-lien La ville en vidéo
+https://www.youtube.com/watch?v=__ro2npvtQ4 | Montluçon Ville et ses plus beaux endroits
+:::
