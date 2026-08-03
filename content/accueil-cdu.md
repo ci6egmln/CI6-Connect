@@ -7,7 +7,7 @@ quote: "Exigence, bienveillance, autonomie et responsabilité : les quatre valeu
 
 :::bloc bleu | Mot d'accueil du commandant d'unité | 📝
 
-![Capitaine, commandant la 6ème compagnie](assets/photos/accueil-cdu.JPG)
+![Capitaine, commandant la 6ème compagnie](assets/photos/accueil-cdu.webp)
 Tout d’abord, bienvenue à la **6ᵉ compagnie d'instruction** de l'École de gendarmerie de Montluçon, et bienvenue sur **CI6 Connect**.
 
 Faites de ce guide votre compagnon de route tout au long de votre formation.
