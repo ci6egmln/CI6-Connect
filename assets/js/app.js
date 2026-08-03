@@ -2973,6 +2973,170 @@ function renderSingleEditorBlock(block) {
   return renderCustomBlocks(markdown);
 }
 
+
+function isHeicImageFile(file) {
+  const type =
+    String(file?.type || "").toLowerCase();
+
+  const name =
+    String(file?.name || "").toLowerCase();
+
+  return (
+    type === "image/heic" ||
+    type === "image/heif" ||
+    name.endsWith(".heic") ||
+    name.endsWith(".heif")
+  );
+}
+
+function isConvertibleImageFile(file) {
+  const type =
+    String(file?.type || "").toLowerCase();
+
+  const name =
+    String(file?.name || "").toLowerCase();
+
+  return (
+    [
+      "image/jpeg",
+      "image/png",
+      "image/webp"
+    ].includes(type) ||
+    /\.(jpe?g|png|webp)$/i.test(name)
+  );
+}
+
+function loadImageFileForConversion(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl =
+      URL.createObjectURL(file);
+
+    const image =
+      new Image();
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      reject(
+        new Error(
+          "Cette image ne peut pas être lue par le navigateur."
+        )
+      );
+    };
+
+    image.src = objectUrl;
+  });
+}
+
+async function convertPhotoToWebp(file) {
+  if (isHeicImageFile(file)) {
+    throw new Error(
+      "Les photos HEIC/HEIF ne sont pas encore prises en charge. " +
+      "Veuillez les enregistrer ou les partager au format JPEG ou PNG, puis recommencer."
+    );
+  }
+
+  if (!isConvertibleImageFile(file)) {
+    throw new Error(
+      "Format non pris en charge. Utilisez une image JPEG, PNG ou WebP."
+    );
+  }
+
+  const image =
+    await loadImageFileForConversion(file);
+
+  const maximumWidth = 2000;
+  const maximumHeight = 2000;
+
+  const reductionRatio =
+    Math.min(
+      1,
+      maximumWidth / image.naturalWidth,
+      maximumHeight / image.naturalHeight
+    );
+
+  const width =
+    Math.max(
+      1,
+      Math.round(
+        image.naturalWidth *
+        reductionRatio
+      )
+    );
+
+  const height =
+    Math.max(
+      1,
+      Math.round(
+        image.naturalHeight *
+        reductionRatio
+      )
+    );
+
+  const canvas =
+    document.createElement("canvas");
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const context =
+    canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error(
+      "La conversion de l’image est impossible sur cet appareil."
+    );
+  }
+
+  context.drawImage(
+    image,
+    0,
+    0,
+    width,
+    height
+  );
+
+  const blob =
+    await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        result => {
+          if (
+            result &&
+            result.type === "image/webp"
+          ) {
+            resolve(result);
+          } else {
+            reject(
+              new Error(
+                "Ce navigateur ne permet pas la conversion automatique en WebP."
+              )
+            );
+          }
+        },
+        "image/webp",
+        0.84
+      );
+    });
+
+  const originalName =
+    String(file.name || "photo")
+      .replace(/\.[^.]+$/, "");
+
+  return new File(
+    [blob],
+    `${originalName}.webp`,
+    {
+      type: "image/webp",
+      lastModified: Date.now()
+    }
+  );
+}
+
 function openFicheEditor() {
   injectFicheEditorStyles();
 
@@ -3233,7 +3397,7 @@ function openFicheEditor() {
                 <input
                   id="editorImageFile"
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                 >
 
                 <div
@@ -4243,6 +4407,35 @@ function openFicheEditor() {
       uploadStatus.textContent = "";
       uploadStatus.className =
         "fiche-editor-upload-status";
+
+      if (!file) {
+        return;
+      }
+
+      if (isHeicImageFile(file)) {
+        uploadStatus.textContent =
+          "Format HEIC/HEIF détecté. " +
+          "Veuillez convertir ou partager la photo en JPEG ou PNG avant de l’ajouter.";
+
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+
+        imageFileInput.value = "";
+        selectedFileName.textContent = "";
+        return;
+      }
+
+      if (!isConvertibleImageFile(file)) {
+        uploadStatus.textContent =
+          "Format non pris en charge. " +
+          "Choisissez une image JPEG, PNG ou WebP.";
+
+        uploadStatus.className =
+          "fiche-editor-upload-status error";
+
+        imageFileInput.value = "";
+        selectedFileName.textContent = "";
+      }
     }
   );
 
@@ -4285,16 +4478,22 @@ function openFicheEditor() {
 
       uploadImageButton.disabled = true;
       uploadStatus.textContent =
-        "Envoi de la photo dans GitHub…";
+        "Conversion de la photo en WebP…";
 
       uploadStatus.className =
         "fiche-editor-upload-status";
 
       try {
+        const webpFile =
+          await convertPhotoToWebp(file);
+
+        uploadStatus.textContent =
+          "Envoi de la photo WebP dans GitHub…";
+
         const formData =
           new FormData();
 
-        formData.append("photo", file);
+        formData.append("photo", webpFile);
         formData.append("photoName", requestedName);
         formData.append(
           "fichePath",
