@@ -199,7 +199,7 @@ window.CI6_RUBRIQUES = [
     title: "Usage et entretien des locaux de la compagnie",
     description: "L'état des locaux est le miroir de ceux qui les occupent.",
     slug: "utilisation-entretien-locaux",
-    card: "assets/cards/index-locaux.png",
+    card: "assets/cards/locaux.png",
     children: [ 
 		/* ACCÈS AUTORISÉS ET INTERDITS */
 		{
@@ -232,7 +232,7 @@ window.CI6_RUBRIQUES = [
     title: "Le cercle mixte",
     description: "Restauration, détente et convivialité.",
     slug: "cercle-mixte",
-    card: "assets/cards/index-cercle-mixte.png",
+    card: "assets/cards/cercle-mixte.png",
     children: [ 
 		/* il manque le comptoire des ventes *************************************************/
 		
