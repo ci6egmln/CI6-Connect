@@ -1429,6 +1429,62 @@
     }
   }
 
+
+  /* Affichage encore plus compact */
+  .homepage-domain-row,
+  .homepage-child-row {
+    min-height: 44px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .homepage-domain-row .homepage-tile-title,
+  .homepage-child-row .homepage-tile-title {
+    line-height: 1.15;
+  }
+
+  .homepage-domain-row .homepage-tile-title {
+    font-size: 15px;
+  }
+
+  .homepage-child-row .homepage-tile-title {
+    font-size: 14px;
+  }
+
+  .homepage-tile-control {
+    gap: 8px;
+  }
+
+  .homepage-tile-state {
+    min-width: 62px;
+    font-size: 12px;
+  }
+
+  .switch {
+    width: 46px;
+    height: 26px;
+  }
+
+  .switch-slider::before {
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .switch input:checked + .switch-slider::before {
+    transform: translateX(20px);
+  }
+
+  @media (max-width: 650px) {
+    .homepage-domain-row,
+    .homepage-child-row {
+      min-height: 42px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+  }
+
 </style>
 </head>
 
