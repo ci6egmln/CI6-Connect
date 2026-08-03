@@ -105,7 +105,7 @@ window.CI6_RUBRIQUES = [
 		/* LES DÉPLACEMENTS */
 		{
    	 id: "deplacement",
-  	 title: "1 - Les déplacements",
+  	 title: "Les déplacements",
   	  description: "Les déplacement doivent refléter la discipline militaire par un ordre serré, une attitude exemplaire et une parfaite cohésion.",
  	  slug: "reglement-deplacement",
 		keywords : ["ordre", "serré", "chant", "pas", "cadence", "deux", "salut"],
@@ -116,7 +116,7 @@ window.CI6_RUBRIQUES = [
   	  /* LES HORAIRES D'UNE JOURNÉE TYPE + VENDREDIS */
 		{
    	  id: "horaires",
-  	  title: "2 - Les horaires",
+  	  title: "Les horaires",
   	  description: "La ponctualité est la première marque de respect.",
  	  slug: "reglement-horaires",
 	  keywords : ["heure", "lever", "coucher", "etude", "sport", "cours", "repas"],
@@ -127,7 +127,7 @@ window.CI6_RUBRIQUES = [
 		/* DESCRIPTION ET PORT DES TENUES */
 		{
           id: "tenue",
-          title: "3 - Port de la tenue",
+          title: "Port de la tenue",
           slug: "reglement-tenue",
           description: "Porter la tenue réglementaire",
 			keywords : ["51", "53", "31", "32", "11", "13", "treillis", "service courant", "polaire", "survêtement", "coiffure", "calot", "képi", "casquette", "sac noir"],
@@ -138,7 +138,7 @@ window.CI6_RUBRIQUES = [
     	/* RÈGLES DE SALUT ET DE PRÉSENTATION - EN ET HORS CASERNE */  
 		{
           id: "presentation",
-          title: "4 - Saluer, se présenter",
+          title: "Saluer, se présenter",
           slug: "reglement-presentation",
           description: "Le salut militaire est une marque de respect, de discipline et de courtoisie. La présentation est le reflet de votre discipline et de votre professionnalisme.",
 					keywords : ["salut", "respect", "grade", "bonjour", "garde à vous", "demi tour", "bureau", "téléphone", "civil", "rue", "commerce"],
@@ -149,7 +149,7 @@ window.CI6_RUBRIQUES = [
 		/* RÈGLES DE COMPORTEMENT À ADOPTER EN ET HORS CASERNE */
     	  {
           id: "comportement",
-          title: "5 - Comportement individuel",
+          title: "Comportement individuel",
           slug: "reglement-comportement",
           description: "Le comportement doit être exemplaire en toutes circonstances, en service comme hors service, en caserne comme à l'extérieur.",
 			  		keywords : ["comportement", "ville", "rue", "civil", "soirée", "alcool", "discothèque", "one", "grinta", "restaurant"],
@@ -160,7 +160,7 @@ window.CI6_RUBRIQUES = [
 		/* RÈGLES RELATIVES À LA MIXITÉ */
     	  {
           id: "mixité",
-          title: "6 - La mixité",
+          title: "La mixité",
           slug: "reglement-comportement",
           description: "La mixité s'inscrit dans les exigences de la vie collective. Elle nécessite une attitude exemplaire, des propos respectueux et le respect strict des espaces réservés à chacun.",
 			  		keywords : ["mixité", "sexe", "fille", "femme", "homme", "garcon"],
@@ -171,7 +171,7 @@ window.CI6_RUBRIQUES = [
     	/* USAGE DU TÉLÉPHONE, SEMAINE BLANCHE, REMISE ET PERCEPTION */ 
 		{
   	 	 id: "telephone",
-  		  title: "7 - Utilisation du téléphone",
+  		  title: "Utilisation du téléphone",
  		  description: "Un outil utile, jamais une distraction.",
  		  slug: "reglement-telephone",
 					keywords : ["semaine", "blanche", "téléphone", "remise", "caisse"],
@@ -182,7 +182,7 @@ window.CI6_RUBRIQUES = [
     	/* RÈGLES D'USAGE DE LA CIGARETTE */ 
 		{
   		  id: "cigarette",
-  		  title: "8 - Usage de la cigarette",
+  		  title: "Usage de la cigarette",
  		  description: "Fumer ou vapoter implique le respect des règles de la compagnie, des autres élèves et des zones spécialement aménagées.",
  		  slug: "reglement-cigarette",
 					keywords : ["cigarette", "fumeur", "mery", "stand", "mess"],
