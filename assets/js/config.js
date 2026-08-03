@@ -1044,7 +1044,7 @@ window.CI6_RUBRIQUES = [
     title: "secretariat",
     description: "Informations administratives",
     slug: "secretariat",
-    card: "assets/cards/secretariat.png",
+    card: "assets/cards/secretariat.webp",
 	content: "content/secretariat.md",
     children: []
   },
