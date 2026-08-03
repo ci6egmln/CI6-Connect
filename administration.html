@@ -1363,6 +1363,72 @@
     }
   }
 
+
+  /* Affichage compact des domaines et sous-tuiles */
+  .homepage-domain-group {
+    margin-bottom: 10px;
+  }
+
+  .homepage-domain-row,
+  .homepage-child-row {
+    min-height: 56px;
+    padding: 10px 14px;
+  }
+
+  .homepage-child-row {
+    padding-left: 18px;
+  }
+
+  .homepage-tile-level,
+  .homepage-domain-note {
+    display: none !important;
+  }
+
+  .homepage-domain-row > div:first-child,
+  .homepage-child-row > div:first-child {
+    min-width: 0;
+  }
+
+  .homepage-domain-row .homepage-tile-title,
+  .homepage-child-row .homepage-tile-title {
+    display: block;
+    overflow: hidden;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .homepage-domain-row .homepage-tile-title {
+    color: var(--gold-light);
+    font-size: 16px;
+  }
+
+  .homepage-child-row .homepage-tile-title {
+    font-size: 15px;
+  }
+
+  .homepage-tile-control {
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: 650px) {
+    .homepage-domain-row,
+    .homepage-child-row {
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 10px;
+      padding: 9px 11px;
+    }
+
+    .homepage-child-row {
+      padding-left: 14px;
+    }
+
+    .homepage-domain-row .homepage-tile-title,
+    .homepage-child-row .homepage-tile-title {
+      white-space: normal;
+    }
+  }
+
 </style>
 </head>
 
@@ -3913,10 +3979,6 @@ function renderHomepageChildRows(
     return `
       <div class="homepage-child-row">
         <div>
-          <span class="homepage-tile-level">
-            ${hasChildren?"Sous-domaine":"Sous-tuile"}
-          </span>
-
           <span class="homepage-tile-title">
             ${homepageTileEscape(child.title||child.slug)}
           </span>
@@ -3978,24 +4040,10 @@ function renderHomepageTiles(settings={}){
       <section class="homepage-domain-group">
         <div class="homepage-domain-row">
           <div>
-            <span class="homepage-tile-level">
-              Domaine complet
-            </span>
-
             <span class="homepage-tile-title">
               ${homepageTileEscape(item.title||item.slug)}
             </span>
 
-            ${
-              children.length
-                ? `
-                  <p class="homepage-domain-note">
-                    Masquer ce domaine masque automatiquement
-                    toutes ses sous-rubriques aux élèves.
-                  </p>
-                `
-                : ""
-            }
           </div>
 
           <div class="homepage-tile-control">
