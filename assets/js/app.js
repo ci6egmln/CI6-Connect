@@ -16,11 +16,20 @@ function isVisitorMode() {
 }
 
 function isHomepageTileVisible(item) {
-  if (isVisitorMode()) {
+  /*
+   * Les cadres, administrateurs et visiteurs voient
+   * toujours toutes les tuiles, y compris celles
+   * masquées aux élèves.
+   */
+  if (isCadreMode()) {
     return true;
   }
 
   return homepageTileSettings[item.slug] !== false;
+}
+
+function isHomepageTileHiddenForStudents(item) {
+  return homepageTileSettings[item.slug] === false;
 }
 
 function getVisibleHomepageRubriques() {
@@ -375,12 +384,101 @@ function setDetailView() {
     });
 }
 
+
+function injectHiddenHomepageTileStyles() {
+  if (
+    document.getElementById(
+      "ci6-hidden-homepage-tile-styles"
+    )
+  ) {
+    return;
+  }
+
+  const style = document.createElement("style");
+  style.id = "ci6-hidden-homepage-tile-styles";
+
+  style.textContent = `
+    .tile.tile-hidden-for-students {
+      box-shadow:
+        0 0 0 3px rgba(210,55,55,.95),
+        0 18px 42px rgba(0,0,0,.45) !important;
+    }
+
+    .tile.tile-hidden-for-students::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: block;
+      border: 3px solid rgba(210,55,55,.95);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .tile-hidden-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      z-index: 5;
+      padding: 7px 9px;
+      border: 1px solid rgba(255,190,190,.78);
+      border-radius: 7px;
+      background: rgba(135,18,18,.92);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: .045em;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px #000;
+      pointer-events: none;
+    }
+
+    .peloton-tile .tile-hidden-badge {
+      top: 6px;
+      right: 6px;
+      left: 6px;
+      padding: 5px 4px;
+      font-size: 9px;
+      letter-spacing: .02em;
+    }
+
+    @media (max-width: 760px) {
+      .tile.tile-hidden-for-students {
+        box-shadow:
+          0 0 0 2px rgba(210,55,55,.95),
+          0 14px 30px rgba(0,0,0,.42) !important;
+      }
+
+      .tile.tile-hidden-for-students::after {
+        border-width: 2px;
+      }
+
+      .tile-hidden-badge {
+        top: 6px;
+        right: 6px;
+        left: 6px;
+        padding: 5px 6px;
+        font-size: 9px;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
 function renderTileMarkup(item, compact = false) {
+    const hiddenForStudents =
+        isCadreMode() &&
+        isHomepageTileHiddenForStudents(item);
+
     return `
         <button
-            class="tile${compact ? " peloton-tile" : ""}"
+            class="tile${compact ? " peloton-tile" : ""}${hiddenForStudents ? " tile-hidden-for-students" : ""}"
             data-slug="${item.slug}"
-            aria-label="${item.title}"
+            aria-label="${item.title}${hiddenForStudents ? " — tuile masquée aux élèves" : ""}"
         >
             <img
                 class="tile-bg"
@@ -388,6 +486,14 @@ function renderTileMarkup(item, compact = false) {
                 alt=""
                 loading="lazy"
             >
+
+            ${hiddenForStudents
+              ? `
+                <span class="tile-hidden-badge">
+                  Tuile masquée aux élèves
+                </span>
+              `
+              : ""}
 
             <span class="tile-text">
                 <strong>${item.title}</strong>
@@ -4989,6 +5095,7 @@ document.addEventListener(
 async function initializeApplication() {
   await displayConnectedUser();
   await loadHomepageTileSettings();
+  injectHiddenHomepageTileStyles();
   renderCards();
   openFromHash();
 }
