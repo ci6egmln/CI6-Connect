@@ -4,64 +4,6 @@ icon: assets/cards/accueil-compagnie.png
 quote: " Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre. "
 ---
 
-<!-- ===========================================================
-                     GUIDE DE RÉDACTION CI6 CONNECT
-
-==========================
-BLOC PERSONNALISABLE
-==========================
-
-Syntaxe :
-
-:::bloc couleur | Titre | Icône
-Votre contenu...
-:::
-
-Couleurs disponibles :
-
-🔵 bleu  → Titre : Information, directives, organisaiton ...   → 📘 📋 📖 📝 📌 ℹ️ 📢 🔎
-🟢 vert  → Titre : Ce qu'il faut faire, bonne pratique ...  	→ ✅ ✔️ 👍 🤝 🛡️ 🎯 🌱
-🔴 rouge → Titre : interdit, danger, attention ... 		→ ⛔ ❌ 🚫 🛑 ☠️ 🚷
-🟠 orange→ Titre : vigilance, risques, point sensible 	→ ⚠️ 🚨 🔥 🔔 👁️ 🔍 ⏳
-🟡 jaune → Titre : à retenir, conseil, astuce  		→ 💡 🧠 ⭐ 💬 🗝️ 📍
-⚪ gris  → Titre : définition, précision, contexte 		→ ℹ️ 📖 📑 📄 🗂️
-
-==========================
-PHOTO
-==========================
-
-Insérer une photo :
-
-![Description de la photo](assets/photos/chemin-photo.png)
-
-==========================
-GALERIE DE PHOTOS
-==========================
-
-:::galerie
-assets/photos/photo1.png | Description de la photo 1
-assets/photos/photo2.png | Description de la photo 2
-assets/photos/photo3.png | Description de la photo 3
-:::
-
-==========================
-VIDÉO
-==========================
-
-:::video
-!-- assets/videos/presentation-mess.mp4|Description de la vidéo
-:::
-
-==========================
-DOCUMENTS À TÉLÉCHARGER
-==========================
-
-:::telechargements
-Nom du document | assets/documents/document.pdf
-Autre document | assets/documents/autre-document.pdf
-:::
-
-=========================================================== -->
 
 :::bloc bleu | La 6ème compagnie en symboles | ℹ️
 - notre couleur : le noir
@@ -98,7 +40,7 @@ Dans sa tenue, son comportement et son engagement, il se montre digne de ceux qu
 :::
 
 :::bloc bleu | La maison des dragons | ℹ️
-![Le bâtiment Indochine](assets/photos/accueil-compagnie-indochine-loin.jpg)
+![Le bâtiment Indochine](assets/photos/accueil-compagnie-indochine-loin.webp)
 
 La 6e compagnie occupe le bâtiment **Indochine**, situé à proximité de la place d’armes.
 
@@ -118,15 +60,15 @@ Les élèves sont répartis en **trois pelotons de 40**, placés sous le command
 :::
 
 :::galerie
-assets/photos/accueil-compagnie-indochine.jpg | Bâtiment Indochine
-assets/photos/accueil-compagnie-rapport.jpg | Place du rapport
-assets/photos/accueil-compagnie-hall.jpg | Le hall et ses machines diaboliques
-assets/photos/accueil-compagnie-indochine-loin.jpg | Bâtiment Indochine
-assets/photos/accueil-compagnie-couloir-cadres.jpg | Couloir des cadres
-assets/photos/accueil-compagnie-escalier.jpg | Les 3 étages
-assets/photos/accueil-compagnie-couloir-etage.jpg | Couloir des chambres
-assets/photos/accueil-compagnie-semaine.jpg | Semaine
-assets/photos/accueil-compagnie-ssi.jpg | SSI et micro compagnie
-assets/photos/accueil-compagnie-salle6.jpg | Salle 6
+assets/photos/accueil-compagnie-indochine.webp | Bâtiment Indochine
+assets/photos/accueil-compagnie-rapport.webp | Place du rapport
+assets/photos/accueil-compagnie-hall.webp | Le hall et ses machines diaboliques
+assets/photos/accueil-compagnie-indochine-loin.webp | Bâtiment Indochine
+assets/photos/accueil-compagnie-couloir-cadres.webp | Couloir des cadres
+assets/photos/accueil-compagnie-escalier.webp | Les 3 étages
+assets/photos/accueil-compagnie-couloir-etage.webp | Couloir des chambres
+assets/photos/accueil-compagnie-semaine.webp | Semaine
+assets/photos/accueil-compagnie-ssi.webp | SSI et micro compagnie
+assets/photos/accueil-compagnie-salle6.webp | Salle 6
 :::
 
