@@ -452,16 +452,16 @@ window.CI6_RUBRIQUES = [
     slug: "vh-compte-rendu",
     card: "assets/cards/vh.png",
     children: [ 
-		/* PRÉSENTATION DES S */
+		/* PRÉSENTATION DES CADRES */
 		{
-        id: "s",
+        id: "cadress",
         title: "Les s de la compagnie",
-        slug: "vh-s",
+        slug: "vh-cadress",
         description: "Connaître le rôle des s",
 				keywords : ["respect", "presentation", "fonction", "commandant", "peloton", "referent", "tam", "tradition", "secretaire", "AE", "adjudant d'unité"],
 
-        content: "content/vh-s.md",
-        card: "assets/cards/vh-s.png"
+        content: "content/vh-cadres.md",
+        card: "assets/cards/vh-cadres.png"
     }, 
 		/* HIÉRARCHIE COMPAGNIE ET AU SEIN DE L'ÉCOLE */
 		{
@@ -1036,6 +1036,19 @@ window.CI6_RUBRIQUES = [
     children: []
   },
 
+/*****************************************************************************************/
+  /************************************* SECRÉTARIAT  ******************************************/
+  /*****************************************************************************************/
+  {
+    id: "secretariat",
+    title: "secretariat",
+    description: "Informations administratives",
+    slug: "secretariat",
+    card: "assets/cards/secretariat.png",
+	content: "content/secretariat.md",
+    children: []
+  },
+	
   /*****************************************************************************************/
   /********************************* ESPACE CADRES ****************************************/
   /*****************************************************************************************/
