@@ -213,7 +213,7 @@ input[type=search]:focus {
   display: block!important;
   width: 100%!important;
   min-height: 0!important;
-  aspect-ratio: 358/590!important;
+  aspect-ratio: 5/8!important;
   margin: 0!important;
   padding: 0!important;
   overflow: hidden!important;
@@ -1332,7 +1332,7 @@ input[type=search]:focus {
 }
 
 .pelotons-grid .peloton-tile {
-  aspect-ratio: 358 / 590 !important;
+  aspect-ratio: 5 / 8 !important;
   border-radius: 14px !important;
 }
 
@@ -1381,9 +1381,24 @@ input[type=search]:focus {
   }
 }
 .pelotons-grid .peloton-tile {
-  aspect-ratio: 179 / 295 !important;
+  aspect-ratio: 5 / 8 !important;
 }
 
 .pelotons-grid .peloton-tile .tile-bg {
   object-fit: contain !important;
+}
+/* Format uniforme des tuiles d’accueil : 250 × 400 */
+
+#cardsGrid > *,
+.cards-grid > *,
+.pelotons-grid .peloton-tile {
+  aspect-ratio: 5 / 8 !important;
+}
+
+#cardsGrid > * > img,
+.cards-grid > * > img,
+.pelotons-grid .peloton-tile .tile-bg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
