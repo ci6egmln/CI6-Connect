@@ -290,6 +290,21 @@ function isHomepageTileHiddenForStudents(item) {
   return isItemHiddenForStudents(item);
 }
 
+function hasHiddenDescendantForStudents(item) {
+  if (
+    homepageTileSettings[item.slug] === false ||
+    !Array.isArray(item.children) ||
+    item.children.length === 0
+  ) {
+    return false;
+  }
+
+  return item.children.some(child =>
+    homepageTileSettings[child.slug] === false ||
+    hasHiddenDescendantForStudents(child)
+  );
+}
+
 function isItemAvailableToCurrentUser(item) {
   return (
     isItemVisible(item) &&
@@ -683,6 +698,28 @@ function injectHiddenHomepageTileStyles() {
       pointer-events: none;
     }
 
+
+    .tile-partial-hidden-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      z-index: 5;
+      padding: 7px 9px;
+      border: 1px solid rgba(175,215,255,.82);
+      border-radius: 7px;
+      background: rgba(24,76,132,.94);
+      color: #eef7ff;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: .035em;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 0 1px 3px #000;
+      pointer-events: none;
+    }
+
     .tile-hidden-badge {
       position: absolute;
       top: 10px;
@@ -742,6 +779,15 @@ function injectHiddenHomepageTileStyles() {
       pointer-events: none;
     }
 
+    .peloton-tile .tile-partial-hidden-badge {
+      top: 6px;
+      right: 6px;
+      left: 6px;
+      padding: 5px 4px;
+      font-size: 9px;
+      letter-spacing: .015em;
+    }
+
     .peloton-tile .tile-hidden-badge {
       top: 6px;
       right: 6px;
@@ -762,6 +808,14 @@ function injectHiddenHomepageTileStyles() {
         border-width: 2px;
       }
 
+      .tile-partial-hidden-badge {
+        top: 6px;
+        right: 6px;
+        left: 6px;
+        padding: 5px 6px;
+        font-size: 9px;
+      }
+
       .tile-hidden-badge {
         top: 6px;
         right: 6px;
@@ -780,11 +834,16 @@ function renderTileMarkup(item, compact = false) {
         isCadreMode() &&
         isHomepageTileHiddenForStudents(item);
 
+    const partiallyHiddenForStudents =
+        isCadreMode() &&
+        !hiddenForStudents &&
+        hasHiddenDescendantForStudents(item);
+
     return `
         <button
-            class="tile${compact ? " peloton-tile" : ""}${hiddenForStudents ? " tile-hidden-for-students" : ""}"
+            class="tile${compact ? " peloton-tile" : ""}${hiddenForStudents ? " tile-hidden-for-students" : ""}${partiallyHiddenForStudents ? " tile-partially-hidden-for-students" : ""}"
             data-slug="${item.slug}"
-            aria-label="${item.title}${hiddenForStudents ? " — tuile masquée aux élèves" : ""}"
+            aria-label="${item.title}${hiddenForStudents ? " — tuile masquée aux élèves" : partiallyHiddenForStudents ? " — rubrique partiellement masquée aux élèves" : ""}"
         >
             <img
                 class="tile-bg"
@@ -799,7 +858,13 @@ function renderTileMarkup(item, compact = false) {
                   Tuile masquée aux élèves
                 </span>
               `
-              : ""}
+              : partiallyHiddenForStudents
+                ? `
+                  <span class="tile-partial-hidden-badge">
+                    Rubrique partiellement masquée
+                  </span>
+                `
+                : ""}
 
             <span class="tile-text">
                 <strong>${item.title}</strong>
