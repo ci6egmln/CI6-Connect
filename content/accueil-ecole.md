@@ -19,3 +19,7 @@ L'école de Montluçon est la plus grande école de gendarmerie Française :
 - 150 cadres formateurs 
 - 150 personnels militaires ou civils de soutien
 :::
+
+:::video-lien L'école de gendarmerie de Montluçon en vidéo
+https://www.gendarmerie.interieur.gouv.fr/cegn/les-ecoles-de-gendarmerie/ecole-de-gendarmerie-de-montlucon | Vidéo tournée en période Covid. Le port du masque n'est plus obligatoire.
+:::
