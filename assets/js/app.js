@@ -2262,6 +2262,65 @@ function injectFicheEditorStyles() {
       color: #f4d77a;
     }
 
+
+    .fiche-editor-cover-box {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid rgba(80,145,220,.55);
+      border-radius: 10px;
+      background: rgba(25,65,110,.18);
+    }
+
+    .fiche-editor-cover-preview {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 9px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,.04),
+          rgba(0,0,0,.28)
+        );
+    }
+
+    .fiche-editor-cover-preview img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .fiche-editor-cover-empty {
+      display: grid;
+      place-items: center;
+      height: 100%;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .fiche-editor-cover-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .fiche-editor-cover-actions .fiche-editor-button {
+      flex: 1 1 210px;
+    }
+
+    .fiche-editor-cover-remove {
+      color: #ffdada !important;
+      border-color: rgba(230,80,80,.62) !important;
+      background: rgba(110,20,20,.35) !important;
+    }
+
     .fiche-editor-upload-box {
       margin-top: 10px;
       padding: 14px;
@@ -3518,15 +3577,69 @@ function openFicheEditor() {
           </div>
 
           <div class="fiche-editor-field">
-            <label for="editorFicheCover">
-              Image de couverture
+            <label>
+              Photo de couverture
             </label>
-            <input
-              id="editorFicheCover"
-              type="text"
-              value="${escapeHtml(meta.cover || "")}"
-              placeholder="assets/photos/couverture.webp"
-            >
+
+            <div class="fiche-editor-cover-box">
+              <div
+                id="editorCoverPreview"
+                class="fiche-editor-cover-preview"
+              >
+                ${meta.cover
+                  ? `
+                    <img
+                      src="${escapeHtml(meta.cover)}"
+                      alt="Aperçu de la photo de couverture"
+                    >
+                  `
+                  : `
+                    <div class="fiche-editor-cover-empty">
+                      Aucune photo de couverture
+                    </div>
+                  `}
+              </div>
+
+              <input
+                id="editorFicheCover"
+                type="hidden"
+                value="${escapeHtml(meta.cover || "")}"
+              >
+
+              <input
+                id="editorCoverFile"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                hidden
+              >
+
+              <div class="fiche-editor-cover-actions">
+                <button
+                  type="button"
+                  id="chooseEditorCoverButton"
+                  class="fiche-editor-button secondary"
+                  ${isVisitorMode() ? "disabled" : ""}
+                >
+                  ${meta.cover
+                    ? "Remplacer la photo de couverture"
+                    : "Joindre une photo de couverture"}
+                </button>
+
+                <button
+                  type="button"
+                  id="removeEditorCoverButton"
+                  class="fiche-editor-button secondary fiche-editor-cover-remove"
+                  ${meta.cover && !isVisitorMode() ? "" : "disabled"}
+                >
+                  Retirer la couverture
+                </button>
+              </div>
+
+              <div
+                id="editorCoverUploadStatus"
+                class="fiche-editor-upload-status"
+              ></div>
+            </div>
           </div>
         </div>
       </section>
@@ -3925,6 +4038,24 @@ function openFicheEditor() {
 
   const documentsList =
     overlay.querySelector("#editorDocumentsList");
+
+  const coverPathInput =
+    overlay.querySelector("#editorFicheCover");
+
+  const coverFileInput =
+    overlay.querySelector("#editorCoverFile");
+
+  const chooseCoverButton =
+    overlay.querySelector("#chooseEditorCoverButton");
+
+  const removeCoverButton =
+    overlay.querySelector("#removeEditorCoverButton");
+
+  const coverPreview =
+    overlay.querySelector("#editorCoverPreview");
+
+  const coverUploadStatus =
+    overlay.querySelector("#editorCoverUploadStatus");
 
   const imageFileInput =
     overlay.querySelector("#editorImageFile");
@@ -4675,6 +4806,207 @@ function openFicheEditor() {
 
       if (!blockTitle.value.trim()) {
         blockTitle.value = "";
+      }
+    }
+  );
+
+
+  function renderCoverPreview(path = "") {
+    coverPreview.innerHTML = "";
+
+    if (!path) {
+      const empty =
+        document.createElement("div");
+
+      empty.className =
+        "fiche-editor-cover-empty";
+
+      empty.textContent =
+        "Aucune photo de couverture";
+
+      coverPreview.appendChild(empty);
+      chooseCoverButton.textContent =
+        "Joindre une photo de couverture";
+      removeCoverButton.disabled = true;
+      return;
+    }
+
+    const image =
+      document.createElement("img");
+
+    image.src = path;
+    image.alt =
+      "Aperçu de la photo de couverture";
+
+    image.addEventListener(
+      "error",
+      () => {
+        coverPreview.innerHTML = `
+          <div class="fiche-editor-cover-empty">
+            La photo de couverture ne peut pas être affichée.
+          </div>
+        `;
+      },
+      { once: true }
+    );
+
+    coverPreview.appendChild(image);
+    chooseCoverButton.textContent =
+      "Remplacer la photo de couverture";
+
+    removeCoverButton.disabled =
+      isVisitorMode();
+  }
+
+  chooseCoverButton.addEventListener(
+    "click",
+    () => {
+      if (!isVisitorMode()) {
+        coverFileInput.click();
+      }
+    }
+  );
+
+  removeCoverButton.addEventListener(
+    "click",
+    () => {
+      if (isVisitorMode()) {
+        return;
+      }
+
+      coverPathInput.value = "";
+      coverFileInput.value = "";
+      coverUploadStatus.textContent =
+        "La couverture sera retirée lors de la publication de la fiche.";
+      coverUploadStatus.className =
+        "fiche-editor-upload-status success";
+
+      renderCoverPreview("");
+    }
+  );
+
+  coverFileInput.addEventListener(
+    "change",
+    async () => {
+      const file =
+        coverFileInput.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      if (isHeicImageFile(file)) {
+        coverUploadStatus.textContent =
+          "Format HEIC/HEIF détecté. " +
+          "Veuillez convertir ou partager la photo en JPEG ou PNG avant de l’ajouter.";
+        coverUploadStatus.className =
+          "fiche-editor-upload-status error";
+        coverFileInput.value = "";
+        return;
+      }
+
+      if (!isConvertibleImageFile(file)) {
+        coverUploadStatus.textContent =
+          "Format non pris en charge. " +
+          "Choisissez une image JPEG, PNG ou WebP.";
+        coverUploadStatus.className =
+          "fiche-editor-upload-status error";
+        coverFileInput.value = "";
+        return;
+      }
+
+      chooseCoverButton.disabled = true;
+      removeCoverButton.disabled = true;
+      coverUploadStatus.textContent =
+        "Conversion de la couverture en WebP…";
+      coverUploadStatus.className =
+        "fiche-editor-upload-status";
+
+      const temporaryUrl =
+        URL.createObjectURL(file);
+
+      renderCoverPreview(temporaryUrl);
+
+      try {
+        const webpFile =
+          await convertPhotoToWebp(file);
+
+        coverUploadStatus.textContent =
+          "Envoi de la couverture dans GitHub…";
+
+        const formData =
+          new FormData();
+
+        formData.append("photo", webpFile);
+        formData.append("photoName", "couverture");
+        formData.append(
+          "fichePath",
+          currentEditableFiche.path
+        );
+        formData.append(
+          "ficheTitle",
+          overlay
+            .querySelector("#editorFicheTitle")
+            .value
+            .trim()
+        );
+
+        const response =
+          await fetch(
+            "/cadres/photo-upload",
+            {
+              method: "POST",
+              credentials: "same-origin",
+              body: formData
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            "L’envoi de la couverture a échoué."
+          );
+        }
+
+        if (!data.path) {
+          throw new Error(
+            "Le serveur n’a pas renvoyé le chemin de la couverture."
+          );
+        }
+
+        coverPathInput.value = data.path;
+        renderCoverPreview(data.path);
+
+        coverUploadStatus.textContent =
+          "Photo de couverture enregistrée. " +
+          "Publiez maintenant la fiche pour l’appliquer.";
+
+        coverUploadStatus.className =
+          "fiche-editor-upload-status success";
+
+      } catch (error) {
+        renderCoverPreview(
+          coverPathInput.value
+        );
+
+        coverUploadStatus.textContent =
+          error.message;
+
+        coverUploadStatus.className =
+          "fiche-editor-upload-status error";
+
+      } finally {
+        URL.revokeObjectURL(temporaryUrl);
+        coverFileInput.value = "";
+        chooseCoverButton.disabled =
+          isVisitorMode();
+
+        removeCoverButton.disabled =
+          isVisitorMode() ||
+          !coverPathInput.value;
       }
     }
   );
