@@ -21,5 +21,5 @@ L'école de Montluçon est la plus grande école de gendarmerie Française :
 :::
 
 :::video-lien L'école de gendarmerie de Montluçon en vidéo
-https://www.gendarmerie.interieur.gouv.fr/cegn/les-ecoles-de-gendarmerie/ecole-de-gendarmerie-de-montlucon | Vidéo tournée en période Covid. Le port du masque n'est plus obligatoire.
+https://www.gendarmerie.interieur.gouv.fr/cegn/content/download/36676/video/21_002_CI_CLIP_PRESENTATION_MONTLUCON_HD_LIGHT.mp4 | Vidéo tournée en période Covid. Le port du masque n'est plus obligatoire.
 :::
