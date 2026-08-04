@@ -58,14 +58,14 @@ window.CI6_RUBRIQUES = [
     }, 
 		/* PRÉSENTATION DE LA FORMATION À L'INCORPORATION */
 		{
-      id: "cursus",
-        title: "Déroulé de la fomation",
-        slug: "accueil-sursus",
+      id: "parcours",
+        title: "Le parcours de formation",
+        slug: "accueil-parcours",
         description: "La 6ème compagnie d'instruction",
-		keywords : ["formation", "cursus", "échéances", "déroulement", "planning", "prévision", "cours"],
+		keywords : ["formation", "cursus", "échéances", "déroulement", "planning", "parcours", "prévision", "cours"],
 
-        content: "content/accueil-cursus.md",
-        card: "assets/cards/accueil-cursus.webp"
+        content: "content/accueil-parcours.md",
+        card: "assets/cards/accueil-parcours.webp"
     }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
