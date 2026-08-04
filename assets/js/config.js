@@ -56,6 +56,17 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil-compagnie.md",
         card: "assets/cards/accueil-compagnie.webp"
     }, 
+		/* PRÉSENTATION DE LA FORMATION À L'INCORPORATION */
+		{
+      id: "cursus",
+        title: "Déroulé de la fomation",
+        slug: "accueil-sursus",
+        description: "La 6ème compagnie d'instruction",
+		keywords : ["formation", "cursus", "échéances", "déroulement", "planning", "prévision", "cours"],
+
+        content: "content/accueil-cursus.md",
+        card: "assets/cards/accueil-cursus.webp"
+    }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
       id: "fournitures",
