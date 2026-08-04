@@ -3640,11 +3640,27 @@ function openFicheEditor() {
                   `}
               </div>
 
-              <input
-                id="editorFicheCover"
-                type="hidden"
-                value="${escapeHtml(meta.cover || "")}"
-              >
+              <div class="fiche-editor-cover-path">
+                <label for="editorFicheCover">
+                  Ou utiliser une image déjà présente dans le dépôt
+                </label>
+
+                <input
+                  id="editorFicheCover"
+                  type="text"
+                  value="${escapeHtml(meta.cover || "")}"
+                  placeholder="assets/photos/nom-de-la-photo.webp"
+                  autocomplete="off"
+                  spellcheck="false"
+                  ${isVisitorMode() ? "disabled" : ""}
+                >
+
+                <p class="fiche-editor-cover-help">
+                  Indiquez le chemin relatif depuis la racine du site,
+                  par exemple :
+                  <code>assets/photos/nom-de-la-photo.webp</code>
+                </p>
+              </div>
 
               <input
                 id="editorCoverFile"
@@ -3663,6 +3679,15 @@ function openFicheEditor() {
                   ${meta.cover
                     ? "Remplacer la photo de couverture"
                     : "Joindre une photo de couverture"}
+                </button>
+
+                <button
+                  type="button"
+                  id="applyEditorCoverPathButton"
+                  class="fiche-editor-button secondary"
+                  ${isVisitorMode() ? "disabled" : ""}
+                >
+                  Utiliser ce chemin
                 </button>
 
                 <button
@@ -3812,43 +3837,6 @@ function openFicheEditor() {
               <label for="editorBlockText">
                 Texte
               </label>
-
-              <div
-                class="fiche-editor-format-toolbar"
-                role="toolbar"
-                aria-label="Mise en forme du texte"
-              >
-                <button
-                  type="button"
-                  class="fiche-editor-format-button"
-                  data-editor-format="bold"
-                  title="Mettre la sélection en gras"
-                  aria-label="Gras"
-                >
-                  <strong>B</strong>
-                </button>
-
-                <button
-                  type="button"
-                  class="fiche-editor-format-button"
-                  data-editor-format="italic"
-                  title="Mettre la sélection en italique"
-                  aria-label="Italique"
-                >
-                  <em>I</em>
-                </button>
-
-                <button
-                  type="button"
-                  class="fiche-editor-format-button"
-                  data-editor-format="underline"
-                  title="Souligner la sélection"
-                  aria-label="Souligné"
-                >
-                  <u>U</u>
-                </button>
-              </div>
-
               <textarea
                 id="editorBlockText"
                 placeholder="Saisissez le contenu du bloc…"
@@ -4124,69 +4112,6 @@ function openFicheEditor() {
   const blockText =
     overlay.querySelector("#editorBlockText");
 
-  const formatButtons =
-    overlay.querySelectorAll(
-      "[data-editor-format]"
-    );
-
-  function applyTextFormatting(textarea, format) {
-    if (!textarea) {
-      return;
-    }
-
-    const wrappers = {
-      bold: ["**", "**"],
-      italic: ["*", "*"],
-      underline: ["<u>", "</u>"]
-    };
-
-    const wrapper = wrappers[format];
-
-    if (!wrapper) {
-      return;
-    }
-
-    const start = textarea.selectionStart ?? 0;
-    const end = textarea.selectionEnd ?? start;
-    const selectedText =
-      textarea.value.slice(start, end);
-    const placeholder =
-      selectedText || "texte";
-    const replacement =
-      wrapper[0] + placeholder + wrapper[1];
-
-    textarea.setRangeText(
-      replacement,
-      start,
-      end,
-      "end"
-    );
-
-    const selectionStart =
-      start + wrapper[0].length;
-    const selectionEnd =
-      selectionStart + placeholder.length;
-
-    textarea.focus();
-    textarea.setSelectionRange(
-      selectionStart,
-      selectionEnd
-    );
-
-    textarea.dispatchEvent(
-      new Event("input", { bubbles: true })
-    );
-  }
-
-  formatButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      applyTextFormatting(
-        blockText,
-        button.dataset.editorFormat
-      );
-    });
-  });
-
   const blockColorField =
     overlay.querySelector("#editorBlockColorField");
 
@@ -4240,6 +4165,9 @@ function openFicheEditor() {
 
   const chooseCoverButton =
     overlay.querySelector("#chooseEditorCoverButton");
+
+  const applyCoverPathButton =
+    overlay.querySelector("#applyEditorCoverPathButton");
 
   const removeCoverButton =
     overlay.querySelector("#removeEditorCoverButton");
@@ -5075,6 +5003,68 @@ function openFicheEditor() {
       isVisitorMode();
   }
 
+  function normalizeRepositoryImagePath(value = "") {
+    return String(value)
+      .trim()
+      .replace(/^\.\//, "")
+      .replace(/^\/+/, "");
+  }
+
+  function applyCoverPath() {
+    if (isVisitorMode()) {
+      return;
+    }
+
+    const path =
+      normalizeRepositoryImagePath(
+        coverPathInput.value
+      );
+
+    coverPathInput.value = path;
+
+    if (!path) {
+      coverUploadStatus.textContent =
+        "Renseignez le chemin d’une image déjà présente dans le dépôt.";
+      coverUploadStatus.className =
+        "fiche-editor-upload-status error";
+      renderCoverPreview("");
+      return;
+    }
+
+    renderCoverPreview(path);
+
+    coverUploadStatus.textContent =
+      "Chemin de couverture pris en compte. " +
+      "Publiez maintenant la fiche pour l’appliquer.";
+
+    coverUploadStatus.className =
+      "fiche-editor-upload-status success";
+  }
+
+  applyCoverPathButton.addEventListener(
+    "click",
+    applyCoverPath
+  );
+
+  coverPathInput.addEventListener(
+    "keydown",
+    event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        applyCoverPath();
+      }
+    }
+  );
+
+  coverPathInput.addEventListener(
+    "input",
+    () => {
+      coverUploadStatus.textContent = "";
+      coverUploadStatus.className =
+        "fiche-editor-upload-status";
+    }
+  );
+
   chooseCoverButton.addEventListener(
     "click",
     () => {
@@ -5133,6 +5123,7 @@ function openFicheEditor() {
       }
 
       chooseCoverButton.disabled = true;
+      applyCoverPathButton.disabled = true;
       removeCoverButton.disabled = true;
       coverUploadStatus.textContent =
         "Conversion de la couverture en WebP…";
@@ -5219,6 +5210,9 @@ function openFicheEditor() {
         URL.revokeObjectURL(temporaryUrl);
         coverFileInput.value = "";
         chooseCoverButton.disabled =
+          isVisitorMode();
+
+        applyCoverPathButton.disabled =
           isVisitorMode();
 
         removeCoverButton.disabled =
