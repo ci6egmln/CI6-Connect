@@ -1,6 +1,7 @@
 ---
 title: "L'école de gendarmerie de Montluçon"
 icon: "assets/cards/accueil-ecole.png"
+cover: "assets/photos/accueil-couv-ecole.webp"
 quote: "« Nec pluribus impar » : être à la hauteur des exigences d'aujourd'hui pour assumer les responsabilités de demain."
 ---
 :::image-texte bleu | l'école en quelques chiffres | ℹ️
