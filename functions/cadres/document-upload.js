@@ -131,9 +131,9 @@ export async function onRequestPost(context) {
     "zip"
   ]);
 
-  if (document.size > 5 * 1024 * 1024) {
+  if (document.size > 10 * 1024 * 1024) {
     return jsonResponse(
-      { error: "Le document dépasse la taille maximale de 5 Mo." },
+      { error: "Le document dépasse la taille maximale de 10 Mo." },
       413
     );
   }
