@@ -1,10 +1,9 @@
 ---
-title: La 6ème compagnie
-icon: assets/cards/accueil-compagnie.png
-quote: " Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre. "
+title: "La 6ème compagnie"
+icon: "assets/cards/accueil-compagnie.png"
+cover: "assets/photos/accueil-compagnie-couverture.webp"
+quote: "Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre."
 ---
-
-
 :::bloc bleu | La 6ème compagnie en symboles | ℹ️
 - notre couleur : le noir
 - notre animal tutélaire : le dragon
@@ -51,7 +50,6 @@ Le bâtiment est réparti sur quatre niveaux :
 :::
 
 :::bloc bleu | Constitution de la compagnie | ℹ️
-
 À effectif complet, la compagnie compte **120 élèves** et **10 cadres formateurs** : un officier et neuf sous-officiers.
 
 L’unité est commandée par un capitaine, entouré d’une chef secrétaire et d’adjudants d’unité.
@@ -59,7 +57,7 @@ L’unité est commandée par un capitaine, entouré d’une chef secrétaire et
 Les élèves sont répartis en **trois pelotons de 40**, placés sous le commandement de sous-officiers du grade de major ou d’adjudant-chef.
 :::
 
-:::galerie
+:::galerie Galerie
 assets/photos/accueil-compagnie-indochine.webp | Bâtiment Indochine
 assets/photos/accueil-compagnie-rapport.webp | Place du rapport
 assets/photos/accueil-compagnie-hall.webp | Le hall et ses machines diaboliques
@@ -71,4 +69,3 @@ assets/photos/accueil-compagnie-semaine.webp | Semaine
 assets/photos/accueil-compagnie-ssi.webp | SSI et micro compagnie
 assets/photos/accueil-compagnie-salle6.webp | Salle 6
 :::
-
