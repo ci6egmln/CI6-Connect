@@ -27,5 +27,5 @@ Notre mission est de vous accompagner afin que, le jour où vous serez seuls sur
 Bienvenue au bâtiment Indochine, l'antre des dragons de la 6ème compagnie. **Ses portes accueillent des élèves ; elles laissent repartir des gendarmes**.
 
 Capitaine Jean-Noël PANIS
-Commandant de la 6ᵉ compagnie d'instruction
+Commandant de la 6ème compagnie d'instruction
 :::
