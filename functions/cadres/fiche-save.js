@@ -1,3 +1,5 @@
+import { sendPushNotifications } from "../_shared/push.js";
+
 
 function jsonResponse(data, status = 200) {
   return new Response(
@@ -273,11 +275,58 @@ export async function onRequestPost(context) {
       );
     }
 
+    let notification = null;
+
+    if (body.notify === true) {
+      const safeUrl = (() => {
+        const value = String(body.notificationUrl || "/").trim();
+        return value.startsWith("/") && !value.startsWith("//")
+          ? value
+          : "/";
+      })();
+
+      const actionLabel = sha ? "mise à jour" : "nouvelle fiche";
+      const notificationTitle =
+        String(body.notificationTitle || "").trim().slice(0, 100) ||
+        `CI6 Connect — ${title}`;
+      const notificationBody =
+        String(body.notificationBody || "").trim().slice(0, 240) ||
+        `Une ${actionLabel} est disponible : ${title}.`;
+
+      try {
+        notification = await sendPushNotifications(
+          context.env,
+          {
+            audience: ["all", "eleves", "cadres"].includes(body.notificationAudience)
+              ? body.notificationAudience
+              : "all",
+            notification: {
+              title: notificationTitle,
+              body: notificationBody,
+              url: safeUrl,
+              tag: `fiche:${path}`,
+              renotify: true,
+              urgent: Boolean(body.notificationUrgent)
+            }
+          }
+        );
+      } catch (notificationError) {
+        console.error("Notification Push :", notificationError);
+        notification = {
+          sent: 0,
+          failed: 0,
+          removed: 0,
+          error: String(notificationError?.message || notificationError)
+        };
+      }
+    }
+
     return jsonResponse({
       success: true,
       path,
       commit:
         saved.data.commit?.html_url || "",
+      notification,
       message:
         "La fiche a été enregistrée dans GitHub."
     });
