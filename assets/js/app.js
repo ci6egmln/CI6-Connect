@@ -3837,6 +3837,43 @@ function openFicheEditor() {
               <label for="editorBlockText">
                 Texte
               </label>
+
+              <div
+                class="fiche-editor-format-toolbar"
+                role="toolbar"
+                aria-label="Mise en forme du texte"
+              >
+                <button
+                  type="button"
+                  class="fiche-editor-format-button"
+                  data-editor-format="bold"
+                  title="Mettre la sélection en gras"
+                  aria-label="Gras"
+                >
+                  <strong>B</strong>
+                </button>
+
+                <button
+                  type="button"
+                  class="fiche-editor-format-button"
+                  data-editor-format="italic"
+                  title="Mettre la sélection en italique"
+                  aria-label="Italique"
+                >
+                  <em>I</em>
+                </button>
+
+                <button
+                  type="button"
+                  class="fiche-editor-format-button"
+                  data-editor-format="underline"
+                  title="Souligner la sélection"
+                  aria-label="Souligné"
+                >
+                  <u>U</u>
+                </button>
+              </div>
+
               <textarea
                 id="editorBlockText"
                 placeholder="Saisissez le contenu du bloc…"
@@ -4111,6 +4148,69 @@ function openFicheEditor() {
 
   const blockText =
     overlay.querySelector("#editorBlockText");
+
+  const formatButtons =
+    overlay.querySelectorAll(
+      "[data-editor-format]"
+    );
+
+  function applyTextFormatting(textarea, format) {
+    if (!textarea) {
+      return;
+    }
+
+    const wrappers = {
+      bold: ["**", "**"],
+      italic: ["*", "*"],
+      underline: ["<u>", "</u>"]
+    };
+
+    const wrapper = wrappers[format];
+
+    if (!wrapper) {
+      return;
+    }
+
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const selectedText =
+      textarea.value.slice(start, end);
+    const placeholder =
+      selectedText || "texte";
+    const replacement =
+      wrapper[0] + placeholder + wrapper[1];
+
+    textarea.setRangeText(
+      replacement,
+      start,
+      end,
+      "end"
+    );
+
+    const selectionStart =
+      start + wrapper[0].length;
+    const selectionEnd =
+      selectionStart + placeholder.length;
+
+    textarea.focus();
+    textarea.setSelectionRange(
+      selectionStart,
+      selectionEnd
+    );
+
+    textarea.dispatchEvent(
+      new Event("input", { bubbles: true })
+    );
+  }
+
+  formatButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      applyTextFormatting(
+        blockText,
+        button.dataset.editorFormat
+      );
+    });
+  });
 
   const blockColorField =
     overlay.querySelector("#editorBlockColorField");
@@ -4893,17 +4993,11 @@ function openFicheEditor() {
           "fichePath",
           currentEditableFiche?.path || ""
         );
-        const currentFicheTitle =
-          overlay
-            .querySelector("#editorFicheTitle")
-            ?.value
-            ?.trim() ||
-          currentEditableFiche?.item?.title ||
-          "";
-
         formData.append(
           "ficheTitle",
-          currentFicheTitle
+          ficheTitle.value.trim() ||
+          currentEditableFiche?.item?.title ||
+          ""
         );
 
         const response = await fetch(
