@@ -788,6 +788,35 @@ export async function onRequest(context) {
     );
   }
 
+  if (
+    path.startsWith("/cadres/") ||
+    path === "/sanctions"
+  ) {
+    if (
+      session.type !== "user" ||
+      !["cadre", "admin"].includes(session.role)
+    ) {
+      const isApi = path.startsWith("/cadres/");
+      return new Response(
+        isApi
+          ? JSON.stringify({ error: "Accès cadre requis." })
+          : "Accès réservé aux cadres.",
+        {
+          status: 403,
+          headers: {
+            "Content-Type": isApi
+              ? "application/json; charset=utf-8"
+              : "text/plain; charset=utf-8",
+            "Cache-Control": "no-store"
+          }
+        }
+      );
+    }
+
+    const response = await context.next();
+    return noStoreResponse(response);
+  }
+
   if (path.startsWith("/admin/")) {
     if (
       session.type !== "user" ||
