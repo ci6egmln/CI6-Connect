@@ -5009,12 +5009,27 @@ function openFicheEditor() {
           }
         );
 
-        const data = await response.json();
+        const responseText =
+          await response.text();
+
+        let data = {};
+
+        try {
+          data = responseText
+            ? JSON.parse(responseText)
+            : {};
+        } catch {
+          throw new Error(
+            response.ok
+              ? "Le serveur a renvoyé une réponse invalide."
+              : `Erreur serveur ${response.status}. Vérifiez le déploiement de functions/cadres/document-upload.js.`
+          );
+        }
 
         if (!response.ok) {
           throw new Error(
             data.error ||
-            "L’envoi du document a échoué."
+            `L’envoi du document a échoué (erreur ${response.status}).`
           );
         }
 
