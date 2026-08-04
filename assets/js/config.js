@@ -1134,6 +1134,13 @@ window.CI6_RUBRIQUES = [
         content: "content/cadres-service.md",
         card: "assets/cards/cadres-service.webp"
     },{
+        id: "sanctions",
+        title: "Suivi des sanctions",
+        slug: "cadres-sanctions",
+        description: "Saisie, consultation et export du suivi disciplinaire des élèves",
+        href: "/sanctions",
+        card: "assets/cards/cadres-sanctions.webp"
+    },{
         id: "Documents",
         title: "Documents utiles",
         slug: "cadres-documents",

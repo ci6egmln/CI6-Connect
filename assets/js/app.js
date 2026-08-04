@@ -902,6 +902,11 @@ function bindHomepageTileClicks(container) {
                     return;
                 }
 
+                if (item.href) {
+                    window.location.href = item.href;
+                    return;
+                }
+
                 if (item.content) {
                     openContent(item.content, true);
                 }
@@ -1074,6 +1079,8 @@ function renderChildren(parent, addHistory = !0) {
 
         if (Array.isArray(child.children)) {
           renderChildren(child, true);
+        } else if (child.href) {
+          window.location.href = child.href;
         } else if (child.content) {
           openContent(child.content, true);
         }
@@ -1986,9 +1993,18 @@ function injectFicheEditorStyles() {
     }
 
     .fiche-editor-button.secondary {
-      color: #f5f5f5;
-      background: #15191d;
-      border-color: rgba(223,227,232,.4);
+      color: #090a0b !important;
+      background: linear-gradient(135deg, #f4d77a, #b88318) !important;
+      border-color: #f4d77a !important;
+      text-shadow: none !important;
+    }
+
+    .fiche-editor-button.secondary:hover,
+    .fiche-editor-button.secondary:focus-visible {
+      color: #050607 !important;
+      background: linear-gradient(135deg, #ffe99d, #d19a29) !important;
+      outline: 3px solid rgba(244,215,122,.25);
+      outline-offset: 2px;
     }
 
     #cancelEditorBlockButton {
@@ -5997,7 +6013,13 @@ function openFromHash() {
     const item = findItemBySlug(hash);
     if (!item) return detailContent.innerHTML = '\n      <article class="fiche">\n        <section class="fiche-content">\n          <h1>Fiche introuvable</h1>\n          <p>Cette rubrique n’existe pas ou son lien est incorrect.</p>\n        </section>\n      </article>\n    ', 
     void setDetailView();
-    Array.isArray(item.children) ? renderChildren(item, !1) : item.content && openContent(item.content, !1);
+    if (Array.isArray(item.children)) {
+      renderChildren(item, false);
+    } else if (item.href) {
+      window.location.href = item.href;
+    } else if (item.content) {
+      openContent(item.content, false);
+    }
 }
 
 backBtn.addEventListener("click", () => {
