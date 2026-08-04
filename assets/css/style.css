@@ -1252,6 +1252,36 @@ input[type=search]:focus {
 }
 
 /* Bouton Déconnexion */
+
+.connected-user-notifications {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(90,159,224,.72);
+  border-radius: 8px;
+  background: rgba(23,73,119,.88);
+  color: #e8f5ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.connected-user-notifications:hover,
+.connected-user-notifications:focus-visible {
+  background: rgba(38,104,164,.98);
+}
+
+.connected-user-notifications.active {
+  border-color: rgba(86,201,125,.78);
+  background: rgba(18,102,52,.92);
+  color: #dcffe8;
+}
+
+.connected-user-notifications:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
 .connected-user-logout {
   display: inline-flex !important;
   align-items: center;
@@ -1302,6 +1332,7 @@ input[type=search]:focus {
   }
 
   .connected-user-admin,
+  .connected-user-notifications,
   .connected-user-logout {
     width: 100%;
   }

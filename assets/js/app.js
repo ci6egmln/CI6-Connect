@@ -2263,6 +2263,46 @@ function injectFicheEditorStyles() {
     }
 
 
+
+    .fiche-editor-notification-box {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0 4px;
+      padding: 14px;
+      border: 1px solid rgba(72,145,218,.62);
+      border-radius: 10px;
+      background: rgba(20,63,108,.22);
+    }
+
+    .fiche-editor-notification-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #eaf5ff;
+      font-weight: 800;
+    }
+
+    .fiche-editor-notification-toggle input {
+      width: 20px;
+      height: 20px;
+      accent-color: #347fc4;
+    }
+
+    .fiche-editor-notification-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .fiche-editor-notification-options .wide {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 650px) {
+      .fiche-editor-notification-options { grid-template-columns: 1fr; }
+      .fiche-editor-notification-options .wide { grid-column: auto; }
+    }
+
     .fiche-editor-cover-box {
       display: grid;
       gap: 12px;
@@ -3950,6 +3990,59 @@ function openFicheEditor() {
         hidden
       ></div>
 
+      <section class="fiche-editor-notification-box">
+        <label class="fiche-editor-notification-toggle">
+          <input
+            type="checkbox"
+            id="editorNotifyUsers"
+            ${
+          currentEditableFiche.path === "content/news.md" ||
+          currentEditableFiche.path.startsWith("content/faq-")
+            ? "checked"
+            : ""
+        }
+            ${isVisitorMode() ? "disabled" : ""}
+          >
+          Envoyer une notification lors de la publication
+        </label>
+
+        <div id="editorNotificationOptions" class="fiche-editor-notification-options">
+          <div class="fiche-editor-field">
+            <label for="editorNotificationAudience">Destinataires</label>
+            <select id="editorNotificationAudience">
+              <option value="all">Tous les utilisateurs</option>
+              <option value="eleves">Élèves uniquement</option>
+              <option value="cadres">Cadres uniquement</option>
+            </select>
+          </div>
+
+          <div class="fiche-editor-field">
+            <label for="editorNotificationTitle">Titre de la notification</label>
+            <input
+              id="editorNotificationTitle"
+              type="text"
+              maxlength="100"
+              value="CI6 Connect — ${escapeHtml(meta.title || currentEditableFiche.item?.title || "Nouvelle information")}"
+            >
+          </div>
+
+          <div class="fiche-editor-field wide">
+            <label for="editorNotificationBody">Message</label>
+            <textarea
+              id="editorNotificationBody"
+              maxlength="240"
+              rows="2"
+              placeholder="Une nouvelle information est disponible."
+            >La fiche « ${escapeHtml(meta.title || currentEditableFiche.item?.title || "Nouvelle information")} » a été mise à jour.</textarea>
+          </div>
+
+          <label class="fiche-editor-notification-toggle wide">
+            <input type="checkbox" id="editorNotificationUrgent">
+            Notification importante (reste affichée plus longtemps)
+          </label>
+        </div>
+      </section>
+
       <div class="fiche-editor-actions">
         <button
           type="button"
@@ -4077,6 +4170,30 @@ function openFicheEditor() {
 
   const message =
     overlay.querySelector("#ficheEditorMessage");
+
+
+  const notifyUsersInput =
+    overlay.querySelector("#editorNotifyUsers");
+
+  const notificationOptions =
+    overlay.querySelector("#editorNotificationOptions");
+
+  function refreshNotificationOptions() {
+    const enabled = Boolean(notifyUsersInput?.checked);
+    notificationOptions.hidden = !enabled;
+    notificationOptions
+      .querySelectorAll("input, select, textarea")
+      .forEach(field => {
+        field.disabled = !enabled || isVisitorMode();
+      });
+  }
+
+  notifyUsersInput?.addEventListener(
+    "change",
+    refreshNotificationOptions
+  );
+
+  refreshNotificationOptions();
 
   function buildCompleteMarkdown() {
     const body =
@@ -5299,7 +5416,37 @@ function openFicheEditor() {
                     overlay
                       .querySelector("#editorFicheTitle")
                       .value
-                      .trim()
+                      .trim(),
+                  notify:
+                    Boolean(
+                      overlay
+                        .querySelector("#editorNotifyUsers")
+                        ?.checked
+                    ),
+                  notificationAudience:
+                    overlay
+                      .querySelector("#editorNotificationAudience")
+                      ?.value || "all",
+                  notificationTitle:
+                    overlay
+                      .querySelector("#editorNotificationTitle")
+                      ?.value
+                      .trim() || "",
+                  notificationBody:
+                    overlay
+                      .querySelector("#editorNotificationBody")
+                      ?.value
+                      .trim() || "",
+                  notificationUrgent:
+                    Boolean(
+                      overlay
+                        .querySelector("#editorNotificationUrgent")
+                        ?.checked
+                    ),
+                  notificationUrl:
+                    currentEditableFiche.item?.slug
+                      ? `/#${currentEditableFiche.item.slug}`
+                      : "/"
                 })
               }
             );
@@ -5670,6 +5817,130 @@ window.addEventListener(
   openFromHash
 );
 
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from(rawData, character => character.charCodeAt(0));
+}
+
+async function getPushRegistration() {
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("Ce navigateur ne prend pas en charge les notifications du site.");
+  }
+  await navigator.serviceWorker.register("/service-worker.js", { scope: "/" });
+  return navigator.serviceWorker.ready;
+}
+
+async function savePushSubscription(subscription) {
+  const response = await fetch("/push/subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ subscription: subscription.toJSON() })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Impossible d’enregistrer les notifications.");
+}
+
+async function removePushSubscription(subscription) {
+  const response = await fetch("/push/unsubscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ endpoint: subscription.endpoint })
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Impossible de désactiver les notifications.");
+  await subscription.unsubscribe();
+}
+
+async function configurePushButton(container, sessionData) {
+  if (
+    sessionData.type !== "user" ||
+    !["eleve", "cadre", "admin"].includes(sessionData.role)
+  ) return;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "connected-user-notifications";
+  button.textContent = "Activer les notifications";
+  container.appendChild(button);
+
+  if (!("Notification" in window) || !("PushManager" in window)) {
+    button.textContent = "Notifications indisponibles";
+    button.disabled = true;
+    return;
+  }
+
+  let registration;
+  let subscription;
+
+  async function refresh() {
+    try {
+      registration = await getPushRegistration();
+      subscription = await registration.pushManager.getSubscription();
+      button.textContent = subscription
+        ? "Notifications activées"
+        : Notification.permission === "denied"
+          ? "Notifications bloquées"
+          : "Activer les notifications";
+      button.classList.toggle("active", Boolean(subscription));
+      button.disabled = false;
+    } catch (error) {
+      button.textContent = "Notifications indisponibles";
+      button.disabled = true;
+      console.error(error);
+    }
+  }
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      registration ||= await getPushRegistration();
+      subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        const confirmed = window.confirm("Désactiver les notifications CI6 Connect sur cet appareil ?");
+        if (confirmed) await removePushSubscription(subscription);
+        await refresh();
+        return;
+      }
+
+      if (Notification.permission === "denied") {
+        throw new Error("Les notifications sont bloquées dans les réglages du navigateur. Autorisez-les pour ce site.");
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        throw new Error("L’autorisation de notification n’a pas été accordée.");
+      }
+
+      const keyResponse = await fetch("/push/public-key", {
+        headers: { "Accept": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store"
+      });
+      const keyData = await keyResponse.json();
+      if (!keyResponse.ok) throw new Error(keyData.error || "Clé de notification indisponible.");
+
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
+      });
+      await savePushSubscription(subscription);
+      await refresh();
+      window.alert("Les notifications CI6 Connect sont activées sur cet appareil.");
+    } catch (error) {
+      window.alert(error.message);
+      await refresh();
+    }
+  });
+
+  await refresh();
+}
+
 async function displayConnectedUser() {
   if (document.querySelector(".connected-user")) {
     return;
@@ -5778,6 +6049,11 @@ connectedActions.className =
       );
     }
     
+    await configurePushButton(
+      connectedActions,
+      data
+    );
+
     /*
      * Bouton Déconnexion
      * visible pour tous les comptes.
