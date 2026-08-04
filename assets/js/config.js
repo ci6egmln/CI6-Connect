@@ -1055,9 +1055,45 @@ window.CI6_RUBRIQUES = [
     title: "secretariat",
     description: "Informations administratives",
     slug: "secretariat",
-    card: "assets/cards/secretariat.webp",
-	content: "content/secretariat.md",
-    children: []
+    card: "assets/cards/secretariat.webp",	
+    children: [
+		{
+        id: "informations",
+        title: "Documents et informations",
+        slug: "secretariat-informations",
+        description: "Toutes informations relatives à la gestion administrative de la scolarité",
+		keywords : ["secretariat", "secretaire", "information", "natation", "FIR"],
+        content: "content/secretariat-informations.md",
+        card: "assets/cards/secretariat-informations.webp"
+    },
+		{
+        id: "competences",
+        title: "Compétences particulières",
+        slug: "secretariat-competences",
+        description: "Toutes informations relatives à la gestion des situations familiales",
+		keywords : ["secretariat", "secretaire", "cheval", "competences", "moto", "equitation", "ski", "alpinisme"],
+        content: "content/secretariat-competences.md",
+        card: "assets/cards/secretariat-competences.webp"
+    },
+		{
+        id: "residence",
+        title: "Affectation, changement de résidence",
+        slug: "secretariat-residence",
+        description: "Toutes informations relatives à la gestion des situations familiales",
+		keywords : ["secretariat", "secretaire", "residence", "déménagement", "affectation", "meuble", "prime de rideaux", "militaire"],
+        content: "content/secretariat-residence.md",
+        card: "assets/cards/secretariat-residence.webp"
+    },
+		{
+        id: "union",
+        title: "Union, PACS, mariage",
+        slug: "secretariat-union",
+        description: "Toutes informations relatives à la gestion des situations familiales",
+		keywords : ["secretariat", "secretaire", "mariage", "pacs", "naissance"],
+        content: "content/secretariat-union.md",
+        card: "assets/cards/secretariat-union.webp"
+    },
+	]
   },
 	
   /*****************************************************************************************/
