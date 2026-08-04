@@ -10,6 +10,17 @@ quote: "Chaque pierre du bâtiment Indochine porte l'empreinte des générations
 - notre devise : " à coeur vaillant, rien d'impossible "
 :::
 
+:::image-texte bleu | La maison des dragons | ℹ️
+assets/photos/accueil-compagnie-batiment-6.webp
+
+La 6e compagnie occupe la totalité du bâtiment **Indochine**, situé à proximité de la place d’armes.
+
+Le bâtiment est organisé en quatre niveaux :
+
+- **le rez-de-chaussée** accueille le bureau de semaine, occupé jour et nuit par l’élève de jour compagnie, les bureaux des cadres, le bureau de la promotion ainsi que la salle de cours, dite **« salle 6 »**, d’une capacité équivalente à un peloton ;
+- **les trois étages** supérieurs regroupent les hébergements et les sanitaires. Les personnels féminins et masculins sont hébergés séparément.
+:::
+
 :::bloc gris | Code d'honneur du dragon | 📖
 **Le Dragon sert avec honneur.**
 Il place la Nation, la loi et la protection de la population au-dessus de son intérêt personnel.
@@ -36,19 +47,6 @@ Il tient sa parole, reconnaît ses erreurs et en tire les enseignements nécessa
 Dans sa tenue, son comportement et son engagement, il se montre digne de ceux qui l’ont précédé et exemplaire pour ceux qui le suivront.
 
 **Exigeant envers lui-même, loyal envers les autres, fidèle à la Nation : tel est le Dragon de la 6e compagnie.**
-:::
-
-:::image-texte bleu | La maison des dragons | ℹ️
-assets/photos/accueil-compagnie-batiment-6.webp
-
-![Le bâtiment Indochine](assets/photos/accueil-compagnie-indochine-loin.webp)
-
-La 6e compagnie occupe le bâtiment **Indochine**, situé à proximité de la place d’armes.
-
-Le bâtiment est réparti sur quatre niveaux :
-
-- le rez-de-chaussée accueille le bureau de semaine, occupé jour et nuit par l’élève de jour compagnie, les bureaux des cadres, le bureau de la promotion ainsi que la salle de cours, dite **« salle 6 »**, d’une capacité équivalente à un peloton ;
-- les trois étages supérieurs regroupent les hébergements et les sanitaires. Les personnels féminins et masculins sont hébergés séparément.
 :::
 
 :::bloc bleu | Constitution de la compagnie | ℹ️
