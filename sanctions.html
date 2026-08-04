@@ -10,9 +10,9 @@
 </head>
 <body><main class="wrap">
 <div class="top"><div><div style="color:#aaa">ESPACE CADRES</div><h1>Suivi des sanctions</h1></div><a href="/#espace-cadres">Retour à l’espace cadres</a></div>
-<section class="panel"><label for="search">Rechercher un élève par NIGEND, nom ou prénom</label><input id="search" autocomplete="off" placeholder="Ex. 123456 ou DUPONT"><div id="results" class="results"></div></section>
+<section class="panel"><div class="student-head"><div style="flex:1"><label for="search">Rechercher un élève par NIGEND, nom ou prénom</label><input id="search" autocomplete="off" placeholder="Ex. 123456 ou DUPONT"><div id="results" class="results"></div></div><div class="actions"><button id="exportCompany" class="btn secondary" type="button">Exporter la compagnie</button></div></div></section>
 <section id="studentPanel" class="panel" hidden>
-<div class="student-head"><div><h2 id="studentName"></h2><div id="studentMeta" class="meta"></div></div><div class="actions"><button id="exportStudent" class="btn secondary">Exporter cet élève</button><button id="exportCompany" class="btn secondary">Exporter la compagnie</button></div></div>
+<div class="student-head"><div><h2 id="studentName"></h2><div id="studentMeta" class="meta"></div></div><div class="actions"><button id="exportStudent" class="btn secondary">Exporter cet élève</button></div></div>
 <div id="counts" class="counts"></div>
 <form id="sanctionForm" class="grid">
 <input type="hidden" id="editId">

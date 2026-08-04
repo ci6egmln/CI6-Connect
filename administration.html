@@ -298,6 +298,34 @@
   }
   
   .search-error,
+  #accountSearchResults {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  #accountSearchResults button {
+    width: 100%;
+    padding: 11px 12px;
+    text-align: left;
+    color: #f4f4f4;
+    background: #171b1f;
+    border: 1px solid #4b4f53;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #accountSearchResults button:hover,
+  #accountSearchResults button:focus-visible {
+    border-color: #d6ad4b;
+    outline: none;
+  }
+
+  #accountSearchResults .meta {
+    color: #b8b8b8;
+    font-size: 0.88rem;
+  }
+
   .search-info {
     margin-top: 16px;
     padding: 12px 14px;
@@ -310,6 +338,34 @@
     background: rgba(110, 20, 20, 0.3);
   }
   
+  #accountSearchResults {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  #accountSearchResults button {
+    width: 100%;
+    padding: 11px 12px;
+    text-align: left;
+    color: #f4f4f4;
+    background: #171b1f;
+    border: 1px solid #4b4f53;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #accountSearchResults button:hover,
+  #accountSearchResults button:focus-visible {
+    border-color: #d6ad4b;
+    outline: none;
+  }
+
+  #accountSearchResults .meta {
+    color: #b8b8b8;
+    font-size: 0.88rem;
+  }
+
   .search-info {
     color: #dcecff;
     border: 1px solid rgba(80, 145, 220, 0.65);
@@ -1560,18 +1616,17 @@
     
       <form id="searchForm" class="search-form">
         <label for="searchUsername">
-          NIGEND à 6 chiffres
+          NIGEND ou nom
         </label>
     
         <div class="search-row">
           <input
             id="searchUsername"
             name="username"
-            type="text"
-            inputmode="numeric"
-            maxlength="6"
-            pattern="[0-9]{6}"
-            placeholder="Ex. 123456"
+            type="search"
+            maxlength="120"
+            placeholder="Ex. 123456 ou DUPONT"
+            autocomplete="off"
             required
           >
     
@@ -1582,6 +1637,7 @@
       </form>
     
       <div id="searchMessage"></div>
+      <div id="accountSearchResults" class="results"></div>
     
       <article id="userResult" class="user-result" hidden>
         <div class="user-result-header">
@@ -2344,144 +2400,119 @@
     ).format(date);
   }
 
-  searchForm.addEventListener(
-    "submit",
-    async event => {
-      event.preventDefault();
+  const accountSearchResults =
+    document.getElementById("accountSearchResults");
 
-      userResult.hidden = true;
-      searchMessage.className = "search-info";
-      searchMessage.textContent = "Recherche en cours…";
+  function displayAccount(user) {
+    currentUser = user;
+    actionMessage.textContent = "";
+    actionMessage.className = "";
+    resetPasswordButton.disabled = false;
 
-      const username =
-        document
-          .getElementById("searchUsername")
-          .value
-          .trim();
+    document.getElementById("resultUsername").textContent = user.username;
 
-      try {
-        const response = await fetch(
-          `/admin/user?username=${encodeURIComponent(username)}`,
-          {
-            headers: {
-              "Accept": "application/json"
-            }
-          }
-        );
+    const status = document.getElementById("resultStatus");
+    status.textContent = user.active ? "Actif" : "Désactivé";
+    status.className =
+      "status-badge " + (user.active ? "status-active" : "status-disabled");
 
-        const data = await response.json();
+    document.getElementById("resultNom").textContent =
+      user.nom || "Non renseigné";
+    document.getElementById("resultRole").textContent = formatRole(user.role);
+    document.getElementById("resultPasswordState").textContent =
+      user.mustChangePassword ? "Changement obligatoire" : "Mot de passe personnel";
+    document.getElementById("resultSessionVersion").textContent = user.sessionVersion;
+    document.getElementById("resultCreatedAt").textContent = formatDate(user.createdAt);
 
-        if (!response.ok) {
-          throw new Error(
-            data.error || "Recherche impossible."
-          );
-        }
-
-        const user = data.user;
-
-        currentUser = user;
-          actionMessage.textContent = "";
-          actionMessage.className = "";
-          resetPasswordButton.disabled = false;
-        
-        document.getElementById(
-          "resultUsername"
-        ).textContent = user.username;
-
-        const status =
-          document.getElementById("resultStatus");
-
-        status.textContent =
-          user.active ? "Actif" : "Désactivé";
-
-        status.className =
-          "status-badge " +
-          (
-            user.active
-              ? "status-active"
-              : "status-disabled"
-          );
-
-        document.getElementById(
-          "resultNom"
-        ).textContent = user.nom || "Non renseigné";
-
-        document.getElementById(
-          "resultRole"
-        ).textContent = formatRole(user.role);
-
-        document.getElementById(
-          "resultPasswordState"
-        ).textContent =
-          user.mustChangePassword
-            ? "Changement obligatoire"
-            : "Mot de passe personnel";
-
-        document.getElementById(
-          "resultSessionVersion"
-        ).textContent = user.sessionVersion;
-
-        document.getElementById(
-          "resultCreatedAt"
-        ).textContent = formatDate(user.createdAt);
-
-        searchMessage.textContent = "";
-        searchMessage.className = "";
-        if (user.role === "admin") {
-            toggleActiveButton.textContent =
-              "Compte administrateur protégé";
-          
-            toggleActiveButton.className =
-              "account-action-button";
-          
-            toggleActiveButton.disabled = true;
-          
-          } else if (user.active) {
-            toggleActiveButton.textContent =
-              "Désactiver le compte";
-          
-            toggleActiveButton.className =
-              "account-action-button";
-          
-            toggleActiveButton.disabled = false;
-          
-          } else {
-            toggleActiveButton.textContent =
-              "Réactiver le compte";
-          
-            toggleActiveButton.className =
-              "account-action-button activate";
-          
-            toggleActiveButton.disabled = false;
-          }
-          if (user.role === "cadre") {
-            changeRoleButton.hidden = false;
-            changeRoleButton.disabled = false;
-            changeRoleButton.textContent =
-              "Passer administrateur";
-            changeRoleButton.className =
-              "account-action-button change-role";
-          
-          } else if (user.role === "admin") {
-            changeRoleButton.hidden = false;
-            changeRoleButton.disabled = false;
-            changeRoleButton.textContent =
-              "Revenir cadre";
-            changeRoleButton.className =
-              "account-action-button change-role remove-admin";
-          
-          } else {
-            changeRoleButton.hidden = true;
-          }
-        
-        userResult.hidden = false;
-
-      } catch (error) {
-        searchMessage.className = "search-error";
-        searchMessage.textContent = error.message;
-      }
+    if (user.role === "admin") {
+      toggleActiveButton.textContent = "Compte administrateur protégé";
+      toggleActiveButton.className = "account-action-button";
+      toggleActiveButton.disabled = true;
+    } else if (user.active) {
+      toggleActiveButton.textContent = "Désactiver le compte";
+      toggleActiveButton.className = "account-action-button";
+      toggleActiveButton.disabled = false;
+    } else {
+      toggleActiveButton.textContent = "Réactiver le compte";
+      toggleActiveButton.className = "account-action-button activate";
+      toggleActiveButton.disabled = false;
     }
-  );
+
+    if (user.role === "cadre") {
+      changeRoleButton.hidden = false;
+      changeRoleButton.disabled = false;
+      changeRoleButton.textContent = "Passer administrateur";
+      changeRoleButton.className = "account-action-button change-role";
+    } else if (user.role === "admin") {
+      changeRoleButton.hidden = false;
+      changeRoleButton.disabled = false;
+      changeRoleButton.textContent = "Revenir cadre";
+      changeRoleButton.className =
+        "account-action-button change-role remove-admin";
+    } else {
+      changeRoleButton.hidden = true;
+    }
+
+    accountSearchResults.innerHTML = "";
+    searchMessage.textContent = "";
+    searchMessage.className = "";
+    userResult.hidden = false;
+  }
+
+  searchForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    userResult.hidden = true;
+    accountSearchResults.innerHTML = "";
+    searchMessage.className = "search-info";
+    searchMessage.textContent = "Recherche en cours…";
+
+    const query = document.getElementById("searchUsername").value.trim();
+
+    try {
+      const response = await fetch(
+        `/admin/user?q=${encodeURIComponent(query)}`,
+        { headers: { "Accept": "application/json" } }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Recherche impossible.");
+      }
+
+      if (data.user) {
+        displayAccount(data.user);
+        return;
+      }
+
+      const users = Array.isArray(data.users) ? data.users : [];
+      if (!users.length) {
+        throw new Error("Aucun compte trouvé.");
+      }
+
+      searchMessage.className = "search-info";
+      searchMessage.textContent =
+        users.length === 1
+          ? "1 compte trouvé."
+          : `${users.length} comptes trouvés. Sélectionnez un compte.`;
+
+      accountSearchResults.innerHTML = users.map(user => `
+        <button type="button" data-username="${String(user.username).replace(/"/g, "&quot;")}">
+          <strong>${String(user.nom || "Nom non renseigné")}</strong><br>
+          <span class="meta">NIGEND ${user.username} — ${formatRole(user.role)} — ${user.active ? "Actif" : "Désactivé"}</span>
+        </button>
+      `).join("");
+
+      accountSearchResults.querySelectorAll("button").forEach(button => {
+        button.addEventListener("click", () => {
+          const user = users.find(item => item.username === button.dataset.username);
+          if (user) displayAccount(user);
+        });
+      });
+    } catch (error) {
+      searchMessage.className = "search-error";
+      searchMessage.textContent = error.message;
+    }
+  });
     toggleActiveButton.addEventListener(
   "click",
   async () => {
