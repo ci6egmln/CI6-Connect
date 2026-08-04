@@ -75,7 +75,7 @@ window.CI6_RUBRIQUES = [
         description: "Vivre sa scolarité dans la ville de Montluçon",
 		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
         content: "content/accueil-demarches.md",
-        card: "assets/cards/accueil-secretaire-AE.webp"
+        card: "assets/cards/accueil-demarches.webp"
     }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
