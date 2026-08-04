@@ -1435,3 +1435,52 @@ input[type=search]:focus {
 .pelotons-grid .peloton-tile .tile-text {
   display: none !important;
 }
+
+/* ==========================================================
+   BOUTONS DE MISE EN FORME DANS L’ÉDITEUR DE FICHE
+   ========================================================== */
+
+.fiche-editor-format-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+}
+
+.fiche-editor-format-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(214,173,58,.48);
+  border-radius: 7px;
+  background: rgba(255,255,255,.055);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease;
+}
+
+.fiche-editor-format-button:hover {
+  border-color: var(--gold-light);
+  background: rgba(184,131,24,.18);
+  transform: translateY(-1px);
+}
+
+.fiche-editor-format-button:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+.fiche-editor-format-button strong,
+.fiche-editor-format-button em,
+.fiche-editor-format-button u {
+  color: inherit;
+  font-size: inherit;
+}
+
