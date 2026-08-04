@@ -67,6 +67,16 @@ window.CI6_RUBRIQUES = [
         content: "content/accueil-parcours.md",
         card: "assets/cards/accueil-parcours.webp"
     }, 
+		/* DÉMARCHES ADMINISTRATIVE INCORPORATION */
+	    {
+        id: "demarches",
+        title: "Démarches administratives d'incorporation",
+        slug: "accueil-demarches",
+        description: "Vivre sa scolarité dans la ville de Montluçon",
+		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
+        content: "content/accueil-demarches.md",
+        card: "assets/cards/accueil-secretaire-AE.webp"
+    }, 
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
       id: "fournitures",
