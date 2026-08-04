@@ -5,8 +5,9 @@ cover: "assets/photos/accueil-montlucon-couverture-3.webp"
 quote: "Entre patrimoine, commerces et services, Montluçon vous accompagne tout au long de votre formation."
 ---
 :::bloc bleu | Présentation de Montluçon | ℹ️
-Montluçon est une ville moyenne du département de l'Allier. Avec ses 33.000 habitants elle est la plus grande ville du département devant Vichy et Moulins, la préfecture. 
-La ville est le centre d'une aire urbaine de près de 80 000 habitants.
+Montluçon est une ville moyenne du département de l'Allier. Sous-préfecture de **33.000 habitants** elle est la plus grande ville du département devant Vichy et Moulins, la préfecture. 
+Elle est aujourd'hui le centre d'une aire urbaine de près de 80 000 habitants.
+
 Cette ville fortifiée était autrefois stratégique car elle se situait à la frontière de plusieurs grandes entités, le Bourbonnais, le Berry, la Marche et l'Auvergne.
 Située dans l'ouest de la province du Bourbonnais, elle fut longtemps rivale de Moulins, qui était une ville bien plus peuplée et influente. Elle est également culturellement très proche de la Creuse voisine, dont le territoire était englobé dans l'ancienne province de la Marche.
 
