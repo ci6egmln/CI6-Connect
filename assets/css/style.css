@@ -1454,11 +1454,14 @@ input[type=search]:focus {
   width: 38px;
   height: 34px;
   padding: 0;
-  border: 1px solid rgba(214,173,58,.48);
+  border: 1px solid #b88318 !important;
   border-radius: 7px;
-  background: rgba(255,255,255,.055);
-  color: #fff;
+  background: #f4d77a !important;
+  color: #090a0b !important;
   font-size: 16px;
+  font-weight: 800;
+  text-shadow: none !important;
+  opacity: 1 !important;
   cursor: pointer;
   transition:
     border-color .18s ease,
@@ -1467,8 +1470,9 @@ input[type=search]:focus {
 }
 
 .fiche-editor-format-button:hover {
-  border-color: var(--gold-light);
-  background: rgba(184,131,24,.18);
+  border-color: #ffe99d !important;
+  background: #ffe99d !important;
+  color: #050607 !important;
   transform: translateY(-1px);
 }
 
