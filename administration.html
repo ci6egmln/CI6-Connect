@@ -1767,19 +1767,16 @@
   </div>
 
   <p class="import-description">
-    Le fichier doit contenir trois colonnes :
-    <strong>nigend</strong>,
-    <strong>nom</strong> et
-    <strong>role</strong>.
+    Le fichier doit contenir les colonnes <strong>nigend</strong>, <strong>nom</strong> et <strong>role</strong>. Pour les élèves, ajoutez <strong>prenom</strong>, <strong>peloton</strong> et <strong>promotion</strong> : le même import crée le compte et alimente le suivi disciplinaire.
     Les rôles acceptés sont
     <strong>eleve</strong> et
     <strong>cadre</strong>.
   </p>
 
   <div class="csv-example">
-    <code>nigend;nom;role</code>
-    <code>123456;DUPONT Jean;eleve</code>
-    <code>123457;MARTIN Paul;cadre</code>
+    <code>nigend;nom;prenom;peloton;promotion;role</code>
+    <code>123456;DUPONT;Jean;1;480e;eleve</code>
+    <code>123457;MARTIN;Paul;;;cadre</code>
   </div>
 
   <div class="import-field">
@@ -1816,6 +1813,9 @@
             <th>Ligne</th>
             <th>NIGEND</th>
             <th>Nom</th>
+            <th>Prénom</th>
+            <th>Peloton</th>
+            <th>Promotion</th>
             <th>Rôle</th>
             <th>Contrôle</th>
           </tr>
@@ -3294,6 +3294,10 @@ csvFile.addEventListener(
         ].includes(header)
       );
 
+    const prenomIndex = headers.findIndex(header => ["prenom", "prénom", "firstname"].includes(header));
+    const pelotonIndex = headers.findIndex(header => ["peloton", "section"].includes(header));
+    const promotionIndex = headers.findIndex(header => ["promotion", "promo"].includes(header));
+
     const roleIndex =
       headers.findIndex(header =>
         [
@@ -3334,6 +3338,10 @@ csvFile.addEventListener(
             columns[nomIndex] || ""
           ).trim();
 
+        const prenom = prenomIndex >= 0 ? String(columns[prenomIndex] || "").trim() : "";
+        const peloton = pelotonIndex >= 0 ? String(columns[pelotonIndex] || "").trim() : "";
+        const promotion = promotionIndex >= 0 ? String(columns[promotionIndex] || "").trim() : "";
+
         const role =
           normalizeCsvRole(
             columns[roleIndex]
@@ -3360,6 +3368,10 @@ csvFile.addEventListener(
           );
         }
 
+        if (role === "eleve" && !peloton) {
+          errors.push("Peloton manquant");
+        }
+
         if (
           username &&
           seenUsernames.has(username)
@@ -3376,6 +3388,9 @@ csvFile.addEventListener(
         return {
           username,
           nom,
+          prenom,
+          peloton,
+          promotion,
           role,
           lineNumber: index + 2,
           errors
@@ -3398,6 +3413,9 @@ csvFile.addEventListener(
           <td>${user.lineNumber}</td>
           <td>${user.username || "—"}</td>
           <td>${user.nom || "—"}</td>
+          <td>${user.prenom || "—"}</td>
+          <td>${user.peloton || "—"}</td>
+          <td>${user.promotion || "—"}</td>
           <td>${user.role || "—"}</td>
           <td class="${
             user.errors.length
@@ -3451,7 +3469,7 @@ startImportButton.addEventListener(
     }
 
     const confirmed = window.confirm(
-      `Importer ${validUsers.length} compte(s) ?`
+      `Importer ${validUsers.length} compte(s) et mettre à jour les fiches élèves ?`
     );
 
     if (!confirmed) {
@@ -3547,7 +3565,8 @@ startImportButton.addEventListener(
       ${importedAccounts.length}
       compte(s) créé(s).<br>
       ${existingAccounts.length}
-      compte(s) déjà existant(s).<br><br>
+      compte(s) déjà existant(s) mis à jour.<br>
+      Les élèves ont été synchronisés avec le suivi disciplinaire.<br><br>
       ${
         importedAccounts.length > 0
           ? "Téléchargez maintenant le fichier contenant les mots de passe provisoires."
