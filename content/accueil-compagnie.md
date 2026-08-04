@@ -1,7 +1,7 @@
 ---
 title: "La 6ème compagnie"
 icon: "assets/cards/accueil-compagnie.png"
-cover: "assets/photos/accueil-compagnie-couverture.webp"
+cover: "assets/photos/accueil-compagnie-couverture-2.webp"
 quote: "Chaque pierre du bâtiment Indochine porte l'empreinte des générations d'élèves de la 6ᵉ compagnie qui s'y sont succédé. À vous d'y laisser la vôtre."
 ---
 :::bloc bleu | La 6ème compagnie en symboles | ℹ️
