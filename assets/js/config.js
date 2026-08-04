@@ -70,7 +70,7 @@ window.CI6_RUBRIQUES = [
 		/* DÉMARCHES ADMINISTRATIVE INCORPORATION */
 	    {
         id: "demarches",
-        title: "Démarches administratives d'incorporation",
+        title: "Vos démarches d'incorporation",
         slug: "accueil-demarches",
         description: "Vivre sa scolarité dans la ville de Montluçon",
 		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
