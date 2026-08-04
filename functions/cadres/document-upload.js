@@ -104,7 +104,7 @@ export async function onRequestPost(context) {
 
   if (!document || typeof document.arrayBuffer !== "function") {
     return jsonResponse(
-      { error: "Aucun document valide n’a été transmise." },
+      { error: "Aucun document valide n’a été transmis." },
       400
     );
   }
@@ -117,16 +117,19 @@ export async function onRequestPost(context) {
   }
 
   const allowedExtensions = new Set([
-    "pdf","doc","docx","xls","xlsx","ods","odt",
-    "ppt","pptx","csv","txt","zip"
+    "pdf",
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "ods",
+    "odt",
+    "ppt",
+    "pptx",
+    "csv",
+    "txt",
+    "zip"
   ]);
-
-  if (!allowedTypes.has(document.type)) {
-    return jsonResponse(
-      { error: "Format refusé. Utilisez JPG, PNG, WEBP ou GIF." },
-      415
-    );
-  }
 
   if (document.size > 5 * 1024 * 1024) {
     return jsonResponse(
@@ -135,12 +138,23 @@ export async function onRequestPost(context) {
     );
   }
 
-  const extension = extensionFromFile(document);
+  const extension =
+    extensionFromDocument(document);
 
   if (!extension) {
     return jsonResponse(
       { error: "L’extension du document n’a pas pu être déterminée." },
       400
+    );
+  }
+
+  if (!allowedExtensions.has(extension)) {
+    return jsonResponse(
+      {
+        error:
+          "Format refusé. Utilisez PDF, DOC, DOCX, XLS, XLSX, ODS, ODT, PPT, PPTX, CSV, TXT ou ZIP."
+      },
+      415
     );
   }
 
