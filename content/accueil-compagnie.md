@@ -38,7 +38,9 @@ Dans sa tenue, son comportement et son engagement, il se montre digne de ceux qu
 **Exigeant envers lui-même, loyal envers les autres, fidèle à la Nation : tel est le Dragon de la 6e compagnie.**
 :::
 
-:::bloc bleu | La maison des dragons | ℹ️
+:::image-texte bleu | La maison des dragons | ℹ️
+assets/photos/accueil-compagnie-batiment-6.webp
+
 ![Le bâtiment Indochine](assets/photos/accueil-compagnie-indochine-loin.webp)
 
 La 6e compagnie occupe le bâtiment **Indochine**, situé à proximité de la place d’armes.
