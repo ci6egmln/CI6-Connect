@@ -4993,11 +4993,17 @@ function openFicheEditor() {
           "fichePath",
           currentEditableFiche?.path || ""
         );
+        const currentFicheTitle =
+          overlay
+            .querySelector("#editorFicheTitle")
+            ?.value
+            ?.trim() ||
+          currentEditableFiche?.item?.title ||
+          "";
+
         formData.append(
           "ficheTitle",
-          ficheTitle.value.trim() ||
-          currentEditableFiche?.item?.title ||
-          ""
+          currentFicheTitle
         );
 
         const response = await fetch(
