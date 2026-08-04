@@ -8,8 +8,13 @@ assets/photos/accueil-ecole-portail-bleu.webp
 
 L'école de Montluçon est la plus grande école de gendarmerie Française :
 
+- 49 bâtiments
 - 11 compagnies 
-- 1310 élèves en même temps
+- 2 sections spécialisées
+- 3 sites
+- 79 hectares incluant un terrain d'entraînement
+- 1300 élèves simultanément
+- 23 ans : moyenne d'âge des élèves
 - 150 cadres formateurs 
-- 200 personnels militaires ou civils de soutien
+- 150 personnels militaires ou civils de soutien
 :::
