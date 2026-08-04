@@ -1128,7 +1128,7 @@ window.CI6_RUBRIQUES = [
     children: [
 		{
         id: "service",
-        title: "Planning prévisionnel et feuille hebdomadaire",
+        title: "Planning et feuille hebdomadaire",
         slug: "cadres-service",
         description: "Planning prévisionnel et feuille hebdomadaire",
         content: "content/cadres-service.md",
