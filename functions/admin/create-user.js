@@ -1,6 +1,10 @@
+import {
+  IDENTIFIER_PATTERN,
+  generateUniqueIdentifier
+} from "../_shared/identifiers.js";
+
 const encoder = new TextEncoder();
 const ITERATIONS = 100000;
-const NEW_IDENTIFIER_PATTERN = /^[A-Z]{3}\d{3}$/;
 
 function bytesToBase64(bytes) {
   let binary = "";
@@ -24,29 +28,6 @@ function jsonResponse(data, status = 200) {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
   });
-}
-
-function randomIndex(max) {
-  const values = new Uint32Array(1);
-  crypto.getRandomValues(values);
-  return values[0] % max;
-}
-
-function candidateIdentifier() {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  let value = "";
-  for (let i = 0; i < 3; i += 1) value += letters[randomIndex(letters.length)];
-  for (let i = 0; i < 3; i += 1) value += String(randomIndex(10));
-  return value;
-}
-
-async function generateUniqueIdentifier(db) {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const candidate = candidateIdentifier();
-    const existing = await db.prepare("SELECT 1 FROM users WHERE username = ? LIMIT 1").bind(candidate).first();
-    if (!existing) return candidate;
-  }
-  throw new Error("Impossible de générer un identifiant unique.");
 }
 
 async function ensureDisciplineSchema(db) {
@@ -96,13 +77,16 @@ export async function onRequestPost(context) {
     if (password.length < 12) return jsonResponse({ error: "Le mot de passe doit contenir au moins 12 caractères." }, 400);
 
     await ensureDisciplineSchema(context.env.DB);
-    const username = await generateUniqueIdentifier(context.env.DB);
-    if (!NEW_IDENTIFIER_PATTERN.test(username)) throw new Error("Identifiant généré invalide.");
+    const displayName = [nom, prenom].filter(Boolean).join(" ");
+    const username = await generateUniqueIdentifier(
+      context.env.DB,
+      role,
+      nom
+    );
+    if (!IDENTIFIER_PATTERN.test(username)) throw new Error("Identifiant généré invalide.");
 
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const passwordHash = await hashPassword(password, salt);
-    const displayName = [nom, prenom].filter(Boolean).join(" ");
-
     const statements = [
       context.env.DB.prepare(`
         INSERT INTO users (

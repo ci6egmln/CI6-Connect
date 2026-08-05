@@ -115,6 +115,42 @@ async function verifyPassword(password, user) {
   }
 }
 
+function passwordDifference(firstValue, secondValue) {
+  const first = Array.from(String(firstValue || ""));
+  const second = Array.from(String(secondValue || ""));
+  const previous = Array.from(
+    { length: second.length + 1 },
+    (_, index) => index
+  );
+
+  for (let firstIndex = 0; firstIndex < first.length; firstIndex += 1) {
+    const current = [firstIndex + 1];
+
+    for (let secondIndex = 0; secondIndex < second.length; secondIndex += 1) {
+      current.push(Math.min(
+        current[secondIndex] + 1,
+        previous[secondIndex + 1] + 1,
+        previous[secondIndex] +
+          (first[firstIndex] === second[secondIndex] ? 0 : 1)
+      ));
+    }
+
+    previous.splice(0, previous.length, ...current);
+  }
+
+  return previous[second.length];
+}
+
+function passwordIsSufficientlyDifferent(currentPassword, newPassword) {
+  const referenceLength = Math.max(
+    Array.from(currentPassword).length,
+    Array.from(newPassword).length
+  );
+
+  return passwordDifference(currentPassword, newPassword) >=
+    Math.ceil(referenceLength / 2);
+}
+
 /* ---------- Signature des sessions ---------- */
 
 async function createHmacKey(secret) {
@@ -428,8 +464,13 @@ export async function onRequest(context) {
       );
     }
 
-    const username =
+    const enteredUsername =
       String(formData.get("username") || "").trim();
+
+    const individualUsername =
+      /^(?:[A-Za-z]{3}\d{3}|\d{6})$/.test(enteredUsername)
+        ? enteredUsername.toUpperCase()
+        : "";
 
     const password =
       String(formData.get("password") || "");
@@ -440,7 +481,7 @@ export async function onRequest(context) {
 
     let sessionData = null;
 
-    if (/^(?:[A-Za-z]{3}\d{3}|\d{6})$/.test(username)) {
+    if (individualUsername) {
       const user = await context.env.DB
         .prepare(`
           SELECT
@@ -455,7 +496,7 @@ export async function onRequest(context) {
           WHERE username = ?
           LIMIT 1
         `)
-        .bind(username)
+        .bind(individualUsername)
         .first();
 
       if (
@@ -477,7 +518,7 @@ export async function onRequest(context) {
         !sessionData &&
         context.env.SITE_USERNAME &&
         context.env.SITE_PASSWORD &&
-        username === context.env.SITE_USERNAME &&
+        enteredUsername === context.env.SITE_USERNAME &&
         password === context.env.SITE_PASSWORD
       ) {
         const collectiveSetting =
@@ -577,6 +618,9 @@ export async function onRequest(context) {
       );
     }
 
+    const currentPassword =
+      String(formData.get("currentPassword") || "");
+
     const newPassword =
       String(formData.get("newPassword") || "");
 
@@ -598,6 +642,34 @@ export async function onRequest(context) {
     }
 
     try {
+      const currentUser = await context.env.DB
+        .prepare(`
+          SELECT password_hash, password_salt
+          FROM users
+          WHERE username = ?
+            AND active = 1
+          LIMIT 1
+        `)
+        .bind(session.username)
+        .first();
+
+      if (
+        !currentUser ||
+        !await verifyPassword(currentPassword, currentUser)
+      ) {
+        return redirectResponse(
+          request,
+          "/change-password?error=current"
+        );
+      }
+
+      if (!passwordIsSufficientlyDifferent(currentPassword, newPassword)) {
+        return redirectResponse(
+          request,
+          "/change-password?error=similarity"
+        );
+      }
+
       const salt =
         crypto.getRandomValues(new Uint8Array(16));
 
@@ -726,6 +798,29 @@ export async function onRequest(context) {
   context.data.session = session;
 
   /*
+   * Aucun espace fonctionnel ni aucune API métier n'est accessible
+   * tant que le mot de passe provisoire n'a pas été remplacé.
+   */
+  if (
+    session.type === "user" &&
+    session.mustChangePassword
+  ) {
+    if (
+      path === "/change-password" &&
+      request.method === "GET"
+    ) {
+      const response = await context.next();
+      return noStoreResponse(response);
+    }
+
+    return redirectResponse(
+      request,
+      "/change-password",
+      302
+    );
+  }
+
+  /*
    * Le visiteur peut parcourir la structure du site,
    * mais ne reçoit jamais les véritables fiches Markdown
    * ni les photographies internes.
@@ -839,25 +934,6 @@ export async function onRequest(context) {
 
     const response = await context.next();
     return noStoreResponse(response);
-  }
-
-  if (
-    session.type === "user" &&
-    session.mustChangePassword
-  ) {
-    if (
-      path === "/change-password" &&
-      request.method === "GET"
-    ) {
-      const response = await context.next();
-      return noStoreResponse(response);
-    }
-
-    return redirectResponse(
-      request,
-      "/change-password",
-      302
-    );
   }
 
   if (

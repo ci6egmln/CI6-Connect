@@ -8,63 +8,11 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-function normalizeLetters(value) {
-  return String(value || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^A-Za-z]/g, "")
-    .toUpperCase();
-}
-
-function cadrePrefix(displayName) {
-  const firstPart = String(displayName || "")
-    .trim()
-    .split(/\s+/)[0] || "";
-  return (normalizeLetters(firstPart) + "XXX").slice(0, 3);
-}
-
-function secureDigit() {
-  const value = new Uint32Array(1);
-  crypto.getRandomValues(value);
-  return value[0] % 10;
-}
-
-function secureLetter() {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const value = new Uint32Array(1);
-  crypto.getRandomValues(value);
-  return letters[value[0] % letters.length];
-}
-
-function studentCandidate() {
-  return `${secureLetter()}${secureLetter()}${secureLetter()}${secureDigit()}${secureDigit()}${secureDigit()}`;
-}
-
-function cadreCandidate(name) {
-  return `${cadrePrefix(name)}${secureDigit()}${secureDigit()}${secureDigit()}`;
-}
-
-async function uniqueIdentifier(db, role, name, reserved) {
-  for (let attempt = 0; attempt < 250; attempt += 1) {
-    const candidate = ["cadre", "admin"].includes(role)
-      ? cadreCandidate(name)
-      : studentCandidate();
-
-    if (reserved.has(candidate)) continue;
-
-    const exists = await db
-      .prepare("SELECT 1 FROM users WHERE username = ? LIMIT 1")
-      .bind(candidate)
-      .first();
-
-    if (!exists) {
-      reserved.add(candidate);
-      return candidate;
-    }
-  }
-
-  throw new Error("Impossible de générer un identifiant unique.");
-}
+import {
+  IDENTIFIER_PATTERN,
+  cadrePrefix,
+  generateUniqueIdentifier
+} from "../_shared/identifiers.js";
 
 async function tableExists(db, tableName) {
   const row = await db
@@ -123,7 +71,7 @@ async function listEligibleUsers(db) {
 
   return (result.results || []).filter(user => {
     const username = String(user.username || "").toUpperCase();
-    if (!/^[A-Z]{3}\d{3}$/.test(username)) return true;
+    if (!IDENTIFIER_PATTERN.test(username)) return true;
     if (["cadre", "admin"].includes(user.role)) {
       return !username.startsWith(cadrePrefix(user.nom));
     }
@@ -144,7 +92,7 @@ export async function onRequestGet(context) {
     for (const user of users) {
       preparedUsers.push({
         ...user,
-        suggestedUsername: await uniqueIdentifier(
+        suggestedUsername: await generateUniqueIdentifier(
           context.env.DB,
           user.role,
           user.nom,
@@ -202,7 +150,7 @@ export async function onRequestPost(context) {
   for (const migration of migrations) {
     if (
       migration.requestedUsername &&
-      !/^[A-Z]{3}\d{3}$/.test(migration.requestedUsername)
+      !IDENTIFIER_PATTERN.test(migration.requestedUsername)
     ) {
       return jsonResponse({
         error:
@@ -221,7 +169,7 @@ export async function onRequestPost(context) {
   );
 
   const db = context.env.DB;
-  const actor = String(context.data.session?.username || "administrateur");
+  let actor = String(context.data.session?.username || "administrateur");
 
   try {
     await ensureAuditTable(db);
@@ -299,7 +247,7 @@ export async function onRequestPost(context) {
       const requestedUsername =
         requestedByOldUsername.get(oldUsername) || "";
 
-      const newUsername = requestedUsername || await uniqueIdentifier(
+      const newUsername = requestedUsername || await generateUniqueIdentifier(
         db,
         user.role,
         user.nom,
@@ -347,6 +295,10 @@ export async function onRequestPost(context) {
       `).bind(newUsername, oldUsername));
       await db.batch(statements);
 
+      if (oldUsername === actor) {
+        actor = newUsername;
+      }
+
       await writeAudit(db, actor, {
         targetType: "user",
         targetIdentifier: newUsername,
@@ -370,7 +322,9 @@ export async function onRequestPost(context) {
     return jsonResponse({
       success: true,
       migrated,
-      currentAccountMigrated: migrated.some(item => item.oldUsername === actor),
+      currentAccountMigrated: migrated.some(
+        item => item.newUsername === actor && item.oldUsername !== actor
+      ),
       message: `${migrated.length} identifiant(s) modifié(s). Les mots de passe sont inchangés.`
     });
   } catch (error) {

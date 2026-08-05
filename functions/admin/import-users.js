@@ -1,3 +1,5 @@
+import { generateUniqueIdentifier } from "../_shared/identifiers.js";
+
 const encoder = new TextEncoder();
 const PBKDF2_ITERATIONS = 100000;
 const MAX_USERS_PER_BATCH = 10;
@@ -20,22 +22,6 @@ function createTemporaryPassword(){
  return `${randomItem(a)}-${randomItem(b)}-${randomNumber(10,99)}`;
 }
 function normalizeRole(v){ const r=String(v||"").trim().toLowerCase(); return r==="élève"?"eleve":r; }
-function candidateIdentifier(){
- const letters="ABCDEFGHJKLMNPQRSTUVWXYZ";
- let id="";
- for(let i=0;i<3;i++) id+=letters[secureRandomIndex(letters.length)];
- for(let i=0;i<3;i++) id+=String(secureRandomIndex(10));
- return id;
-}
-async function generateUniqueIdentifier(db,reserved){
- for(let attempt=0;attempt<100;attempt++){
-  const candidate=candidateIdentifier();
-  if(reserved.has(candidate)) continue;
-  const row=await db.prepare(`SELECT 1 FROM users WHERE username=? LIMIT 1`).bind(candidate).first();
-  if(!row){ reserved.add(candidate); return candidate; }
- }
- throw new Error("Impossible de générer un identifiant unique.");
-}
 async function ensureDisciplineSchema(db){
  await db.batch([
   db.prepare(`CREATE TABLE IF NOT EXISTS discipline_students (nigend TEXT PRIMARY KEY, nom TEXT NOT NULL, prenom TEXT, peloton TEXT NOT NULL DEFAULT '', promotion TEXT, active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`),
@@ -62,7 +48,7 @@ export async function onRequestPost(context){
   await ensureDisciplineSchema(context.env.DB);
   const reserved=new Set(), created=[];
   for(const u of users){
-   const username=await generateUniqueIdentifier(context.env.DB,reserved);
+   const username=await generateUniqueIdentifier(context.env.DB,u.role,u.nom,reserved);
    const temporaryPassword=createTemporaryPassword();
    const salt=crypto.getRandomValues(new Uint8Array(16));
    const passwordHash=await hashPassword(temporaryPassword,salt);
