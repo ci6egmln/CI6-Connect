@@ -170,6 +170,34 @@ Le fichier contient des données sensibles, notamment les comptes et les abonnem
 
 Cette première fonction assure l’export. Une restauration automatique ne doit être ajoutée qu’après validation d’une procédure contrôlée afin d’éviter l’écrasement accidentel de la base.
 
+
+## Restauration d’une sauvegarde
+
+La page d’administration permet également de sélectionner une sauvegarde JSON et de la contrôler avant restauration.
+
+Deux modes sont proposés :
+
+- **Fusionner** : ajoute les lignes absentes et met à jour celles qui possèdent la même clé primaire, sans effacer les autres données ;
+- **Remplacer** : vide les tables sélectionnées puis les reconstruit à partir de la sauvegarde.
+
+Le mode **Remplacer** exige la saisie du mot `RESTAURER`.
+
+Avant toute restauration, le serveur crée une sauvegarde complète de l’état actuel. Après réussite de l’opération, cette sauvegarde de sécurité est automatiquement téléchargée dans le navigateur.
+
+Chaque restauration est inscrite dans la table :
+
+```text
+administration_audit_log
+```
+
+La fonction utilisée est :
+
+```text
+functions/admin/backup-restore.js
+```
+
+La restauration est réservée aux administrateurs et n’accepte que les tables explicitement autorisées par le code.
+
 ## Principe de maintenance
 
 CI6 Connect doit rester simple, fiable et adapté au téléphone.

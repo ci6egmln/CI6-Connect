@@ -127,7 +127,8 @@ export async function onRequestGet(context) {
     "discipline_students",
     "discipline_sanctions",
     "discipline_audit_log",
-    "push_subscriptions"
+    "push_subscriptions",
+    "administration_audit_log"
   ];
 
   try {

@@ -1605,6 +1605,187 @@
     }
   }
 
+
+  .restore-card {
+    margin-top: 14px;
+    padding: 18px;
+    border: 1px solid rgba(92,161,220,.45);
+    border-radius: 12px;
+    background: rgba(23,67,108,.14);
+  }
+
+  .restore-card h3 {
+    margin: 0 0 6px;
+    color: #b8dcff;
+    font-size: 17px;
+  }
+
+  .restore-card p {
+    margin: 0;
+    color: rgba(255,255,255,.74);
+    line-height: 1.45;
+  }
+
+  .restore-file-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: end;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .restore-file-row input[type="file"] {
+    width: 100%;
+  }
+
+  .restore-preview {
+    display: none;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    background: rgba(0,0,0,.22);
+  }
+
+  .restore-preview.visible {
+    display: block;
+  }
+
+  .restore-summary {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .restore-summary-item {
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 8px;
+    background: rgba(255,255,255,.03);
+  }
+
+  .restore-summary-item strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  .restore-summary-item span {
+    color: rgba(255,255,255,.68);
+    font-size: 12px;
+  }
+
+  .restore-table-list {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .restore-table-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 8px;
+    background: rgba(255,255,255,.025);
+  }
+
+  .restore-table-option input {
+    width: 18px;
+    height: 18px;
+  }
+
+  .restore-table-option span {
+    min-width: 0;
+    color: rgba(255,255,255,.88);
+    font-size: 13px;
+  }
+
+  .restore-table-option small {
+    margin-left: auto;
+    color: rgba(255,255,255,.55);
+    white-space: nowrap;
+  }
+
+  .restore-mode {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .restore-mode label {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 9px;
+    background: rgba(255,255,255,.025);
+    cursor: pointer;
+  }
+
+  .restore-mode input {
+    margin-top: 3px;
+  }
+
+  .restore-mode strong {
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .restore-mode small {
+    display: block;
+    color: rgba(255,255,255,.62);
+    line-height: 1.35;
+  }
+
+  .restore-confirmation {
+    display: none;
+    margin-top: 14px;
+  }
+
+  .restore-confirmation.visible {
+    display: block;
+  }
+
+  .restore-confirmation input {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .restore-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .restore-danger-button {
+    border-color: rgba(255,107,107,.75) !important;
+    background: rgba(120,25,25,.68) !important;
+    color: #fff !important;
+  }
+
+  @media (max-width: 720px) {
+    .restore-file-row,
+    .restore-summary,
+    .restore-table-list,
+    .restore-mode {
+      grid-template-columns: 1fr;
+    }
+
+    .restore-file-row button,
+    .restore-actions button {
+      width: 100%;
+    }
+  }
+
 </style>
 </head>
 
@@ -2089,6 +2270,124 @@
     class="backup-message"
     aria-live="polite"
   ></div>
+
+
+  <div class="restore-card">
+    <h3>Restaurer une sauvegarde</h3>
+
+    <p>
+      Sélectionnez un fichier de sauvegarde créé par CI6 Connect.
+      Son contenu sera contrôlé avant toute modification de la base.
+    </p>
+
+    <div class="restore-file-row">
+      <div>
+        <label for="databaseRestoreFile">
+          Fichier de sauvegarde JSON
+        </label>
+
+        <input
+          id="databaseRestoreFile"
+          type="file"
+          accept=".json,application/json"
+        >
+      </div>
+
+      <button
+        id="analyseDatabaseRestoreButton"
+        class="download-credentials-button"
+        type="button"
+      >
+        Analyser le fichier
+      </button>
+    </div>
+
+    <div
+      id="databaseRestorePreview"
+      class="restore-preview"
+    >
+      <div
+        id="databaseRestoreSummary"
+        class="restore-summary"
+      ></div>
+
+      <strong>Données à restaurer</strong>
+
+      <div
+        id="databaseRestoreTables"
+        class="restore-table-list"
+      ></div>
+
+      <div class="restore-mode">
+        <label>
+          <input
+            type="radio"
+            name="databaseRestoreMode"
+            value="merge"
+            checked
+          >
+
+          <span>
+            <strong>Fusionner</strong>
+            <small>
+              Ajoute les données absentes et met à jour les données existantes,
+              sans effacer le reste de la base.
+            </small>
+          </span>
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            name="databaseRestoreMode"
+            value="replace"
+          >
+
+          <span>
+            <strong>Remplacer</strong>
+            <small>
+              Efface les tables sélectionnées avant de les reconstruire
+              à partir de la sauvegarde.
+            </small>
+          </span>
+        </label>
+      </div>
+
+      <div
+        id="databaseRestoreConfirmation"
+        class="restore-confirmation"
+      >
+        <label for="databaseRestoreConfirmationText">
+          Pour confirmer le remplacement, saisissez :
+          <strong>RESTAURER</strong>
+        </label>
+
+        <input
+          id="databaseRestoreConfirmationText"
+          type="text"
+          autocomplete="off"
+          placeholder="RESTAURER"
+        >
+      </div>
+
+      <div class="restore-actions">
+        <button
+          id="restoreDatabaseButton"
+          class="download-credentials-button"
+          type="button"
+        >
+          Restaurer les données sélectionnées
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="databaseRestoreMessage"
+      class="backup-message"
+      aria-live="polite"
+    ></div>
+  </div>
+
 </section>
 
 <section class="consultations-panel">
@@ -5012,6 +5311,465 @@ downloadDatabaseBackupButton?.addEventListener(
   }
 );
 
+
+
+const RESTORE_TABLE_LABELS = {
+  users: "Utilisateurs",
+  settings: "Paramètres",
+  homepage_tiles: "Affichage des domaines",
+  fiche_consultations: "Consultations des fiches",
+  discipline_students: "Élèves du suivi disciplinaire",
+  discipline_sanctions: "Sanctions",
+  discipline_audit_log: "Journal disciplinaire",
+  push_subscriptions: "Notifications",
+  administration_audit_log: "Journal administratif"
+};
+
+const databaseRestoreFile =
+  document.getElementById(
+    "databaseRestoreFile"
+  );
+
+const analyseDatabaseRestoreButton =
+  document.getElementById(
+    "analyseDatabaseRestoreButton"
+  );
+
+const databaseRestorePreview =
+  document.getElementById(
+    "databaseRestorePreview"
+  );
+
+const databaseRestoreSummary =
+  document.getElementById(
+    "databaseRestoreSummary"
+  );
+
+const databaseRestoreTables =
+  document.getElementById(
+    "databaseRestoreTables"
+  );
+
+const databaseRestoreConfirmation =
+  document.getElementById(
+    "databaseRestoreConfirmation"
+  );
+
+const databaseRestoreConfirmationText =
+  document.getElementById(
+    "databaseRestoreConfirmationText"
+  );
+
+const restoreDatabaseButton =
+  document.getElementById(
+    "restoreDatabaseButton"
+  );
+
+const databaseRestoreMessage =
+  document.getElementById(
+    "databaseRestoreMessage"
+  );
+
+let analysedDatabaseBackup = null;
+
+function restoreMessage(message, type = "") {
+  databaseRestoreMessage.textContent =
+    message;
+
+  databaseRestoreMessage.className =
+    `backup-message${type ? ` ${type}` : ""}`;
+}
+
+function readableBackupDate(value) {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(date.getTime())
+  ) {
+    return "Date inconnue";
+  }
+
+  return date.toLocaleString("fr-FR");
+}
+
+function selectedRestoreMode() {
+  return (
+    document.querySelector(
+      'input[name="databaseRestoreMode"]:checked'
+    )?.value ||
+    "merge"
+  );
+}
+
+function updateRestoreModeDisplay() {
+  const replace =
+    selectedRestoreMode() === "replace";
+
+  databaseRestoreConfirmation.classList.toggle(
+    "visible",
+    replace
+  );
+
+  restoreDatabaseButton.classList.toggle(
+    "restore-danger-button",
+    replace
+  );
+
+  restoreDatabaseButton.textContent =
+    replace
+      ? "Remplacer les données sélectionnées"
+      : "Fusionner les données sélectionnées";
+}
+
+document
+  .querySelectorAll(
+    'input[name="databaseRestoreMode"]'
+  )
+  .forEach(input => {
+    input.addEventListener(
+      "change",
+      updateRestoreModeDisplay
+    );
+  });
+
+function downloadJsonObject(data, fileName) {
+  const blob =
+    new Blob(
+      [
+        JSON.stringify(
+          data,
+          null,
+          2
+        )
+      ],
+      {
+        type:
+          "application/json;charset=utf-8"
+      }
+    );
+
+  const objectUrl =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  link.href = objectUrl;
+  link.download = fileName;
+  link.hidden = true;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(
+    () => URL.revokeObjectURL(objectUrl),
+    1000
+  );
+}
+
+function validateBackupFile(data) {
+  if (
+    !data ||
+    data.format !==
+      "ci6-connect-d1-backup" ||
+    Number(data.formatVersion) !== 1 ||
+    !data.tables ||
+    typeof data.tables !== "object"
+  ) {
+    throw new Error(
+      "Ce fichier n’est pas une sauvegarde CI6 Connect valide."
+    );
+  }
+
+  return data;
+}
+
+function renderBackupPreview(backup) {
+  const tableEntries =
+    Object.entries(backup.tables)
+      .filter(
+        ([tableName, tableData]) =>
+          RESTORE_TABLE_LABELS[tableName] &&
+          tableData &&
+          tableData.exists !== false &&
+          Array.isArray(tableData.rows)
+      );
+
+  const totalRows =
+    tableEntries.reduce(
+      (sum, [, tableData]) =>
+        sum + tableData.rows.length,
+      0
+    );
+
+  databaseRestoreSummary.innerHTML = `
+    <div class="restore-summary-item">
+      <strong>${readableBackupDate(backup.exportedAt)}</strong>
+      <span>Date de la sauvegarde</span>
+    </div>
+
+    <div class="restore-summary-item">
+      <strong>${backup.exportedBy || "Non indiqué"}</strong>
+      <span>Créée par</span>
+    </div>
+
+    <div class="restore-summary-item">
+      <strong>${totalRows}</strong>
+      <span>Enregistrements disponibles</span>
+    </div>
+  `;
+
+  databaseRestoreTables.innerHTML =
+    tableEntries
+      .map(
+        ([tableName, tableData]) => `
+          <label class="restore-table-option">
+            <input
+              type="checkbox"
+              name="databaseRestoreTable"
+              value="${tableName}"
+              checked
+            >
+
+            <span>
+              ${RESTORE_TABLE_LABELS[tableName]}
+            </span>
+
+            <small>
+              ${tableData.rows.length}
+            </small>
+          </label>
+        `
+      )
+      .join("");
+
+  if (!tableEntries.length) {
+    throw new Error(
+      "Cette sauvegarde ne contient aucune table exploitable."
+    );
+  }
+
+  databaseRestorePreview.classList.add(
+    "visible"
+  );
+
+  updateRestoreModeDisplay();
+}
+
+analyseDatabaseRestoreButton?.addEventListener(
+  "click",
+  async () => {
+    const file =
+      databaseRestoreFile.files?.[0];
+
+    analysedDatabaseBackup = null;
+    databaseRestorePreview.classList.remove(
+      "visible"
+    );
+
+    restoreMessage("");
+
+    if (!file) {
+      restoreMessage(
+        "Sélectionnez d’abord un fichier de sauvegarde.",
+        "error"
+      );
+      return;
+    }
+
+    if (
+      file.size >
+      15 * 1024 * 1024
+    ) {
+      restoreMessage(
+        "Le fichier dépasse la taille maximale autorisée de 15 Mo.",
+        "error"
+      );
+      return;
+    }
+
+    analyseDatabaseRestoreButton.disabled =
+      true;
+
+    restoreMessage(
+      "Analyse de la sauvegarde…"
+    );
+
+    try {
+      const text =
+        await file.text();
+
+      const data =
+        validateBackupFile(
+          JSON.parse(text)
+        );
+
+      analysedDatabaseBackup =
+        data;
+
+      renderBackupPreview(data);
+
+      restoreMessage(
+        "Sauvegarde valide. Vérifiez les données sélectionnées avant de poursuivre.",
+        "success"
+      );
+
+    } catch (error) {
+      restoreMessage(
+        error.message ||
+        "Le fichier ne peut pas être analysé.",
+        "error"
+      );
+
+    } finally {
+      analyseDatabaseRestoreButton.disabled =
+        false;
+    }
+  }
+);
+
+restoreDatabaseButton?.addEventListener(
+  "click",
+  async () => {
+    if (!analysedDatabaseBackup) {
+      restoreMessage(
+        "Analysez d’abord le fichier de sauvegarde.",
+        "error"
+      );
+      return;
+    }
+
+    const selectedTables =
+      Array.from(
+        document.querySelectorAll(
+          'input[name="databaseRestoreTable"]:checked'
+        )
+      ).map(input => input.value);
+
+    if (!selectedTables.length) {
+      restoreMessage(
+        "Sélectionnez au moins une catégorie de données.",
+        "error"
+      );
+      return;
+    }
+
+    const mode =
+      selectedRestoreMode();
+
+    if (
+      mode === "replace" &&
+      databaseRestoreConfirmationText.value
+        .trim()
+        .toUpperCase() !==
+        "RESTAURER"
+    ) {
+      restoreMessage(
+        "Saisissez RESTAURER pour confirmer le remplacement.",
+        "error"
+      );
+      return;
+    }
+
+    const wording =
+      mode === "replace"
+        ? "remplacer"
+        : "fusionner";
+
+    const confirmed =
+      window.confirm(
+        `Confirmez-vous que vous souhaitez ${wording} ` +
+        `${selectedTables.length} catégorie(s) de données ?\n\n` +
+        "Une sauvegarde de sécurité de l’état actuel sera téléchargée automatiquement."
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    restoreDatabaseButton.disabled = true;
+    analyseDatabaseRestoreButton.disabled = true;
+
+    restoreMessage(
+      "Création de la sauvegarde de sécurité puis restauration…"
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/admin/backup-restore",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              backup:
+                analysedDatabaseBackup,
+              tables:
+                selectedTables,
+              mode,
+              confirmation:
+                mode === "replace"
+                  ? "RESTAURER"
+                  : ""
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La restauration a échoué."
+        );
+      }
+
+      if (data.safetyBackup) {
+        downloadJsonObject(
+          data.safetyBackup,
+          data.safetyBackupFileName ||
+          "ci6-connect-avant-restauration.json"
+        );
+      }
+
+      const restoredRows =
+        Object.values(
+          data.restored || {}
+        ).reduce(
+          (sum, count) =>
+            sum + Number(count || 0),
+          0
+        );
+
+      restoreMessage(
+        `Restauration terminée : ${restoredRows} enregistrement(s) traité(s). ` +
+        "La sauvegarde de sécurité de l’état antérieur a été téléchargée.",
+        "success"
+      );
+
+      databaseRestoreConfirmationText.value =
+        "";
+
+    } catch (error) {
+      restoreMessage(
+        error.message ||
+        "La restauration n’a pas pu être effectuée.",
+        "error"
+      );
+
+    } finally {
+      restoreDatabaseButton.disabled = false;
+      analyseDatabaseRestoreButton.disabled = false;
+    }
+  }
+);
 
 </script>
 </body>
