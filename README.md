@@ -1,216 +1,149 @@
-CI6 CONNECT
-Bienvenue
+# CI6 Connect
 
-Bonjour à toi, administrateur de CI6 Connect.
+CI6 Connect est le guide numérique de la 6ᵉ compagnie d’instruction de l’École de gendarmerie de Montluçon.
 
-Si tu lis ce document, c'est probablement que tu es amené à maintenir ou faire évoluer ce site.
+Il regroupe les consignes destinées aux élèves, les outils réservés aux cadres, l’administration des utilisateurs, l’édition des fiches, les médias, les notifications, le suivi des consultations et le suivi disciplinaire.
 
-Avant toute chose, rassure-toi : CI6 Connect n'est pas un site complexe.
+## Architecture actuelle
 
-Il a été conçu avec un objectif simple :
+Le projet est publié avec Cloudflare Pages et utilise :
 
-Permettre à n'importe quel cadre de mettre à jour les informations sans avoir de connaissances en programmation.
+- des pages HTML statiques ;
+- les fichiers CSS et JavaScript de `assets/` ;
+- les fiches Markdown de `content/` ;
+- les fonctions Cloudflare Pages de `functions/` ;
+- une base Cloudflare D1 ;
+- GitHub pour l’historique et la publication des fiches, photos et documents.
 
-La majorité des modifications consiste simplement à éditer quelques fichiers texte au format Markdown (.md) ou à déplacer quelques blocs dans un fichier de configuration.
+Le projet n’est donc plus uniquement statique.
 
-Si tu respectes les quelques règles décrites dans ce document, tu ne risques pas de casser le site.
+## Principaux fichiers
 
-*****************************
-*** Philosophie du projet ***
-*****************************
+- `index.html` : page principale ;
+- `login.html` : connexion ;
+- `administration.html` : administration générale ;
+- `sanctions.html` : suivi disciplinaire ;
+- `assets/js/config.js` : domaines, rubriques et chemins ;
+- `assets/js/app.js` : moteur principal et éditeur ;
+- `assets/css/style.css` : présentation générale ;
+- `content/` : fiches Markdown ;
+- `assets/photos/` : photos des fiches ;
+- `assets/documents/` : documents à télécharger ;
+- `functions/` : fonctions Cloudflare.
 
-CI6 Connect a été développé pour répondre à plusieurs objectifs :
+## Configuration Cloudflare
 
-centraliser les informations utiles aux élèves ;
-faciliter la diffusion des consignes ;
-éviter les impressions papier inutiles ;
-permettre une mise à jour rapide des informations.
+Le projet utilise notamment :
 
-L'application est volontairement statique.
+- la base D1 liée sous le nom `DB` ;
+- `SITE_USERNAME` ;
+- `SITE_PASSWORD` ;
+- `SESSION_SECRET` ;
+- `GITHUB_TOKEN`.
 
-Il n'y a :
-aucune base de données ;
-aucun serveur ;
-aucune installation particulière.
+Ces valeurs doivent rester dans les secrets ou variables Cloudflare et ne doivent jamais être inscrites dans les fichiers.
 
-Tout fonctionne uniquement avec quelques fichiers.
+## Modifier les domaines et rubriques
 
-C'est ce qui rend le projet très robuste.
+La navigation est décrite dans :
 
-******************************
-*** Architecture du projet ***
-******************************
+```text
+assets/js/config.js
+```
 
-À la racine se trouvent :
+Pour déplacer un domaine ou une rubrique, déplacer son objet complet sans modifier ses accolades ni séparer ses enfants.
 
-index.html
-    C'est le point d'entrée du site. Ne pas modifier son nom.
+## Modifier une fiche
 
-content/
-    Contient toutes les fiches consultées par les élèves.
-    Chaque fiche est un simple document texte au format Markdown (.md).
-    C'est dans ce dossier que tu passeras la majorité de ton temps.
+Les fiches se trouvent dans `content/`.
 
-assets/
-    Contient tout ce qui est utilisé par le site :
+Elles peuvent être modifiées directement en Markdown ou depuis l’éditeur réservé aux cadres.
 
-images
-icônes
-illustrations
-JavaScript
-CSS
-cartes des rubriques
-Une règle très importante
+## Ajouter une photo
 
-L'architecture du projet ne doit jamais être modifiée.
+Depuis l’éditeur :
 
-Ne pas :
+1. choisir une photo JPEG, PNG ou WebP ;
+2. donner un nom court en 2 à 4 mots ;
+3. ajouter éventuellement une légende ;
+4. envoyer la photo.
 
-renommer les dossiers ;
-déplacer les dossiers ;
-renommer les fichiers JavaScript ;
-renommer les fichiers CSS.
+Les fichiers HEIC et HEIF sont refusés. Ils doivent être convertis ou partagés en JPEG ou PNG.
 
-Tous les chemins sont déjà configurés.
+La photo est redimensionnée si nécessaire, convertie en WebP et enregistrée dans `assets/photos/`.
 
-***********************************
-*** Modifier l'ordre des tuiles ***
-***********************************
+## Ajouter un document
 
-Le menu du site est entièrement décrit dans : assets/js/config.js
+Depuis l’éditeur :
 
-Chaque tuile est représentée par un bloc.
-Exemple :
-{
-    id: "01",
-    title: "Respecter les horaires",
-    ...
-}
+1. choisir le fichier ;
+2. vérifier ou corriger le titre proposé ;
+3. envoyer le document.
 
-Pour modifier l'ordre : Il suffit de déplacer le bloc complet.
-    Un bloc commence par : {
-    et se termine par }
-    (suivi éventuellement d'une virgule).
+Le titre renseigné est celui qui sera affiché aux utilisateurs.
 
-Pour une rubrique possédant des sous-rubriques, déplacer l'ensemble du bloc, sans supprimer les éléments contenus à l'intérieur.
+## Publication
 
-Aucune autre modification n'est nécessaire.
+Les modifications envoyées dans GitHub déclenchent le déploiement Cloudflare Pages.
 
-**************************
-*** Modifier une fiche ***
-**************************
+Après chaque mise à jour importante :
 
-Toutes les fiches se trouvent dans : content/
+1. vérifier le commit GitHub ;
+2. attendre la fin du déploiement ;
+3. tester les profils élève, cadre et administrateur ;
+4. contrôler le rendu sur téléphone.
 
-Une fiche est un simple document texte.
-Exemple : 01-horaires.md
+## Sauvegardes
 
-Pour modifier une information :
-    ouvrir le fichier ;    
-    modifier le texte ;
-    enregistrer.
+Les fiches, photos et documents bénéficient de l’historique GitHub.
 
-Aucune connaissance en HTML n'est nécessaire.
+Les données dynamiques sont stockées dans Cloudflare D1, notamment les utilisateurs, consultations, sanctions, paramètres et réglages de visibilité.
 
-*****************************
-*** Les blocs disponibles ***
-*****************************
+Avant toute intervention importante sur la base, effectuer une sauvegarde ou un export D1 depuis Cloudflare.
 
-Les fiches utilisent un langage très simple.
+## Journalisation
 
-Exemple :
-:::directives
-texte
-:::
+Le suivi disciplinaire conserve déjà un journal d’audit des créations, modifications et suppressions.
 
-Chaque bloc crée automatiquement une carte colorée.
+Les futures évolutions sensibles devront appliquer la même logique aux utilisateurs, rôles, publications et changements de visibilité.
 
-Les principaux blocs disponibles sont :
-    :::directives
-    :::autorise
-    :::interdit
-    :::conseil
-    :::attention
-    :::telechargements
+## Vocabulaire recommandé
 
-Il est également possible de donner un titre personnalisé :
-    :::directives Horaires du vendredi
-    ... texte de la fiche
-    :::
-    Le style restera identique. Seul le titre affiché changera.
+- **domaine** : grande tuile ;
+- **rubrique** : niveau inférieur ;
+- **fiche** : page de contenu ;
+- **photo** : image ajoutée par un cadre ;
+- **document à télécharger** : pièce jointe proposée aux utilisateurs.
 
-**********************************
-*** Ajouter une nouvelle fiche ***
-**********************************
-    Copier une fiche existante.
-    Modifier son contenu.
-    Enregistrer sous un nouveau nom.
-    Penser à ajouter la nouvelle rubrique dans : assets/js/config.js
-    Il n'y a rien d'autre à faire.
+## Contrôles avant mise en production
 
-*************************
-*** Ajouter une image ***
-*************************
+- vérifier la syntaxe JavaScript ;
+- tester la connexion ;
+- tester les trois rôles ;
+- tester l’ouverture et le retour arrière ;
+- modifier et publier une fiche ;
+- envoyer une photo et un document ;
+- vérifier les rubriques masquées ;
+- tester le suivi disciplinaire ;
+- contrôler le rendu mobile.
 
-Les images utilisées dans les fiches sont placées dans : assets/photos/
+## Fichiers sensibles
 
-Il suffit ensuite de les appeler dans la fiche.
+Modifier avec prudence :
 
-Exemple :
-
-    :::image Parking visiteurs
-    assets/photos/parking.webp
-    :::
-
-*****************************
-*** Mettre le site à jour ***
-*****************************
-
-Une fois les modifications terminées :
-
-enregistrer les fichiers ;
-envoyer les modifications sur GitHub ;
-attendre quelques instants que GitHub Pages republie automatiquement le site.
-
-Aucune compilation n'est nécessaire.
-
-En cas de problème
-
-Si le site ne s'affiche plus correctement :
-
-vérifier les dernières modifications ;
-vérifier qu'un bloc ::: est bien fermé ;
-vérifier qu'une accolade {} n'a pas été supprimée dans config.js ;
-vérifier que le chemin d'une image ou d'un document est correct.
-
-Dans la grande majorité des cas, l'erreur provient d'une faute de frappe.
-
-Avant de modifier le code
-
-Les fichiers suivants ne doivent être modifiés que de manière exceptionnelle :
-
+```text
 assets/js/app.js
+assets/js/config.js
 assets/css/style.css
+functions/
+administration.html
+sanctions.html
+```
 
-Ils contiennent le fonctionnement général de CI6 Connect.
+Toujours repartir de la dernière version complète du projet pour éviter toute régression.
 
-La plupart des évolutions du site peuvent être réalisées sans jamais toucher à ces fichiers.
+## Principe de maintenance
 
-************************
-*** Esprit du projet ***
-************************
+CI6 Connect doit rester simple, fiable et adapté au téléphone.
 
-CI6 Connect a été pensé pour durer.
-
-Si tu souhaites le faire évoluer :
-
-    privilégie toujours la simplicité ;
-    évite les solutions complexes ;
-    conserve une architecture claire ;
-    préfère créer une nouvelle fiche plutôt que modifier le fonctionnement du moteur.
-
-L'objectif est que n'importe quel cadre puisse maintenir ce site, aujourd'hui comme dans plusieurs années, sans connaissances particulières en développement.
-
-Je terminerais par une phrase qui résume bien la philosophie du projet :
-
-"Le meilleur développement est celui qui se fait oublier. Si la mise à jour d'une information te prend moins de cinq minutes sans écrire une ligne de code, alors CI6 Connect remplit parfaitement sa mission."
+Toute évolution doit privilégier la clarté, la réduction des manipulations, la conservation de l’historique et la possibilité de revenir en arrière.

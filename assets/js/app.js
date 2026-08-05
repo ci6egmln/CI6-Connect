@@ -2504,6 +2504,51 @@ function injectFicheEditorStyles() {
       color: #ffb7b7;
     }
 
+
+    .fiche-editor-field-help {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255,255,255,.68);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .fiche-editor-required {
+      color: #ffd36a;
+      font-weight: 900;
+    }
+
+    .fiche-editor-image-preview {
+      display: grid;
+      place-items: center;
+      min-height: 90px;
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px dashed rgba(212,175,55,.4);
+      border-radius: 8px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .fiche-editor-image-preview[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-image-preview img {
+      display: block;
+      width: auto;
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+
+    .fiche-editor-file-details {
+      margin-top: 5px;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     .fiche-editor-file-name {
       margin-top: 7px;
       color: #f4d77a;
@@ -3909,7 +3954,8 @@ function openFicheEditor() {
 
               <div class="fiche-editor-field">
                 <label for="editorImageFile">
-                  Choisir le fichier
+                  Choisir la photo
+                  <span class="fiche-editor-required">*</span>
                 </label>
                 <input
                   id="editorImageFile"
@@ -3921,18 +3967,42 @@ function openFicheEditor() {
                   id="editorSelectedFileName"
                   class="fiche-editor-file-name"
                 ></div>
+
+                <div
+                  id="editorSelectedFileDetails"
+                  class="fiche-editor-file-details"
+                ></div>
+
+                <div
+                  id="editorImagePreview"
+                  class="fiche-editor-image-preview"
+                  hidden
+                >
+                  <img
+                    id="editorImagePreviewImage"
+                    alt="Aperçu de la photo sélectionnée"
+                  >
+                </div>
+
+                <small class="fiche-editor-field-help">
+                  Formats acceptés : JPEG, PNG ou WebP. La photo sera automatiquement optimisée en WebP.
+                </small>
               </div>
 
               <div class="fiche-editor-field">
                 <label for="editorImageName">
-                  Nom de la photo
+                  Nom court de la photo
+                  <span class="fiche-editor-required">*</span>
                 </label>
                 <input
                   id="editorImageName"
                   type="text"
-                  maxlength="100"
-                  placeholder="Ex. présentation tenue cérémonie"
+                  maxlength="80"
+                  placeholder="Ex. Tenue de cérémonie"
                 >
+                <small class="fiche-editor-field-help">
+                  Donnez un nom clair en 2 à 4 mots. Il servira à nommer le fichier.
+                </small>
               </div>
 
             <div
@@ -3945,7 +4015,12 @@ function openFicheEditor() {
               <input
                 id="editorMediaCaption"
                 type="text"
+                maxlength="160"
+                placeholder="Ex. Exemple de tenue portée en cérémonie"
               >
+              <small class="fiche-editor-field-help">
+                Cette légende sera affichée sous la photo.
+              </small>
             </div>
 
               <button
@@ -3995,24 +4070,33 @@ function openFicheEditor() {
 
               <div class="fiche-editor-field">
                 <label for="editorDocumentLabel">
-                  Nom du document
+                  Titre du document
+                  <span class="fiche-editor-required">*</span>
                 </label>
                 <input
                   id="editorDocumentLabel"
                   type="text"
+                  maxlength="120"
                   placeholder="Ex. Règlement intérieur"
                 >
+                <small class="fiche-editor-field-help">
+                  Indiquez le titre qui sera affiché aux utilisateurs.
+                </small>
               </div>
 
               <div class="fiche-editor-field">
                 <label for="editorDocumentFile">
                   Choisir le fichier
+                  <span class="fiche-editor-required">*</span>
                 </label>
                 <input
                   id="editorDocumentFile"
                   type="file"
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip"
                 >
+                <small class="fiche-editor-field-help">
+                  Le titre est proposé automatiquement à partir du nom du fichier et peut être corrigé avant l’envoi.
+                </small>
               </div>
 
               <div
@@ -4303,6 +4387,15 @@ function openFicheEditor() {
   const selectedFileName =
     overlay.querySelector("#editorSelectedFileName");
 
+  const selectedFileDetails =
+    overlay.querySelector("#editorSelectedFileDetails");
+
+  const imagePreview =
+    overlay.querySelector("#editorImagePreview");
+
+  const imagePreviewImage =
+    overlay.querySelector("#editorImagePreviewImage");
+
   const uploadStatus =
     overlay.querySelector("#editorImageUploadStatus");
 
@@ -4338,6 +4431,58 @@ function openFicheEditor() {
   );
 
   refreshNotificationOptions();
+
+  function formatFileSize(bytes) {
+    const size = Number(bytes || 0);
+
+    if (size < 1024) {
+      return `${size} octet${size > 1 ? "s" : ""}`;
+    }
+
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} Ko`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
+  }
+
+  let selectedImagePreviewUrl = "";
+
+  function clearSelectedImagePreview() {
+    if (selectedImagePreviewUrl) {
+      URL.revokeObjectURL(selectedImagePreviewUrl);
+      selectedImagePreviewUrl = "";
+    }
+
+    imagePreviewImage?.removeAttribute("src");
+
+    if (imagePreview) {
+      imagePreview.hidden = true;
+    }
+
+    if (selectedFileDetails) {
+      selectedFileDetails.textContent = "";
+    }
+  }
+
+  function showSelectedImagePreview(file) {
+    clearSelectedImagePreview();
+
+    if (!file) {
+      return;
+    }
+
+    selectedImagePreviewUrl =
+      URL.createObjectURL(file);
+
+    imagePreviewImage.src =
+      selectedImagePreviewUrl;
+
+    imagePreview.hidden = false;
+
+    selectedFileDetails.textContent =
+      `${formatFileSize(file.size)} — ${file.type || "type non indiqué"}`;
+  }
 
   function buildCompleteMarkdown() {
     const body =
@@ -4902,7 +5047,65 @@ function openFicheEditor() {
     return block;
   }
 
+  const initialEditorMarkdown =
+    buildCompleteMarkdown();
+
+  let editorPublished = false;
+
+  function editorHasUnsavedChanges() {
+    try {
+      return (
+        buildCompleteMarkdown() !==
+        initialEditorMarkdown
+      );
+    } catch {
+      return true;
+    }
+  }
+
+  function confirmEditorClose() {
+    if (
+      editorPublished ||
+      !editorHasUnsavedChanges()
+    ) {
+      return true;
+    }
+
+    return window.confirm(
+      "Des modifications n’ont pas été publiées.\n\n" +
+      "Voulez-vous vraiment fermer l’éditeur et les perdre ?"
+    );
+  }
+
+  function handleEditorBeforeUnload(event) {
+    if (
+      editorPublished ||
+      !editorHasUnsavedChanges()
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = "";
+  }
+
+  window.addEventListener(
+    "beforeunload",
+    handleEditorBeforeUnload
+  );
+
   function closeEditor() {
+    if (!confirmEditorClose()) {
+      return;
+    }
+
+    clearSelectedImagePreview();
+
+    window.removeEventListener(
+      "beforeunload",
+      handleEditorBeforeUnload
+    );
+
     overlay.remove();
   }
 
@@ -4962,7 +5165,7 @@ function openFicheEditor() {
 
       documentSelectedFile.textContent =
         file
-          ? `Fichier sélectionné : ${file.name}`
+          ? `Fichier sélectionné : ${file.name} — ${formatFileSize(file.size)}`
           : "";
 
       if (file && !documentLabel.value.trim()) {
@@ -5374,6 +5577,8 @@ function openFicheEditor() {
       uploadStatus.className =
         "fiche-editor-upload-status";
 
+      clearSelectedImagePreview();
+
       if (!file) {
         return;
       }
@@ -5401,6 +5606,18 @@ function openFicheEditor() {
 
         imageFileInput.value = "";
         selectedFileName.textContent = "";
+        return;
+      }
+
+      showSelectedImagePreview(file);
+
+      if (!imageNameInput.value.trim()) {
+        imageNameInput.value =
+          file.name
+            .replace(/\.[^.]+$/, "")
+            .replace(/[-_]+/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
       }
     }
   );
@@ -5505,8 +5722,9 @@ function openFicheEditor() {
           refreshGalleryList();
 
           uploadStatus.textContent =
-            `Photo ajoutée : ${data.fileName}`;
+            `Photo convertie, optimisée en WebP et ajoutée : ${data.fileName}`;
 
+          clearSelectedImagePreview();
           imageFileInput.value = "";
           imageNameInput.value = "";
           selectedFileName.textContent = "";
@@ -5526,7 +5744,7 @@ function openFicheEditor() {
             data.path;
 
           uploadStatus.textContent =
-            `Photo enregistrée : ${data.path}`;
+            `Photo convertie, optimisée en WebP et enregistrée : ${data.path}`;
         }
 
         uploadStatus.className =
@@ -5694,6 +5912,14 @@ function openFicheEditor() {
 
           currentEditableFiche.markdown =
             markdown;
+
+          editorPublished = true;
+          clearSelectedImagePreview();
+
+          window.removeEventListener(
+            "beforeunload",
+            handleEditorBeforeUnload
+          );
 
           overlay.remove();
 
