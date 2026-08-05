@@ -1786,6 +1786,252 @@
     }
   }
 
+
+  /* ==========================================================
+     PANNEAUX REPLIABLES DE L’ADMINISTRATION
+     ========================================================== */
+  main > section.admin-collapsible {
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .admin-section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 62px;
+    margin: 0;
+    padding: 14px 18px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .admin-section-toggle:hover,
+  .admin-section-toggle:focus-visible {
+    background: rgba(212,175,55,.055);
+  }
+
+  .admin-section-toggle-title {
+    min-width: 0;
+  }
+
+  .admin-section-toggle-title .small-label {
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .admin-section-toggle-title strong {
+    display: block;
+    color: var(--gold-light);
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .admin-section-arrow {
+    flex: 0 0 auto;
+    font-size: 22px;
+    line-height: 1;
+    transition: transform .2s ease;
+  }
+
+  .admin-collapsible.is-open .admin-section-arrow {
+    transform: rotate(180deg);
+  }
+
+  .admin-collapsible.is-open .admin-section-toggle {
+    border-bottom-color: rgba(212,175,55,.18);
+  }
+
+  .admin-section-content {
+    display: none;
+    padding: 18px;
+  }
+
+  .admin-collapsible.is-open .admin-section-content {
+    display: block;
+  }
+
+  .admin-section-content > :first-child {
+    margin-top: 0;
+  }
+
+  .training-close-panel {
+    border-color: rgba(255,152,104,.42) !important;
+  }
+
+  .training-close-intro {
+    margin: 0 0 16px;
+    color: rgba(255,255,255,.76);
+    line-height: 1.5;
+  }
+
+  .training-summary {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .training-summary-card {
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 9px;
+    background: rgba(255,255,255,.025);
+  }
+
+  .training-summary-card strong {
+    display: block;
+    color: #fff;
+    font-size: 21px;
+  }
+
+  .training-summary-card span {
+    color: rgba(255,255,255,.66);
+    font-size: 12px;
+  }
+
+  .cadre-control-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .cadre-control-table th,
+  .cadre-control-table td {
+    padding: 9px 8px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  .cadre-control-table select {
+    min-width: 125px;
+  }
+
+  .cadre-state-active {
+    color: #9ee6b5;
+    font-weight: 800;
+  }
+
+  .cadre-state-inactive {
+    color: #ff9a9a;
+    font-weight: 800;
+  }
+
+  .training-close-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .training-action-card {
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,.11);
+    border-radius: 10px;
+    background: rgba(255,255,255,.025);
+  }
+
+  .training-action-card h3 {
+    margin: 0 0 5px;
+    font-size: 16px;
+  }
+
+  .training-action-card p {
+    margin: 0 0 12px;
+    color: rgba(255,255,255,.66);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .training-danger-card {
+    border-color: rgba(255,100,100,.42);
+    background: rgba(110,20,20,.18);
+  }
+
+  .training-danger-button {
+    border-color: rgba(255,100,100,.7) !important;
+    background: rgba(125,25,25,.76) !important;
+    color: #fff !important;
+  }
+
+  .training-confirmation {
+    margin-top: 10px;
+  }
+
+  .training-confirmation input {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .training-message {
+    min-height: 22px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .training-message.success {
+    color: #9ee6b5;
+  }
+
+  .training-message.error {
+    color: #ff9a9a;
+  }
+
+  @media (max-width: 760px) {
+    .training-summary,
+    .training-close-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .cadre-control-table,
+    .cadre-control-table thead,
+    .cadre-control-table tbody,
+    .cadre-control-table tr,
+    .cadre-control-table th,
+    .cadre-control-table td {
+      display: block;
+    }
+
+    .cadre-control-table thead {
+      display: none;
+    }
+
+    .cadre-control-table tr {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 9px;
+    }
+
+    .cadre-control-table td {
+      padding: 5px 0;
+      border: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .training-summary,
+    .training-close-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .admin-section-toggle {
+      min-height: 54px;
+      padding: 11px 13px;
+    }
+
+    .admin-section-content {
+      padding: 13px;
+    }
+  }
+
 </style>
 </head>
 
@@ -2478,6 +2724,111 @@
   
     <div id="collectiveAccessMessage"></div>
   </section>
+
+<section class="training-close-panel">
+  <div class="panel-heading">
+    <div>
+      <span class="small-label">Fin de promotion</span>
+      <h2>Clôture de la formation</h2>
+    </div>
+  </div>
+
+  <p class="training-close-intro">
+    Contrôlez les accès des cadres puis désactivez ou supprimez les comptes élèves
+    lorsque la promotion quitte l’école. Une sauvegarde JSON doit être réalisée avant
+    toute suppression définitive.
+  </p>
+
+  <div id="trainingSummary" class="training-summary">
+    <div class="training-summary-card">
+      <strong id="trainingActiveStudents">—</strong>
+      <span>Élèves actifs</span>
+    </div>
+    <div class="training-summary-card">
+      <strong id="trainingInactiveStudents">—</strong>
+      <span>Élèves désactivés</span>
+    </div>
+    <div class="training-summary-card">
+      <strong id="trainingActiveCadres">—</strong>
+      <span>Cadres actifs</span>
+    </div>
+    <div class="training-summary-card">
+      <strong id="trainingAdministrators">—</strong>
+      <span>Administrateurs actifs</span>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="cadre-control-table">
+      <thead>
+        <tr>
+          <th>NIGEND</th>
+          <th>Nom</th>
+          <th>Rôle</th>
+          <th>État</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="cadreControlTableBody">
+        <tr>
+          <td colspan="5">Chargement des cadres…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="training-close-actions">
+    <article class="training-action-card">
+      <h3>Désactiver tous les élèves</h3>
+      <p>
+        Révoque immédiatement leurs sessions et notifications sans supprimer leurs données.
+        Cette action est réversible.
+      </p>
+      <button
+        id="deactivateAllStudentsButton"
+        class="secondary-button"
+        type="button"
+      >
+        Désactiver tous les élèves
+      </button>
+    </article>
+
+    <article class="training-action-card training-danger-card">
+      <h3>Supprimer définitivement la promotion</h3>
+      <p>
+        Supprime les comptes élèves, consultations, notifications et données disciplinaires.
+        Les comptes cadres, fiches, photos et documents sont conservés.
+      </p>
+
+      <div class="training-confirmation">
+        <label for="trainingClosureConfirmation">
+          Saisissez <strong>CLOTURER LA FORMATION</strong>
+        </label>
+        <input
+          id="trainingClosureConfirmation"
+          type="text"
+          autocomplete="off"
+          placeholder="CLOTURER LA FORMATION"
+        >
+      </div>
+
+      <button
+        id="deleteAllStudentsButton"
+        class="training-danger-button"
+        type="button"
+      >
+        Supprimer définitivement
+      </button>
+    </article>
+  </div>
+
+  <div
+    id="trainingClosureMessage"
+    class="training-message"
+    aria-live="polite"
+  ></div>
+</section>
+
   </main>
   <script src="/assets/js/config.js"></script>
   <script>
@@ -5770,6 +6121,587 @@ restoreDatabaseButton?.addEventListener(
     }
   }
 );
+
+
+/* ==========================================================
+   PANNEAUX REPLIABLES DE L’ADMINISTRATION
+   ========================================================== */
+(() => {
+  const sectionLabels = new Map([
+    ["promotion-settings", ["Promotion", "Paramètres de la promotion"]],
+    ["search-panel", ["Utilisateurs", "Rechercher et modifier un compte"]],
+    ["create-panel", ["Utilisateurs", "Créer un compte"]],
+    ["import-panel", ["Utilisateurs", "Importer des comptes CSV"]],
+    ["homepage-tiles-panel", ["Page d’accueil", "Affichage des domaines et rubriques"]],
+    ["backup-panel", ["Sécurité", "Sauvegarde et restauration"]],
+    ["consultations-panel", ["Traçabilité", "Suivi des consultations"]],
+    ["collective-access-panel", ["Connexion", "Accès collectif"]],
+    ["training-close-panel", ["Fin de promotion", "Clôture de la formation"]]
+  ]);
+
+  const storageKey =
+    "ci6-administration-open-section";
+
+  const sections =
+    Array.from(
+      document.querySelectorAll(
+        "main > section"
+      )
+    ).filter(section =>
+      Array.from(sectionLabels.keys())
+        .some(className =>
+          section.classList.contains(className)
+        )
+    );
+
+  function sectionIdentity(section) {
+    return Array.from(sectionLabels.keys())
+      .find(className =>
+        section.classList.contains(className)
+      ) || "";
+  }
+
+  function setOpen(section, open, remember = true) {
+    sections.forEach(other => {
+      const isTarget =
+        other === section && open;
+
+      other.classList.toggle(
+        "is-open",
+        isTarget
+      );
+
+      const button =
+        other.querySelector(
+          ":scope > .admin-section-toggle"
+        );
+
+      button?.setAttribute(
+        "aria-expanded",
+        isTarget ? "true" : "false"
+      );
+    });
+
+    if (remember) {
+      try {
+        if (open && section) {
+          sessionStorage.setItem(
+            storageKey,
+            sectionIdentity(section)
+          );
+        } else {
+          sessionStorage.removeItem(
+            storageKey
+          );
+        }
+      } catch {
+        /* La page reste utilisable sans stockage. */
+      }
+    }
+  }
+
+  sections.forEach(section => {
+    const identity =
+      sectionIdentity(section);
+
+    const [label, title] =
+      sectionLabels.get(identity);
+
+    const content =
+      document.createElement("div");
+
+    content.className =
+      "admin-section-content";
+
+    while (section.firstChild) {
+      content.appendChild(
+        section.firstChild
+      );
+    }
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+    button.className =
+      "admin-section-toggle";
+    button.setAttribute(
+      "aria-expanded",
+      "false"
+    );
+
+    button.innerHTML = `
+      <span class="admin-section-toggle-title">
+        <span class="small-label">${label}</span>
+        <strong>${title}</strong>
+      </span>
+      <span class="admin-section-arrow" aria-hidden="true">⌄</span>
+    `;
+
+    button.addEventListener(
+      "click",
+      () => {
+        const shouldOpen =
+          !section.classList.contains(
+            "is-open"
+          );
+
+        setOpen(
+          section,
+          shouldOpen
+        );
+      }
+    );
+
+    section.classList.add(
+      "admin-collapsible"
+    );
+
+    section.append(
+      button,
+      content
+    );
+  });
+
+  let preferred = "";
+
+  try {
+    preferred =
+      sessionStorage.getItem(
+        storageKey
+      ) || "";
+  } catch {
+    preferred = "";
+  }
+
+  const initialSection =
+    sections.find(
+      section =>
+        sectionIdentity(section) ===
+        preferred
+    ) ||
+    sections.find(
+      section =>
+        section.classList.contains(
+          "search-panel"
+        )
+    );
+
+  if (initialSection) {
+    setOpen(
+      initialSection,
+      true,
+      false
+    );
+  }
+})();
+
+/* ==========================================================
+   CLÔTURE DE LA FORMATION ET CONTRÔLE DES CADRES
+   ========================================================== */
+const trainingActiveStudents =
+  document.getElementById(
+    "trainingActiveStudents"
+  );
+
+const trainingInactiveStudents =
+  document.getElementById(
+    "trainingInactiveStudents"
+  );
+
+const trainingActiveCadres =
+  document.getElementById(
+    "trainingActiveCadres"
+  );
+
+const trainingAdministrators =
+  document.getElementById(
+    "trainingAdministrators"
+  );
+
+const cadreControlTableBody =
+  document.getElementById(
+    "cadreControlTableBody"
+  );
+
+const trainingClosureMessage =
+  document.getElementById(
+    "trainingClosureMessage"
+  );
+
+const deactivateAllStudentsButton =
+  document.getElementById(
+    "deactivateAllStudentsButton"
+  );
+
+const deleteAllStudentsButton =
+  document.getElementById(
+    "deleteAllStudentsButton"
+  );
+
+const trainingClosureConfirmation =
+  document.getElementById(
+    "trainingClosureConfirmation"
+  );
+
+function trainingMessage(
+  message,
+  type = ""
+) {
+  if (!trainingClosureMessage) {
+    return;
+  }
+
+  trainingClosureMessage.textContent =
+    message;
+
+  trainingClosureMessage.className =
+    `training-message${type ? ` ${type}` : ""}`;
+}
+
+function escapeTrainingHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+async function loadTrainingClosureData() {
+  if (!cadreControlTableBody) {
+    return;
+  }
+
+  cadreControlTableBody.innerHTML = `
+    <tr>
+      <td colspan="5">Chargement des cadres…</td>
+    </tr>
+  `;
+
+  try {
+    const response =
+      await fetch(
+        "/admin/end-of-training",
+        {
+          credentials: "same-origin",
+          cache: "no-store"
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        "Impossible de charger les données."
+      );
+    }
+
+    trainingActiveStudents.textContent =
+      data.summary.activeStudents;
+
+    trainingInactiveStudents.textContent =
+      data.summary.inactiveStudents;
+
+    trainingActiveCadres.textContent =
+      data.summary.activeCadres;
+
+    trainingAdministrators.textContent =
+      data.summary.activeAdministrators;
+
+    if (!data.cadres.length) {
+      cadreControlTableBody.innerHTML = `
+        <tr>
+          <td colspan="5">Aucun cadre enregistré.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    cadreControlTableBody.innerHTML =
+      data.cadres.map(cadre => `
+        <tr data-username="${escapeTrainingHtml(cadre.username)}">
+          <td>${escapeTrainingHtml(cadre.username)}</td>
+          <td>${escapeTrainingHtml(cadre.nom || "—")}</td>
+          <td>
+            <select class="cadre-role-select">
+              <option value="cadre"${cadre.role === "cadre" ? " selected" : ""}>
+                Cadre
+              </option>
+              <option value="admin"${cadre.role === "admin" ? " selected" : ""}>
+                Administrateur
+              </option>
+            </select>
+          </td>
+          <td class="${cadre.active ? "cadre-state-active" : "cadre-state-inactive"}">
+            ${cadre.active ? "Actif" : "Désactivé"}
+          </td>
+          <td>
+            <button
+              class="secondary-button cadre-save-button"
+              type="button"
+              data-active="${cadre.active ? "1" : "0"}"
+            >
+              Enregistrer
+            </button>
+          </td>
+        </tr>
+      `).join("");
+
+    cadreControlTableBody
+      .querySelectorAll(
+        ".cadre-save-button"
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          async () => {
+            const row =
+              button.closest("tr");
+
+            const username =
+              row.dataset.username;
+
+            const role =
+              row.querySelector(
+                ".cadre-role-select"
+              ).value;
+
+            const currentlyActive =
+              button.dataset.active === "1";
+
+            const keepActive =
+              window.confirm(
+                currentlyActive
+                  ? "Conserver ce compte actif ?\n\nChoisissez Annuler pour le désactiver."
+                  : "Réactiver ce compte ?\n\nChoisissez Annuler pour le laisser désactivé."
+              );
+
+            button.disabled = true;
+            trainingMessage(
+              "Mise à jour du cadre…"
+            );
+
+            try {
+              const response =
+                await fetch(
+                  "/admin/end-of-training",
+                  {
+                    method: "POST",
+                    credentials:
+                      "same-origin",
+                    headers: {
+                      "Content-Type":
+                        "application/json"
+                    },
+                    body: JSON.stringify({
+                      action:
+                        "update_cadre",
+                      username,
+                      role,
+                      active:
+                        keepActive
+                    })
+                  }
+                );
+
+              const data =
+                await response.json();
+
+              if (!response.ok) {
+                throw new Error(
+                  data.error ||
+                  "La mise à jour a échoué."
+                );
+              }
+
+              trainingMessage(
+                data.message,
+                "success"
+              );
+
+              await loadTrainingClosureData();
+
+            } catch (error) {
+              trainingMessage(
+                error.message ||
+                "La mise à jour a échoué.",
+                "error"
+              );
+            } finally {
+              button.disabled = false;
+            }
+          }
+        );
+      });
+
+  } catch (error) {
+    cadreControlTableBody.innerHTML = `
+      <tr>
+        <td colspan="5">${escapeTrainingHtml(error.message)}</td>
+      </tr>
+    `;
+
+    trainingMessage(
+      error.message,
+      "error"
+    );
+  }
+}
+
+deactivateAllStudentsButton?.addEventListener(
+  "click",
+  async () => {
+    const confirmed =
+      window.confirm(
+        "Désactiver tous les comptes élèves et révoquer leurs sessions ?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    deactivateAllStudentsButton.disabled =
+      true;
+
+    trainingMessage(
+      "Désactivation des élèves…"
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/admin/end-of-training",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              action:
+                "deactivate_students"
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La désactivation a échoué."
+        );
+      }
+
+      trainingMessage(
+        data.message,
+        "success"
+      );
+
+      await loadTrainingClosureData();
+
+    } catch (error) {
+      trainingMessage(
+        error.message,
+        "error"
+      );
+    } finally {
+      deactivateAllStudentsButton.disabled =
+        false;
+    }
+  }
+);
+
+deleteAllStudentsButton?.addEventListener(
+  "click",
+  async () => {
+    if (
+      trainingClosureConfirmation.value
+        .trim()
+        .toUpperCase() !==
+      "CLOTURER LA FORMATION"
+    ) {
+      trainingMessage(
+        "Saisissez CLOTURER LA FORMATION pour confirmer.",
+        "error"
+      );
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        "Cette opération supprimera définitivement tous les comptes et toutes les données élèves.\n\nAvez-vous téléchargé une sauvegarde JSON ?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    deleteAllStudentsButton.disabled =
+      true;
+
+    trainingMessage(
+      "Suppression définitive de la promotion…"
+    );
+
+    try {
+      const response =
+        await fetch(
+          "/admin/end-of-training",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              action:
+                "delete_students",
+              confirmation:
+                "CLOTURER LA FORMATION"
+            })
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+          "La clôture a échoué."
+        );
+      }
+
+      trainingClosureConfirmation.value =
+        "";
+
+      trainingMessage(
+        data.message,
+        "success"
+      );
+
+      await loadTrainingClosureData();
+
+    } catch (error) {
+      trainingMessage(
+        error.message,
+        "error"
+      );
+    } finally {
+      deleteAllStudentsButton.disabled =
+        false;
+    }
+  }
+);
+
+loadTrainingClosureData();
 
 </script>
 </body>

@@ -198,6 +198,37 @@ functions/admin/backup-restore.js
 
 La restauration est réservée aux administrateurs et n’accepte que les tables explicitement autorisées par le code.
 
+
+## Administration repliable
+
+Les grandes rubriques de `administration.html` sont présentées sous forme de panneaux repliables.
+
+Une seule rubrique reste ouverte à la fois. La rubrique utilisée est mémorisée pendant la session du navigateur. Toute la barre de titre est cliquable et utilisable au clavier.
+
+## Journal administratif
+
+La table `administration_audit_log` conserve les actions sensibles réalisées depuis les fonctions administratives.
+
+Les entrées de plus de trois mois sont automatiquement purgées lors de la consultation ou de l’utilisation de la fonction de clôture de formation.
+
+Aucun mot de passe n’est enregistré dans ce journal.
+
+## Clôture de la formation
+
+La rubrique **Clôture de la formation** permet :
+
+- de compter les comptes élèves actifs et désactivés ;
+- de contrôler les cadres et administrateurs présents ;
+- de modifier leur rôle et leur état ;
+- de désactiver tous les élèves ;
+- de supprimer définitivement les comptes élèves et les données propres à la promotion.
+
+La suppression définitive exige la saisie de `CLOTURER LA FORMATION`.
+
+Avant cette opération, une sauvegarde JSON doit être téléchargée depuis l’administration.
+
+Les comptes cadres, les fiches Markdown, les photos et les documents ne sont pas supprimés.
+
 ## Principe de maintenance
 
 CI6 Connect doit rester simple, fiable et adapté au téléphone.
