@@ -2307,16 +2307,16 @@
   </div>
 
   <p class="import-description">
-    Le fichier doit contenir les colonnes <strong>nom</strong> et <strong>role</strong>. Pour les élèves, ajoutez <strong>prenom</strong>, <strong>peloton</strong> et <strong>promotion</strong>. Un identifiant pseudonyme unique composé de trois lettres et trois chiffres est généré automatiquement.
+    Le fichier doit contenir les colonnes <strong>nom</strong> et <strong>role</strong>. Pour les élèves, ajoutez <strong>prenom</strong> et <strong>peloton</strong>. La promotion enregistrée dans les paramètres est appliquée automatiquement. Un identifiant pseudonyme unique composé de trois lettres et trois chiffres est généré automatiquement.
     Les rôles acceptés sont
     <strong>eleve</strong> et
     <strong>cadre</strong>.
   </p>
 
   <div class="csv-example">
-    <code>nom;prenom;peloton;promotion;role</code>
-    <code>DUPONT;Jean;P1;480e;eleve</code>
-    <code>MARTIN;Paul;;;cadre</code>
+    <code>nom;prenom;peloton;role</code>
+    <code>DUPONT;Jean;P1;eleve</code>
+    <code>MARTIN;Paul;;cadre</code>
   </div>
 
   <div class="import-field">
@@ -2355,7 +2355,6 @@
             <th>Nom</th>
             <th>Prénom</th>
             <th>Peloton</th>
-            <th>Promotion</th>
             <th>Rôle</th>
             <th>Contrôle</th>
           </tr>
@@ -2423,6 +2422,59 @@
   <div id="importMessage"></div>
 </section>
     
+
+
+<section class="migration-panel">
+  <div class="panel-heading">
+    <div>
+      <span class="small-label">Opération ponctuelle</span>
+      <h2>Migrer les anciens identifiants</h2>
+    </div>
+  </div>
+
+  <p class="import-description">
+    Cette fonction remplace les anciens identifiants des cadres et des comptes élèves de test.
+    Les cadres reçoivent un identifiant composé des trois premières lettres de leur nom et de trois chiffres.
+    Les élèves reçoivent trois lettres aléatoires suivies de trois chiffres.
+    <strong>Les mots de passe, les rôles, les sanctions et les consultations sont conservés.</strong>
+  </p>
+
+  <div class="import-actions">
+    <button id="loadMigrationAccountsButton" class="secondary-button" type="button">
+      Afficher les comptes à migrer
+    </button>
+    <button id="migrateSelectedAccountsButton" class="primary-button" type="button" disabled>
+      Migrer les comptes sélectionnés
+    </button>
+  </div>
+
+  <div id="migrationAccountsWrapper" class="csv-table-wrapper" hidden>
+    <table class="csv-table">
+      <thead>
+        <tr>
+          <th><input id="selectAllMigrationAccounts" type="checkbox" aria-label="Tout sélectionner"></th>
+          <th>Nom</th>
+          <th>Rôle</th>
+          <th>Ancien identifiant</th>
+          <th>État</th>
+        </tr>
+      </thead>
+      <tbody id="migrationAccountsBody"></tbody>
+    </table>
+  </div>
+
+  <div id="migrationMessage"></div>
+
+  <div id="migrationExportActions" class="export-import-actions" hidden>
+    <button id="downloadMigrationExportButton" class="download-credentials-button" type="button">
+      Télécharger le relevé des modifications
+    </button>
+    <p class="credentials-warning">
+      Le relevé contient les anciens et nouveaux identifiants, sans mot de passe.
+    </p>
+  </div>
+</section>
+
 
 <section class="homepage-tiles-panel">
   <div class="panel-heading">
@@ -4062,7 +4114,6 @@ csvFile.addEventListener(
 
     const prenomIndex = headers.findIndex(header => ["prenom", "prénom", "firstname"].includes(header));
     const pelotonIndex = headers.findIndex(header => ["peloton", "section"].includes(header));
-    const promotionIndex = headers.findIndex(header => ["promotion", "promo"].includes(header));
 
     const roleIndex =
       headers.findIndex(header =>
@@ -4101,7 +4152,6 @@ csvFile.addEventListener(
 
         const prenom = prenomIndex >= 0 ? String(columns[prenomIndex] || "").trim() : "";
         const peloton = pelotonIndex >= 0 ? String(columns[pelotonIndex] || "").trim() : "";
-        const promotion = promotionIndex >= 0 ? String(columns[promotionIndex] || "").trim() : "";
 
         const role =
           normalizeCsvRole(
@@ -4134,7 +4184,6 @@ csvFile.addEventListener(
           nom,
           prenom,
           peloton,
-          promotion,
           role,
           lineNumber: index + 2,
           errors
@@ -4159,7 +4208,6 @@ csvFile.addEventListener(
           <td>${user.nom || "—"}</td>
           <td>${user.prenom || "—"}</td>
           <td>${user.peloton || "—"}</td>
-          <td>${user.promotion || "—"}</td>
           <td>${user.role || "—"}</td>
           <td class="${
             user.errors.length
@@ -5302,6 +5350,152 @@ administrationModePromise.then(isVisitor=>{
 });
 
 
+
+/* ==========================================================
+   MIGRATION PONCTUELLE DES ANCIENS IDENTIFIANTS
+   ========================================================== */
+const loadMigrationAccountsButton = document.getElementById("loadMigrationAccountsButton");
+const migrateSelectedAccountsButton = document.getElementById("migrateSelectedAccountsButton");
+const migrationAccountsWrapper = document.getElementById("migrationAccountsWrapper");
+const migrationAccountsBody = document.getElementById("migrationAccountsBody");
+const migrationMessage = document.getElementById("migrationMessage");
+const selectAllMigrationAccounts = document.getElementById("selectAllMigrationAccounts");
+const migrationExportActions = document.getElementById("migrationExportActions");
+const downloadMigrationExportButton = document.getElementById("downloadMigrationExportButton");
+let migrationResults = [];
+
+function migrationSelectedUsernames() {
+  return Array.from(document.querySelectorAll(".migration-account-checkbox:checked"))
+    .map(input => input.value);
+}
+
+function refreshMigrationButton() {
+  migrateSelectedAccountsButton.disabled = migrationSelectedUsernames().length === 0;
+}
+
+function migrationRoleLabel(role) {
+  return role === "admin" ? "Administrateur" : role === "cadre" ? "Cadre" : "Élève";
+}
+
+async function loadMigrationAccounts() {
+  migrationMessage.className = "";
+  migrationMessage.textContent = "Chargement des comptes…";
+  migrationExportActions.hidden = true;
+  migrationResults = [];
+
+  try {
+    const response = await fetch("/admin/migrate-identifiers", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Chargement impossible.");
+
+    const users = data.users || [];
+    migrationAccountsBody.innerHTML = users.map(user => `
+      <tr>
+        <td><input class="migration-account-checkbox" type="checkbox" value="${String(user.username).replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}"></td>
+        <td>${String(user.nom || "—").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
+        <td>${migrationRoleLabel(user.role)}</td>
+        <td><code>${String(user.username || "")}</code></td>
+        <td>${user.active ? "Actif" : "Désactivé"}</td>
+      </tr>
+    `).join("");
+
+    migrationAccountsWrapper.hidden = users.length === 0;
+    selectAllMigrationAccounts.checked = false;
+    refreshMigrationButton();
+
+    migrationMessage.className = users.length ? "import-success" : "import-success";
+    migrationMessage.textContent = users.length
+      ? `${users.length} compte(s) peuvent être migrés.`
+      : "Aucun ancien identifiant ne reste à migrer.";
+
+    document.querySelectorAll(".migration-account-checkbox")
+      .forEach(input => input.addEventListener("change", refreshMigrationButton));
+  } catch (error) {
+    migrationMessage.className = "import-error";
+    migrationMessage.textContent = error.message || "Chargement impossible.";
+  }
+}
+
+loadMigrationAccountsButton.addEventListener("click", loadMigrationAccounts);
+selectAllMigrationAccounts.addEventListener("change", () => {
+  document.querySelectorAll(".migration-account-checkbox")
+    .forEach(input => { input.checked = selectAllMigrationAccounts.checked; });
+  refreshMigrationButton();
+});
+
+migrateSelectedAccountsButton.addEventListener("click", async () => {
+  const usernames = migrationSelectedUsernames();
+  if (!usernames.length) return;
+
+  const confirmed = window.confirm(
+    `Modifier l’identifiant de ${usernames.length} compte(s) ?\n\n` +
+    "Les mots de passe seront conservés. Toutes les sessions des comptes concernés seront fermées."
+  );
+  if (!confirmed) return;
+
+  migrateSelectedAccountsButton.disabled = true;
+  migrationMessage.className = "";
+  migrationMessage.textContent = "Migration en cours…";
+
+  try {
+    const response = await fetch("/admin/migrate-identifiers", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usernames })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.details || data.error || "Migration impossible.");
+
+    migrationResults = data.migrated || [];
+    migrationExportActions.hidden = migrationResults.length === 0;
+    migrationMessage.className = "import-success";
+    migrationMessage.textContent = data.message || "Migration terminée.";
+
+    if (data.currentAccountMigrated) {
+      migrationMessage.textContent += " Votre propre identifiant a été modifié : téléchargez le relevé puis reconnectez-vous avec le nouvel identifiant et votre mot de passe actuel.";
+    }
+
+    await loadMigrationAccounts();
+    migrationExportActions.hidden = migrationResults.length === 0;
+  } catch (error) {
+    migrationMessage.className = "import-error";
+    migrationMessage.textContent = error.message || "Migration impossible.";
+    refreshMigrationButton();
+  }
+});
+
+function migrationCsv(results) {
+  const lines = [
+    ["nom", "role", "ancien_identifiant", "nouvel_identifiant", "mot_de_passe"],
+    ...results.map(item => [
+      item.displayName || "",
+      migrationRoleLabel(item.role),
+      item.oldUsername || "",
+      item.newUsername || "",
+      "inchangé"
+    ])
+  ];
+  return "\uFEFF" + lines.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+}
+
+downloadMigrationExportButton.addEventListener("click", () => {
+  if (!migrationResults.length) return;
+  const blob = new Blob([migrationCsv(migrationResults)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 16).replace(/[T:]/g, "-");
+  link.href = url;
+  link.download = `migration-identifiants-ci6-${date}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+});
+
 const promotionSettingsForm =
   document.getElementById("promotionSettingsForm");
 
@@ -6098,6 +6292,7 @@ restoreDatabaseButton?.addEventListener(
     ["search-panel", ["Utilisateurs", "Rechercher et modifier un compte"]],
     ["create-panel", ["Utilisateurs", "Créer un compte"]],
     ["import-panel", ["Utilisateurs", "Importer des comptes CSV"]],
+    ["migration-panel", ["Utilisateurs", "Migrer les anciens identifiants"]],
     ["homepage-tiles-panel", ["Page d’accueil", "Affichage des domaines et rubriques"]],
     ["backup-panel", ["Sécurité", "Sauvegarde et restauration"]],
     ["consultations-panel", ["Traçabilité", "Suivi des consultations"]],
