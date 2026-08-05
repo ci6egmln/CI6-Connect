@@ -1541,6 +1541,70 @@
     }
   }
 
+
+  .backup-panel {
+    margin-top: 24px;
+  }
+
+  .backup-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    border: 1px solid rgba(212,175,55,.34);
+    border-radius: 12px;
+    background:
+      linear-gradient(
+        135deg,
+        rgba(212,175,55,.08),
+        rgba(255,255,255,.025)
+      );
+  }
+
+  .backup-card h3 {
+    margin: 0 0 6px;
+    color: var(--gold-light);
+    font-size: 17px;
+  }
+
+  .backup-card p {
+    margin: 0;
+    color: rgba(255,255,255,.74);
+    line-height: 1.45;
+  }
+
+  .backup-warning {
+    margin-top: 10px !important;
+    color: #ffd58a !important;
+    font-size: 12px;
+  }
+
+  .backup-message {
+    min-height: 22px;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .backup-message.success {
+    color: #9ee6b5;
+  }
+
+  .backup-message.error {
+    color: #ff9a9a;
+  }
+
+  @media (max-width: 720px) {
+    .backup-card {
+      grid-template-columns: 1fr;
+    }
+
+    .backup-card button {
+      width: 100%;
+    }
+  }
+
 </style>
 </head>
 
@@ -1986,6 +2050,45 @@
     <button id="resetHomepageTilesButton" class="secondary-button" type="button" disabled>Annuler les modifications</button>
   </div>
   <div id="homepageTilesMessage" class="homepage-tiles-message"></div>
+</section>
+
+
+<section class="backup-panel">
+  <div class="panel-heading">
+    <span class="small-label">Sécurité des données</span>
+    <h2>Sauvegarde de la base</h2>
+  </div>
+
+  <div class="backup-card">
+    <div>
+      <h3>Exporter une sauvegarde complète</h3>
+
+      <p>
+        Télécharge les données dynamiques de CI6 Connect dans un fichier JSON :
+        utilisateurs, paramètres, consultations, sanctions, journal disciplinaire,
+        réglages d’affichage et abonnements aux notifications.
+      </p>
+
+      <p class="backup-warning">
+        Ce fichier contient des données sensibles, notamment les comptes utilisateurs.
+        Il doit être conservé dans un emplacement sécurisé.
+      </p>
+    </div>
+
+    <button
+      id="downloadDatabaseBackupButton"
+      class="download-credentials-button"
+      type="button"
+    >
+      Télécharger la sauvegarde
+    </button>
+  </div>
+
+  <div
+    id="databaseBackupMessage"
+    class="backup-message"
+    aria-live="polite"
+  ></div>
 </section>
 
 <section class="consultations-panel">
@@ -4802,6 +4905,112 @@ administrationModePromise.then(isVisitor => {
     savePromotionSettingsButton.disabled = true;
   }
 });
+
+
+
+const downloadDatabaseBackupButton =
+  document.getElementById(
+    "downloadDatabaseBackupButton"
+  );
+
+const databaseBackupMessage =
+  document.getElementById(
+    "databaseBackupMessage"
+  );
+
+downloadDatabaseBackupButton?.addEventListener(
+  "click",
+  async () => {
+    downloadDatabaseBackupButton.disabled = true;
+
+    databaseBackupMessage.textContent =
+      "Préparation de la sauvegarde…";
+
+    databaseBackupMessage.className =
+      "backup-message";
+
+    try {
+      const response =
+        await fetch(
+          "/admin/backup-export",
+          {
+            credentials: "same-origin",
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) {
+        let message =
+          "Impossible de créer la sauvegarde.";
+
+        try {
+          const data =
+            await response.json();
+
+          message =
+            data.error || message;
+        } catch {
+          /* Réponse non JSON. */
+        }
+
+        throw new Error(message);
+      }
+
+      const blob =
+        await response.blob();
+
+      const disposition =
+        response.headers.get(
+          "Content-Disposition"
+        ) || "";
+
+      const match =
+        disposition.match(
+          /filename="?([^";]+)"?/i
+        );
+
+      const fileName =
+        match?.[1] ||
+        "ci6-connect-sauvegarde.json";
+
+      const objectUrl =
+        URL.createObjectURL(blob);
+
+      const link =
+        document.createElement("a");
+
+      link.href = objectUrl;
+      link.download = fileName;
+      link.hidden = true;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(
+        () => URL.revokeObjectURL(objectUrl),
+        1000
+      );
+
+      databaseBackupMessage.textContent =
+        "Sauvegarde téléchargée. Conservez-la dans un emplacement sécurisé.";
+
+      databaseBackupMessage.className =
+        "backup-message success";
+
+    } catch (error) {
+      databaseBackupMessage.textContent =
+        error.message ||
+        "Impossible de télécharger la sauvegarde.";
+
+      databaseBackupMessage.className =
+        "backup-message error";
+
+    } finally {
+      downloadDatabaseBackupButton.disabled = false;
+    }
+  }
+);
 
 
 </script>

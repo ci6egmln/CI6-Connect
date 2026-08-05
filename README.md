@@ -142,6 +142,34 @@ sanctions.html
 
 Toujours repartir de la dernière version complète du projet pour éviter toute régression.
 
+
+## Export administratif de la base
+
+La page `administration.html` comporte un bouton **Télécharger la sauvegarde**.
+
+Il appelle la fonction :
+
+```text
+functions/admin/backup-export.js
+```
+
+L’export produit un fichier JSON horodaté contenant les tables dynamiques disponibles :
+
+- `users` ;
+- `settings` ;
+- `homepage_tiles` ;
+- `fiche_consultations` ;
+- `discipline_students` ;
+- `discipline_sanctions` ;
+- `discipline_audit_log` ;
+- `push_subscriptions`.
+
+L’accès est réservé aux administrateurs.
+
+Le fichier contient des données sensibles, notamment les comptes et les abonnements aux notifications. Il doit être conservé sur un support sécurisé et ne doit pas être transmis par messagerie ordinaire.
+
+Cette première fonction assure l’export. Une restauration automatique ne doit être ajoutée qu’après validation d’une procédure contrôlée afin d’éviter l’écrasement accidentel de la base.
+
 ## Principe de maintenance
 
 CI6 Connect doit rester simple, fiable et adapté au téléphone.
