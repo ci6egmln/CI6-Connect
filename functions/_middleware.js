@@ -440,7 +440,7 @@ export async function onRequest(context) {
 
     let sessionData = null;
 
-    if (/^\d{6}$/.test(username)) {
+    if (/^(?:[A-Za-z]{3}\d{3}|\d{6})$/.test(username)) {
       const user = await context.env.DB
         .prepare(`
           SELECT

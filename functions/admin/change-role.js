@@ -36,11 +36,11 @@ export async function onRequestPost(context) {
   const requestedRole =
     String(body.role || "").trim();
 
-  if (!/^\d{6}$/.test(username)) {
+  if (!/^(?:[A-Z]{3}\d{3}|\d{6})$/.test(username.toUpperCase())) {
     return jsonResponse(
       {
         error:
-          "L’identifiant doit contenir exactement 6 chiffres."
+          "L’identifiant doit contenir trois lettres suivies de trois chiffres."
       },
       400
     );

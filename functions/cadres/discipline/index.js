@@ -68,10 +68,10 @@ export async function onRequestGet(context) {
       const result = await db.prepare(`
         SELECT nigend, nom, prenom, peloton, promotion, active
         FROM discipline_students
-        WHERE active = 1 AND (nigend LIKE ? OR nom LIKE ? OR prenom LIKE ?)
+        WHERE active = 1 AND (nigend LIKE ? OR nom LIKE ? OR prenom LIKE ? OR peloton LIKE ?)
         ORDER BY nom, prenom
         LIMIT 30
-      `).bind(like, like, like).all();
+      `).bind(like, like, like, like).all();
       return json({ students: result.results || [] });
     }
 
@@ -131,7 +131,7 @@ export async function onRequestPost(context) {
   const observations = String(body.observations || "").trim();
   const sanctionDate = String(body.sanction_date || "").trim() || new Date().toISOString();
 
-  if (!/^\d{6}$/.test(studentNigend)) return json({ error: "NIGEND invalide." }, 400);
+  if (!/^(?:[A-Z]{3}\d{3}|\d{6})$/.test(studentNigend.toUpperCase())) return json({ error: "Identifiant invalide." }, 400);
   if (!validType(sanctionType)) return json({ error: "Type de sanction invalide." }, 400);
   if (!reasonCode && !reasonFree) return json({ error: "Le motif est obligatoire." }, 400);
 

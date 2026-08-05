@@ -268,11 +268,11 @@ export async function onRequestPost(context) {
       const active =
         body.active === true;
 
-      if (!/^\d{6}$/.test(username)) {
+      if (!/^(?:[A-Z]{3}\d{3}|\d{6})$/.test(username.toUpperCase())) {
         return jsonResponse(
           {
             error:
-              "NIGEND invalide."
+              "Identifiant invalide."
           },
           400
         );

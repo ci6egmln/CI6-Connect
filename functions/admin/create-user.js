@@ -1,162 +1,138 @@
 const encoder = new TextEncoder();
 const ITERATIONS = 100000;
+const NEW_IDENTIFIER_PATTERN = /^[A-Z]{3}\d{3}$/;
 
 function bytesToBase64(bytes) {
   let binary = "";
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-
+  for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
 }
 
 async function hashPassword(password, salt) {
   const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
+    "raw", encoder.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]
   );
-
   const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt,
-      iterations: ITERATIONS
-    },
-    keyMaterial,
-    256
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations: ITERATIONS },
+    keyMaterial, 256
   );
-
   return bytesToBase64(new Uint8Array(derivedBits));
 }
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store"
-    }
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" }
   });
+}
+
+function randomIndex(max) {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return values[0] % max;
+}
+
+function candidateIdentifier() {
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  let value = "";
+  for (let i = 0; i < 3; i += 1) value += letters[randomIndex(letters.length)];
+  for (let i = 0; i < 3; i += 1) value += String(randomIndex(10));
+  return value;
+}
+
+async function generateUniqueIdentifier(db) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const candidate = candidateIdentifier();
+    const existing = await db.prepare("SELECT 1 FROM users WHERE username = ? LIMIT 1").bind(candidate).first();
+    if (!existing) return candidate;
+  }
+  throw new Error("Impossible de générer un identifiant unique.");
+}
+
+async function ensureDisciplineSchema(db) {
+  await db.batch([
+    db.prepare(`CREATE TABLE IF NOT EXISTS discipline_students (
+      nigend TEXT PRIMARY KEY, nom TEXT NOT NULL, prenom TEXT,
+      peloton TEXT NOT NULL DEFAULT '', promotion TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS discipline_sanctions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      student_nigend TEXT NOT NULL, sanction_type TEXT NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1, reason_code TEXT,
+      reason_free TEXT, observations TEXT,
+      sanction_date TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_by TEXT, updated_at TEXT, deleted_at TEXT, deleted_by TEXT,
+      FOREIGN KEY(student_nigend) REFERENCES discipline_students(nigend)
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS discipline_audit_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, sanction_id INTEGER,
+      action TEXT NOT NULL, actor_username TEXT NOT NULL,
+      previous_data TEXT, new_data TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )`)
+  ]);
 }
 
 export async function onRequestPost(context) {
   try {
-    if (!context.env.DB) {
-      return jsonResponse(
-        { error: "Liaison D1 DB absente." },
-        500
-      );
-    }
-
+    if (!context.env.DB) return jsonResponse({ error: "Liaison D1 DB absente." }, 500);
     const body = await context.request.json();
-
-    const username = String(body.username || "").trim();
     const nom = String(body.nom || "").trim();
+    const prenom = String(body.prenom || "").trim();
+    const peloton = String(body.peloton || "").trim();
+    const promotion = String(body.promotion || "").trim();
     const password = String(body.password || "");
-    const requestedRole =
-      String(body.role || "").trim();
+    const requestedRole = String(body.role || "").trim();
+    const role = ["eleve", "cadre", "visiteur"].includes(requestedRole) ? requestedRole : "eleve";
 
-    const role =
-      ["eleve", "cadre", "visiteur"].includes(requestedRole)
-        ? requestedRole
-        : "eleve";
+    if (!nom || nom.length > 120) return jsonResponse({ error: "Le nom est obligatoire et limité à 120 caractères." }, 400);
+    if (prenom.length > 120) return jsonResponse({ error: "Le prénom est limité à 120 caractères." }, 400);
+    if (role === "eleve" && !peloton) return jsonResponse({ error: "Le peloton est obligatoire pour un élève." }, 400);
+    if (password.length < 12) return jsonResponse({ error: "Le mot de passe doit contenir au moins 12 caractères." }, 400);
 
-    if (!/^\d{6}$/.test(username)) {
-      return jsonResponse(
-        {
-          error:
-            "L’identifiant doit contenir exactement 6 chiffres."
-        },
-        400
-      );
-    }
+    await ensureDisciplineSchema(context.env.DB);
+    const username = await generateUniqueIdentifier(context.env.DB);
+    if (!NEW_IDENTIFIER_PATTERN.test(username)) throw new Error("Identifiant généré invalide.");
 
-    if (!nom || nom.length > 120) {
-      return jsonResponse(
-        { error: "Le nom est obligatoire et limité à 120 caractères." },
-        400
-      );
-    }
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const passwordHash = await hashPassword(password, salt);
+    const displayName = [nom, prenom].filter(Boolean).join(" ");
 
-    if (password.length < 12) {
-      return jsonResponse(
-        {
-          error:
-            "Le mot de passe doit contenir au moins 12 caractères."
-        },
-        400
-      );
-    }
-
-    const existingUser = await context.env.DB
-      .prepare(
-        "SELECT id FROM users WHERE username = ? LIMIT 1"
-      )
-      .bind(username)
-      .first();
-
-    if (existingUser) {
-      return jsonResponse(
-        { error: "Cet identifiant existe déjà." },
-        409
-      );
-    }
-
-    const salt = new Uint8Array(16);
-    crypto.getRandomValues(salt);
-
-    const passwordHash =
-      await hashPassword(password, salt);
-
-    await context.env.DB
-      .prepare(`
+    const statements = [
+      context.env.DB.prepare(`
         INSERT INTO users (
-          username,
-          nom,
-          password_hash,
-          password_salt,
-          active,
-          role,
-          must_change_password,
-          session_version
-        )
-        VALUES (?, ?, ?, ?, 1, ?, 1, 1)
-      `)
-      .bind(
-        username,
-        nom,
-        passwordHash,
-        bytesToBase64(salt),
-        role
-      )
-      .run();
+          username, nom, password_hash, password_salt,
+          active, role, must_change_password, session_version
+        ) VALUES (?, ?, ?, ?, 1, ?, 1, 1)
+      `).bind(username, displayName, passwordHash, bytesToBase64(salt), role)
+    ];
 
-    return jsonResponse(
-      {
-        success: true,
-        username,
-        nom,
-        role,
-        must_change_password: true
-      },
-      201
-    );
+    if (role === "eleve") {
+      statements.push(context.env.DB.prepare(`
+        INSERT INTO discipline_students
+          (nigend, nom, prenom, peloton, promotion, active, updated_at)
+        VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+        ON CONFLICT(nigend) DO UPDATE SET
+          nom=excluded.nom, prenom=excluded.prenom,
+          peloton=excluded.peloton, promotion=excluded.promotion,
+          active=1, updated_at=CURRENT_TIMESTAMP
+      `).bind(username, nom, prenom, peloton, promotion));
+    }
 
+    await context.env.DB.batch(statements);
+    return jsonResponse({
+      success: true, username, nom, prenom, peloton, promotion,
+      displayName, role, must_change_password: true
+    }, 201);
   } catch (error) {
-    return jsonResponse(
-      {
-        error: "Erreur interne lors de la création.",
-        details:
-          error && error.message
-            ? error.message
-            : String(error)
-      },
-      500
-    );
+    return jsonResponse({
+      error: "Erreur interne lors de la création.",
+      details: error && error.message ? error.message : String(error)
+    }, 500);
   }
 }

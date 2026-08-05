@@ -234,3 +234,10 @@ Les comptes cadres, les fiches Markdown, les photos et les documents ne sont pas
 CI6 Connect doit rester simple, fiable et adapté au téléphone.
 
 Toute évolution doit privilégier la clarté, la réduction des manipulations, la conservation de l’historique et la possibilité de revenir en arrière.
+
+
+## Identifiants pseudonymes
+
+Les nouveaux comptes utilisent un identifiant généré automatiquement au format `ABC123` : trois lettres majuscules suivies de trois chiffres. Cet identifiant ne contient ni nom, ni prénom, ni NIGEND, ni peloton.
+
+Les noms, prénoms et pelotons restent réservés aux fonctions internes de recherche, de suivi des consultations et de suivi disciplinaire. Les anciens identifiants numériques restent temporairement acceptés afin de ne pas bloquer les comptes déjà créés ; aucun nouveau compte numérique n’est généré.
