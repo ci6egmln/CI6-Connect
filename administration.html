@@ -5412,11 +5412,13 @@ function migrationRoleLabel(role) {
   return role === "admin" ? "Administrateur" : role === "cadre" ? "Cadre" : "Élève";
 }
 
-async function loadMigrationAccounts() {
+async function loadMigrationAccounts({ preserveResults = false } = {}) {
   migrationMessage.className = "";
   migrationMessage.textContent = "Chargement des comptes…";
-  migrationExportActions.hidden = true;
-  migrationResults = [];
+  if (!preserveResults) {
+    migrationExportActions.hidden = true;
+    migrationResults = [];
+  }
 
   try {
     const response = await fetch("/admin/migrate-identifiers", {
@@ -5451,7 +5453,14 @@ async function loadMigrationAccounts() {
             style="width: 8.5em; text-transform: uppercase;"
           >
         `
-        : `<code>${suggestedIdentifier}</code>`;
+        : `
+          <input
+            class="migration-new-identifier"
+            type="hidden"
+            value="${suggestedIdentifier}"
+          >
+          <code>${suggestedIdentifier}</code>
+        `;
 
       return `
         <tr>
@@ -5534,15 +5543,23 @@ migrateSelectedAccountsButton.addEventListener("click", async () => {
 
     migrationResults = data.migrated || [];
     migrationExportActions.hidden = migrationResults.length === 0;
+    const completionMessage = data.message || "Migration terminée.";
     migrationMessage.className = "import-success";
-    migrationMessage.textContent = data.message || "Migration terminée.";
+    migrationMessage.textContent = completionMessage;
 
     if (data.currentAccountMigrated) {
       migrationMessage.textContent += " Votre propre identifiant a été modifié : téléchargez le relevé puis reconnectez-vous avec le nouvel identifiant et votre mot de passe actuel.";
+      loadMigrationAccountsButton.disabled = true;
+      migrateSelectedAccountsButton.disabled = true;
+      document.querySelectorAll(".migration-account-checkbox, .migration-new-identifier")
+        .forEach(input => { input.disabled = true; });
+    } else {
+      await loadMigrationAccounts({ preserveResults: true });
+      migrationMessage.className = "import-success";
+      migrationMessage.textContent = completionMessage;
     }
 
-    await loadMigrationAccounts();
-    migrationExportActions.hidden = migrationResults.length === 0;
+    migrationExportActions.hidden = false;
   } catch (error) {
     migrationMessage.className = "import-error";
     migrationMessage.textContent = error.message || "Migration impossible.";
