@@ -2434,8 +2434,9 @@
 
   <p class="import-description">
     Cette fonction remplace les anciens identifiants des cadres et des comptes élèves de test.
-    Les cadres reçoivent un identifiant composé des trois premières lettres de leur nom et de trois chiffres.
-    Les élèves reçoivent trois lettres aléatoires suivies de trois chiffres.
+    Pour les cadres et administrateurs, vous pouvez saisir entièrement le nouvel identifiant
+    au format trois lettres suivies de trois chiffres. Une proposition modifiable est affichée.
+    Les élèves reçoivent automatiquement trois lettres aléatoires suivies de trois chiffres.
     <strong>Les mots de passe, les rôles, les sanctions et les consultations sont conservés.</strong>
   </p>
 
@@ -2456,6 +2457,7 @@
           <th>Nom</th>
           <th>Rôle</th>
           <th>Ancien identifiant</th>
+          <th>Nouvel identifiant</th>
           <th>État</th>
         </tr>
       </thead>
@@ -5365,12 +5367,45 @@ const downloadMigrationExportButton = document.getElementById("downloadMigration
 let migrationResults = [];
 
 function migrationSelectedUsernames() {
-  return Array.from(document.querySelectorAll(".migration-account-checkbox:checked"))
-    .map(input => input.value);
+  return Array.from(
+    document.querySelectorAll(
+      ".migration-account-checkbox:checked"
+    )
+  ).map(input => input.value);
+}
+
+function migrationPayload() {
+  return Array.from(
+    document.querySelectorAll(
+      ".migration-account-checkbox:checked"
+    )
+  ).map(input => {
+    const row = input.closest("tr");
+    const identifierInput = row?.querySelector(
+      ".migration-new-identifier"
+    );
+
+    return {
+      oldUsername: input.value,
+      newUsername:
+        identifierInput?.value
+          ?.trim()
+          .toUpperCase() || ""
+    };
+  });
+}
+
+function escapeMigrationHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function refreshMigrationButton() {
-  migrateSelectedAccountsButton.disabled = migrationSelectedUsernames().length === 0;
+  migrateSelectedAccountsButton.disabled =
+    migrationSelectedUsernames().length === 0;
 }
 
 function migrationRoleLabel(role) {
@@ -5392,15 +5427,49 @@ async function loadMigrationAccounts() {
     if (!response.ok) throw new Error(data.error || "Chargement impossible.");
 
     const users = data.users || [];
-    migrationAccountsBody.innerHTML = users.map(user => `
-      <tr>
-        <td><input class="migration-account-checkbox" type="checkbox" value="${String(user.username).replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}"></td>
-        <td>${String(user.nom || "—").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
-        <td>${migrationRoleLabel(user.role)}</td>
-        <td><code>${String(user.username || "")}</code></td>
-        <td>${user.active ? "Actif" : "Désactivé"}</td>
-      </tr>
-    `).join("");
+    migrationAccountsBody.innerHTML = users.map(user => {
+      const isStaff =
+        user.role === "cadre" ||
+        user.role === "admin";
+
+      const suggestedIdentifier =
+        escapeMigrationHtml(
+          user.suggestedUsername || ""
+        );
+
+      const identifierCell = isStaff
+        ? `
+          <input
+            class="migration-new-identifier"
+            type="text"
+            value="${suggestedIdentifier}"
+            maxlength="6"
+            pattern="[A-Za-z]{3}[0-9]{3}"
+            autocomplete="off"
+            spellcheck="false"
+            title="Trois lettres suivies de trois chiffres"
+            style="width: 8.5em; text-transform: uppercase;"
+          >
+        `
+        : `<code>${suggestedIdentifier}</code>`;
+
+      return `
+        <tr>
+          <td>
+            <input
+              class="migration-account-checkbox"
+              type="checkbox"
+              value="${escapeMigrationHtml(user.username)}"
+            >
+          </td>
+          <td>${escapeMigrationHtml(user.nom || "—")}</td>
+          <td>${migrationRoleLabel(user.role)}</td>
+          <td><code>${escapeMigrationHtml(user.username || "")}</code></td>
+          <td>${identifierCell}</td>
+          <td>${user.active ? "Actif" : "Désactivé"}</td>
+        </tr>
+      `;
+    }).join("");
 
     migrationAccountsWrapper.hidden = users.length === 0;
     selectAllMigrationAccounts.checked = false;
@@ -5427,11 +5496,24 @@ selectAllMigrationAccounts.addEventListener("change", () => {
 });
 
 migrateSelectedAccountsButton.addEventListener("click", async () => {
-  const usernames = migrationSelectedUsernames();
-  if (!usernames.length) return;
+  const migrations = migrationPayload();
+  if (!migrations.length) return;
+
+  const invalidMigration = migrations.find(item =>
+    item.newUsername &&
+    !/^[A-Z]{3}\d{3}$/.test(item.newUsername)
+  );
+
+  if (invalidMigration) {
+    migrationMessage.className = "import-error";
+    migrationMessage.textContent =
+      `L’identifiant ${invalidMigration.newUsername} est invalide. ` +
+      "Utilisez trois lettres suivies de trois chiffres.";
+    return;
+  }
 
   const confirmed = window.confirm(
-    `Modifier l’identifiant de ${usernames.length} compte(s) ?\n\n` +
+    `Modifier l’identifiant de ${migrations.length} compte(s) ?\n\n` +
     "Les mots de passe seront conservés. Toutes les sessions des comptes concernés seront fermées."
   );
   if (!confirmed) return;
@@ -5445,7 +5527,7 @@ migrateSelectedAccountsButton.addEventListener("click", async () => {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usernames })
+      body: JSON.stringify({ migrations })
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.details || data.error || "Migration impossible.");

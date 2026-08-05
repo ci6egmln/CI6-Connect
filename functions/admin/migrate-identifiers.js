@@ -84,10 +84,8 @@ async function ensureAuditTable(db) {
   await db.prepare(`
     CREATE TABLE IF NOT EXISTS administration_audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      actor_username TEXT NOT NULL,
       action TEXT NOT NULL,
-      target_type TEXT,
-      target_identifier TEXT,
+      actor_username TEXT NOT NULL,
       details TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
@@ -97,6 +95,19 @@ async function ensureAuditTable(db) {
     DELETE FROM administration_audit_log
     WHERE created_at < datetime('now', '-3 months')
   `).run();
+}
+
+async function writeAudit(db, actor, details) {
+  await db.prepare(`
+    INSERT INTO administration_audit_log (
+      action,
+      actor_username,
+      details
+    ) VALUES ('identifier_migration', ?, ?)
+  `).bind(
+    actor,
+    JSON.stringify(details || {})
+  ).run();
 }
 
 async function listEligibleUsers(db) {
@@ -127,7 +138,25 @@ export async function onRequestGet(context) {
 
   try {
     const users = await listEligibleUsers(context.env.DB);
-    return jsonResponse({ success: true, users });
+    const reserved = new Set();
+    const preparedUsers = [];
+
+    for (const user of users) {
+      preparedUsers.push({
+        ...user,
+        suggestedUsername: await uniqueIdentifier(
+          context.env.DB,
+          user.role,
+          user.nom,
+          reserved
+        )
+      });
+    }
+
+    return jsonResponse({
+      success: true,
+      users: preparedUsers
+    });
   } catch (error) {
     return jsonResponse({
       error: "Impossible de préparer la migration.",
@@ -148,13 +177,48 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: "Requête JSON invalide." }, 400);
   }
 
-  const selected = Array.isArray(body.usernames)
-    ? [...new Set(body.usernames.map(value => String(value || "").trim()).filter(Boolean))]
+  const requestedMigrations = Array.isArray(body.migrations)
+    ? body.migrations
+        .map(item => ({
+          oldUsername: String(item?.oldUsername || "").trim(),
+          requestedUsername: String(item?.newUsername || "")
+            .trim()
+            .toUpperCase()
+        }))
+        .filter(item => item.oldUsername)
     : [];
 
-  if (!selected.length) {
+  const seenOldUsernames = new Set();
+  const migrations = requestedMigrations.filter(item => {
+    if (seenOldUsernames.has(item.oldUsername)) return false;
+    seenOldUsernames.add(item.oldUsername);
+    return true;
+  });
+
+  if (!migrations.length) {
     return jsonResponse({ error: "Aucun compte n’a été sélectionné." }, 400);
   }
+
+  for (const migration of migrations) {
+    if (
+      migration.requestedUsername &&
+      !/^[A-Z]{3}\d{3}$/.test(migration.requestedUsername)
+    ) {
+      return jsonResponse({
+        error:
+          `L’identifiant ${migration.requestedUsername} est invalide. ` +
+          "Utilisez trois lettres suivies de trois chiffres."
+      }, 400);
+    }
+  }
+
+  const selected = migrations.map(item => item.oldUsername);
+  const requestedByOldUsername = new Map(
+    migrations.map(item => [
+      item.oldUsername,
+      item.requestedUsername
+    ])
+  );
 
   const db = context.env.DB;
   const actor = String(context.data.session?.username || "administrateur");
@@ -200,7 +264,47 @@ export async function onRequestPost(context) {
 
     for (const user of users) {
       const oldUsername = String(user.username);
-      const newUsername = await uniqueIdentifier(db, user.role, user.nom, reserved);
+      const requestedUsername =
+        requestedByOldUsername.get(oldUsername) || "";
+
+      if (!requestedUsername) continue;
+
+      if (reserved.has(requestedUsername)) {
+        return jsonResponse({
+          error:
+            `L’identifiant ${requestedUsername} est utilisé plusieurs fois dans la sélection.`
+        }, 409);
+      }
+
+      const collision = await db.prepare(`
+        SELECT username
+        FROM users
+        WHERE username = ?
+          AND username <> ?
+        LIMIT 1
+      `).bind(requestedUsername, oldUsername).first();
+
+      if (collision) {
+        return jsonResponse({
+          error:
+            `L’identifiant ${requestedUsername} est déjà attribué à un autre compte.`
+        }, 409);
+      }
+
+      reserved.add(requestedUsername);
+    }
+
+    for (const user of users) {
+      const oldUsername = String(user.username);
+      const requestedUsername =
+        requestedByOldUsername.get(oldUsername) || "";
+
+      const newUsername = requestedUsername || await uniqueIdentifier(
+        db,
+        user.role,
+        user.nom,
+        reserved
+      );
       const statements = [];
 
       if (hasDisciplineStudents) {
@@ -241,28 +345,17 @@ export async function onRequestPost(context) {
             session_version = COALESCE(session_version, 1) + 1
         WHERE username = ?
       `).bind(newUsername, oldUsername));
-
-      statements.push(db.prepare(`
-        INSERT INTO administration_audit_log (
-          actor_username,
-          action,
-          target_type,
-          target_identifier,
-          details
-        ) VALUES (?, 'identifier_migration', 'user', ?, ?)
-      `).bind(
-        actor,
-        newUsername,
-        JSON.stringify({
-          oldUsername,
-          newUsername,
-          displayName: user.nom,
-          role: user.role,
-          passwordUnchanged: true
-        })
-      ));
-
       await db.batch(statements);
+
+      await writeAudit(db, actor, {
+        targetType: "user",
+        targetIdentifier: newUsername,
+        oldUsername,
+        newUsername,
+        displayName: user.nom,
+        role: user.role,
+        passwordUnchanged: true
+      });
 
       migrated.push({
         oldUsername,
