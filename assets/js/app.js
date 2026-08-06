@@ -2007,6 +2007,47 @@ function injectFicheEditorStyles() {
       outline-offset: 2px;
     }
 
+    .fiche-editor-button.block-save {
+      color: #ffffff !important;
+      border-color: #4d9be8 !important;
+      background:
+        linear-gradient(
+          135deg,
+          #2476bd,
+          #123f70
+        ) !important;
+      box-shadow: 0 8px 20px rgba(18,63,112,.28);
+    }
+
+    .fiche-editor-button.block-save:hover,
+    .fiche-editor-button.block-save:focus-visible {
+      color: #ffffff !important;
+      border-color: #76baff !important;
+      background:
+        linear-gradient(
+          135deg,
+          #328bd5,
+          #18558f
+        ) !important;
+      outline: 3px solid rgba(77,155,232,.25);
+      outline-offset: 2px;
+    }
+
+    .fiche-editor-button.workflow-secondary {
+      color: #dcecff !important;
+      border-color: rgba(77,155,232,.72) !important;
+      background: rgba(18,63,112,.34) !important;
+    }
+
+    .fiche-editor-button.workflow-secondary:hover,
+    .fiche-editor-button.workflow-secondary:focus-visible {
+      color: #ffffff !important;
+      border-color: #76baff !important;
+      background: rgba(30,91,145,.62) !important;
+      outline: 3px solid rgba(77,155,232,.2);
+      outline-offset: 2px;
+    }
+
     #cancelEditorBlockButton {
       min-height: 38px;
       padding: 7px 14px;
@@ -2024,9 +2065,23 @@ function injectFicheEditorStyles() {
     }
 
     #saveFicheButton {
-      width: 100%;
+      flex: 1 1 320px;
       min-height: 52px;
       font-size: 17px;
+    }
+
+    .fiche-editor-completion-step[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-completion-actions {
+      align-items: stretch;
+      padding-top: 4px;
+    }
+
+    #addAnotherEditorBlockButton {
+      flex: 0 1 280px;
+      min-height: 52px;
     }
 
     .fiche-editor-button.danger {
@@ -2456,6 +2511,32 @@ function injectFicheEditorStyles() {
       color: #eadff0;
     }
 
+    #uploadEditorImageButton {
+      color: #ffffff !important;
+      border-color: #c79add !important;
+      background:
+        linear-gradient(
+          135deg,
+          #8b5a99,
+          #583661
+        ) !important;
+      box-shadow: 0 8px 20px rgba(88,54,97,.28);
+    }
+
+    #uploadEditorImageButton:hover,
+    #uploadEditorImageButton:focus-visible {
+      color: #ffffff !important;
+      border-color: #ddb6ee !important;
+      background:
+        linear-gradient(
+          135deg,
+          #a36db3,
+          #70467b
+        ) !important;
+      outline: 3px solid rgba(199,154,221,.22);
+      outline-offset: 2px;
+    }
+
     /*
      * Zone documents :
      * fond bordeaux très sombre, titre rose bordeaux clair.
@@ -2479,6 +2560,32 @@ function injectFicheEditorStyles() {
 
     #editorDocumentsBox .fiche-editor-field > label {
       color: #f0dce2;
+    }
+
+    #uploadEditorDocumentButton {
+      color: #ffffff !important;
+      border-color: #d994a7 !important;
+      background:
+        linear-gradient(
+          135deg,
+          #984d63,
+          #642e3e
+        ) !important;
+      box-shadow: 0 8px 20px rgba(100,46,62,.28);
+    }
+
+    #uploadEditorDocumentButton:hover,
+    #uploadEditorDocumentButton:focus-visible {
+      color: #ffffff !important;
+      border-color: #efb3c3 !important;
+      background:
+        linear-gradient(
+          135deg,
+          #b45f77,
+          #7c3a4d
+        ) !important;
+      outline: 3px solid rgba(217,148,167,.22);
+      outline-offset: 2px;
     }
 
     #editorDocumentsBox .fiche-editor-upload-status.success {
@@ -3778,13 +3885,16 @@ function openFicheEditor() {
           class="fiche-editor-preview"
         ></div>
 
-        <div class="fiche-editor-add-zone">
+        <div
+          id="editorInitialAddZone"
+          class="fiche-editor-add-zone"
+        >
           <button
             type="button"
             id="newEditorBlockButton"
             class="fiche-editor-button"
           >
-            Ajouter un bloc
+            Ajouter un premier bloc
           </button>
         </div>
       </section>
@@ -4132,7 +4242,7 @@ function openFicheEditor() {
           <button
             type="button"
             id="validateEditorBlockButton"
-            class="fiche-editor-button"
+            class="fiche-editor-button block-save"
           >
             Enregistrer le bloc
           </button>
@@ -4152,6 +4262,11 @@ function openFicheEditor() {
         hidden
       ></div>
 
+      <div
+        id="ficheEditorCompletionStep"
+        class="fiche-editor-completion-step"
+        hidden
+      >
       <section class="fiche-editor-notification-box">
         <label class="fiche-editor-notification-toggle">
           <input
@@ -4205,7 +4320,15 @@ function openFicheEditor() {
         </div>
       </section>
 
-      <div class="fiche-editor-actions">
+      <div class="fiche-editor-actions fiche-editor-completion-actions">
+        <button
+          type="button"
+          id="addAnotherEditorBlockButton"
+          class="fiche-editor-button workflow-secondary"
+        >
+          Ajouter un autre bloc
+        </button>
+
         <button
           type="button"
           id="saveFicheButton"
@@ -4216,6 +4339,7 @@ function openFicheEditor() {
             ? "Publication indisponible en mode visiteur"
             : "Valider et publier la fiche"}
         </button>
+      </div>
       </div>
     </section>
   `;
@@ -4408,6 +4532,32 @@ function openFicheEditor() {
   const message =
     overlay.querySelector("#ficheEditorMessage");
 
+  const initialAddZone =
+    overlay.querySelector("#editorInitialAddZone");
+
+  const completionStep =
+    overlay.querySelector("#ficheEditorCompletionStep");
+
+  const newBlockButton =
+    overlay.querySelector("#newEditorBlockButton");
+
+  const addAnotherBlockButton =
+    overlay.querySelector("#addAnotherEditorBlockButton");
+
+  const saveFicheButton =
+    overlay.querySelector("#saveFicheButton");
+
+  function refreshEditorWorkflow() {
+    const blockFormIsOpen =
+      !blockForm.hidden;
+
+    initialAddZone.hidden =
+      blockFormIsOpen || blocks.length > 0;
+
+    completionStep.hidden =
+      blockFormIsOpen || blocks.length === 0;
+  }
+
 
   const notifyUsersInput =
     overlay.querySelector("#editorNotifyUsers");
@@ -4517,6 +4667,8 @@ function openFicheEditor() {
   }
 
   function renderPreview() {
+    refreshEditorWorkflow();
+
     if (blocks.length === 0) {
       preview.innerHTML = `
         <div class="fiche-editor-empty">
@@ -5000,6 +5152,7 @@ function openFicheEditor() {
 
     updateBlockFields();
     blockForm.hidden = false;
+    refreshEditorWorkflow();
 
     blockForm.scrollIntoView({
       behavior: "smooth",
@@ -5011,6 +5164,7 @@ function openFicheEditor() {
     blockForm.hidden = true;
     editingIndex = null;
     resetBlockForm();
+    refreshEditorWorkflow();
   }
 
   function buildBlockFromForm() {
@@ -5132,12 +5286,15 @@ function openFicheEditor() {
     }
   );
 
-  overlay
-    .querySelector("#newEditorBlockButton")
-    .addEventListener(
-      "click",
-      () => openBlockForm(null)
-    );
+  newBlockButton.addEventListener(
+    "click",
+    () => openBlockForm(null)
+  );
+
+  addAnotherBlockButton.addEventListener(
+    "click",
+    () => openBlockForm(null)
+  );
 
   overlay
     .querySelector("#closeEditorBlockFormButton")
@@ -5790,8 +5947,8 @@ function openFicheEditor() {
 
           message.textContent =
             wasAdding
-              ? "Bloc ajouté."
-              : "Bloc modifié.";
+              ? "Bloc enregistré. Vous pouvez ajouter un autre bloc ou publier la fiche."
+              : "Bloc modifié et enregistré. Vous pouvez ajouter un autre bloc ou publier la fiche.";
 
         } catch (error) {
           message.hidden = false;
@@ -5804,9 +5961,7 @@ function openFicheEditor() {
       }
     );
 
-  overlay
-    .querySelector("#saveFicheButton")
-    .addEventListener(
+  saveFicheButton.addEventListener(
       "click",
       async event => {
         if (isVisitorMode()) {
