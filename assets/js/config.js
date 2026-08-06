@@ -1128,7 +1128,7 @@ window.CI6_RUBRIQUES = [
     children: [
 		{
         id: "service",
-        title: "Planning et feuille hebdomadaire",
+        title: "Service",
         slug: "cadres-service",
         description: "Planning prévisionnel, permanences, SOP et repos récupérateurs",
         href: "/service",
