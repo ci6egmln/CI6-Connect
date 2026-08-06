@@ -2032,6 +2032,85 @@
     }
   }
 
+  .notations-admin-panel .notations-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .notations-admin-card {
+    padding: 16px;
+    border: 1px solid rgba(212,175,55,.28);
+    border-radius: 11px;
+    background: rgba(255,255,255,.025);
+  }
+
+  .notations-admin-card h3 {
+    margin: 0 0 8px;
+    color: var(--gold-light);
+  }
+
+  .notations-admin-table {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+  }
+
+  .notations-admin-table th,
+  .notations-admin-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    text-align: left;
+  }
+
+  .notations-admin-table select {
+    min-width: 130px;
+  }
+
+  .notations-summary-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .notations-summary-line span {
+    padding: 5px 9px;
+    border: 1px solid rgba(212,175,55,.24);
+    border-radius: 999px;
+    background: rgba(212,175,55,.08);
+    color: var(--gold-light);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .notations-admin-message {
+    min-height: 22px;
+    margin-top: 10px;
+    font-weight: 700;
+  }
+
+  .notations-admin-message.success { color: #9ee6b5; }
+  .notations-admin-message.error { color: #ff9a9a; }
+  .notations-admin-message.info { color: #f4d77a; }
+
+  @media (max-width: 760px) {
+    .notations-admin-panel .notations-admin-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .notations-admin-table,
+    .notations-admin-table tbody,
+    .notations-admin-table tr,
+    .notations-admin-table td {
+      display: block;
+    }
+
+    .notations-admin-table thead { display: none; }
+    .notations-admin-table tr { padding: 10px 0; }
+    .notations-admin-table td { border: 0; padding: 4px 0; }
+  }
+
 </style>
 </head>
 
@@ -2423,6 +2502,68 @@
 </section>
     
 
+
+<section class="notations-admin-panel">
+  <div class="panel-heading">
+    <div>
+      <span class="small-label">Espace cadres</span>
+      <h2>Notations des élèves — SimpliNote</h2>
+    </div>
+  </div>
+
+  <p class="import-description">
+    Importez les moyennes et classements, puis attribuez P1, P2 ou P3 aux commandants de peloton.
+    Les administrateurs disposent automatiquement de la vue compagnie.
+  </p>
+
+  <div class="notations-admin-grid">
+    <article class="notations-admin-card">
+      <h3>Importer les résultats</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="notationPromotion">Promotion</label>
+          <input id="notationPromotion" type="text" maxlength="80" placeholder="Ex. 463e promotion">
+        </div>
+        <div class="form-field">
+          <label for="notationTotalEg">Nombre d’EG au classement final</label>
+          <input id="notationTotalEg" type="number" min="1" max="500" placeholder="Ex. 105">
+        </div>
+        <div class="form-field form-field-wide">
+          <label for="notationCsvFile">Fichier CSV des résultats</label>
+          <input id="notationCsvFile" type="file" accept=".csv,text/csv">
+        </div>
+      </div>
+      <p class="import-description">
+        Colonnes obligatoires : <code>nom;prenom;grade;peloton;moyenne;classement</code>.
+        Colonne facultative : <code>sexe</code>.
+      </p>
+      <div class="notations-summary-line" id="notationCsvSummary">
+        <span>Aucun fichier analysé</span>
+      </div>
+      <div class="actions">
+        <button id="downloadNotationTemplate" class="secondary-button" type="button">Télécharger le modèle CSV</button>
+        <button id="importNotationCsv" class="primary-button" type="button" disabled>Importer les résultats</button>
+      </div>
+      <div id="notationImportMessage" class="notations-admin-message" aria-live="polite"></div>
+    </article>
+
+    <article class="notations-admin-card">
+      <h3>Accès des commandants de peloton</h3>
+      <p class="import-description">
+        Un cadre non affecté à P1, P2 ou P3 ne peut pas ouvrir SimpliNote.
+      </p>
+      <div class="table-wrapper">
+        <table class="notations-admin-table">
+          <thead><tr><th>Cadre</th><th>État</th><th>Accès notation</th></tr></thead>
+          <tbody id="notationAccessBody">
+            <tr><td colspan="3">Chargement des cadres…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="notationAccessMessage" class="notations-admin-message" aria-live="polite"></div>
+    </article>
+  </div>
+</section>
 
 <section class="homepage-tiles-panel">
   <div class="panel-heading">
@@ -5803,6 +5944,10 @@ const RESTORE_TABLE_LABELS = {
   discipline_students: "Élèves du suivi disciplinaire",
   discipline_sanctions: "Sanctions",
   discipline_audit_log: "Journal disciplinaire",
+  notation_students: "Élèves SimpliNote",
+  notation_records: "Littéraux SimpliNote",
+  notation_access: "Affectations P1 / P2 / P3",
+  notation_audit_log: "Journal des notations",
   push_subscriptions: "Notifications",
   administration_audit_log: "Journal administratif"
 };
@@ -6255,6 +6400,246 @@ restoreDatabaseButton?.addEventListener(
 
 
 /* ==========================================================
+   SIMPLINOTE — IMPORT ET DROITS DES PELOTONS
+   ========================================================== */
+const notationPromotion = document.getElementById("notationPromotion");
+const notationTotalEg = document.getElementById("notationTotalEg");
+const notationCsvFile = document.getElementById("notationCsvFile");
+const notationCsvSummary = document.getElementById("notationCsvSummary");
+const notationImportButton = document.getElementById("importNotationCsv");
+const notationImportMessage = document.getElementById("notationImportMessage");
+const notationAccessBody = document.getElementById("notationAccessBody");
+const notationAccessMessage = document.getElementById("notationAccessMessage");
+const downloadNotationTemplate = document.getElementById("downloadNotationTemplate");
+let notationParsedStudents = [];
+
+function notationAdminEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[character]));
+}
+
+function notationHeader(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function notationMessage(element, message, type = "info") {
+  if (!element) return;
+  element.className = `notations-admin-message ${type}`;
+  element.textContent = message;
+}
+
+function notationSummary(students, errors = []) {
+  if (!notationCsvSummary) return;
+  const count = peloton => students.filter(student => student.peloton === peloton).length;
+  notationCsvSummary.innerHTML = `
+    <span>${students.length} élève${students.length > 1 ? "s" : ""}</span>
+    <span>P1 : ${count("P1")}</span>
+    <span>P2 : ${count("P2")}</span>
+    <span>P3 : ${count("P3")}</span>
+    <span>${errors.length} erreur${errors.length > 1 ? "s" : ""}</span>
+  `;
+}
+
+notationCsvFile?.addEventListener("change", async () => {
+  const file = notationCsvFile.files?.[0];
+  notationParsedStudents = [];
+  notationImportButton.disabled = true;
+  notationMessage(notationImportMessage, "", "info");
+
+  if (!file) {
+    notationCsvSummary.innerHTML = "<span>Aucun fichier analysé</span>";
+    return;
+  }
+
+  try {
+    const text = (await file.text())
+      .replace(/^\uFEFF/, "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n");
+    const lines = text.split("\n").filter(line => line.trim());
+    if (lines.length < 2) throw new Error("Le fichier ne contient aucun élève.");
+
+    const separator = detectSeparator(lines[0]);
+    const headers = parseCsvLine(lines[0], separator).map(notationHeader);
+    const index = aliases => headers.findIndex(header => aliases.includes(header));
+    const indexes = {
+      nom: index(["nom", "name"]),
+      prenom: index(["prenom", "firstname"]),
+      grade: index(["grade"]),
+      peloton: index(["peloton", "section"]),
+      moyenne: index(["moyenne", "note", "average"]),
+      classement: index(["classement", "rang", "rank"]),
+      sexe: index(["sexe", "genre", "sex"])
+    };
+
+    const missing = Object.entries(indexes)
+      .filter(([key, value]) => key !== "sexe" && value < 0)
+      .map(([key]) => key);
+    if (missing.length) throw new Error(`Colonnes obligatoires absentes : ${missing.join(", ")}.`);
+
+    const errors = [];
+    notationParsedStudents = lines.slice(1).map((line, rowIndex) => {
+      const columns = parseCsvLine(line, separator);
+      const student = {
+        lineNumber: rowIndex + 2,
+        nom: String(columns[indexes.nom] || "").trim().toUpperCase(),
+        prenom: String(columns[indexes.prenom] || "").trim(),
+        grade: String(columns[indexes.grade] || "").trim().toUpperCase(),
+        peloton: String(columns[indexes.peloton] || "").trim().toUpperCase(),
+        moyenne: String(columns[indexes.moyenne] || "").trim(),
+        classement: String(columns[indexes.classement] || "").trim(),
+        sexe: indexes.sexe >= 0 ? String(columns[indexes.sexe] || "").trim() : "M"
+      };
+      const moyenne = Number(student.moyenne.replace(",", "."));
+      const classement = Number(student.classement);
+      if (!student.nom) errors.push(`Ligne ${student.lineNumber} : nom absent.`);
+      if (!["EG", "EGAV"].includes(student.grade)) errors.push(`Ligne ${student.lineNumber} : grade EG ou EGAV attendu.`);
+      if (!["P1", "P2", "P3"].includes(student.peloton)) errors.push(`Ligne ${student.lineNumber} : peloton P1, P2 ou P3 attendu.`);
+      if (!Number.isFinite(moyenne) || moyenne < 0 || moyenne > 20) errors.push(`Ligne ${student.lineNumber} : moyenne invalide.`);
+      if (!Number.isInteger(classement) || classement < 1) errors.push(`Ligne ${student.lineNumber} : classement invalide.`);
+      return student;
+    });
+
+    notationSummary(notationParsedStudents, errors);
+    if (errors.length) {
+      notationParsedStudents = [];
+      notationMessage(notationImportMessage, errors.slice(0, 5).join(" "), "error");
+      return;
+    }
+
+    notationImportButton.disabled = false;
+    notationMessage(notationImportMessage, "Fichier contrôlé. Vous pouvez lancer l’import.", "success");
+  } catch (error) {
+    notationCsvSummary.innerHTML = "<span>Fichier invalide</span>";
+    notationMessage(notationImportMessage, error.message, "error");
+  }
+});
+
+notationImportButton?.addEventListener("click", async () => {
+  const promotion = notationPromotion.value.trim();
+  const totalEg = Number(notationTotalEg.value);
+  if (!promotion || !Number.isInteger(totalEg) || totalEg < 1) {
+    notationMessage(notationImportMessage, "Renseignez la promotion et le nombre d’EG au classement final.", "error");
+    return;
+  }
+  if (!notationParsedStudents.length) {
+    notationMessage(notationImportMessage, "Sélectionnez et contrôlez un fichier CSV.", "error");
+    return;
+  }
+  if (!window.confirm(`Importer ${notationParsedStudents.length} élèves pour ${promotion} ?`)) return;
+
+  notationImportButton.disabled = true;
+  notationMessage(notationImportMessage, "Import des résultats en cours…", "info");
+  try {
+    const response = await fetch("/admin/notations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ action: "import", promotion, totalEg, students: notationParsedStudents })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.errors?.join(" ") || data.error || "Import impossible.");
+    notationMessage(
+      notationImportMessage,
+      `${data.imported} élèves importés — P1 : ${data.summary.P1 || 0}, P2 : ${data.summary.P2 || 0}, P3 : ${data.summary.P3 || 0}.`,
+      "success"
+    );
+    await loadNotationAdministration();
+  } catch (error) {
+    notationMessage(notationImportMessage, error.message, "error");
+  } finally {
+    notationImportButton.disabled = false;
+  }
+});
+
+downloadNotationTemplate?.addEventListener("click", () => {
+  const content = [
+    "nom;prenom;grade;peloton;moyenne;classement;sexe",
+    "DUPONT;Camille;EG;P1;15,42;12;F",
+    "MARTIN;Alexandre;EGAV;P2;14,10;25;M",
+    "BERNARD;Sophie;EG;P3;13,85;38;F"
+  ].join("\r\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob(["\uFEFF" + content], { type: "text/csv;charset=utf-8" }));
+  link.download = "modele-resultats-simplinote.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+
+async function saveNotationAccess(username, peloton, select) {
+  select.disabled = true;
+  notationMessage(notationAccessMessage, "Enregistrement de l’accès…", "info");
+  try {
+    const response = await fetch("/admin/notations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ action: "assign", username, peloton })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Accès non enregistré.");
+    notationMessage(notationAccessMessage, peloton ? `${username} est affecté à ${peloton}.` : `L’accès SimpliNote de ${username} est retiré.`, "success");
+  } catch (error) {
+    notationMessage(notationAccessMessage, error.message, "error");
+    await loadNotationAdministration();
+  } finally {
+    select.disabled = false;
+  }
+}
+
+async function loadNotationAdministration() {
+  if (!notationAccessBody) return;
+  notationAccessBody.innerHTML = '<tr><td colspan="3">Chargement des cadres…</td></tr>';
+  try {
+    const response = await fetch("/admin/notations", {
+      headers: { "Accept": "application/json" },
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Paramétrage indisponible.");
+    if (data.promotion && !notationPromotion.value) notationPromotion.value = data.promotion;
+    if (data.totalEg && !notationTotalEg.value) notationTotalEg.value = data.totalEg;
+    notationAccessBody.innerHTML = (data.cadres || []).map(cadre => `
+      <tr>
+        <td><strong>${notationAdminEscape(cadre.nom || cadre.username)}</strong><br><small>${notationAdminEscape(cadre.username)}</small></td>
+        <td>${cadre.active ? "Actif" : "Désactivé"}</td>
+        <td>
+          <select data-notation-username="${notationAdminEscape(cadre.username)}" ${cadre.active ? "" : "disabled"}>
+            <option value=""${cadre.peloton ? "" : " selected"}>Aucun accès</option>
+            ${["P1", "P2", "P3"].map(p => `<option value="${p}"${cadre.peloton === p ? " selected" : ""}>Commandant ${p}</option>`).join("")}
+          </select>
+        </td>
+      </tr>
+    `).join("") || '<tr><td colspan="3">Aucun cadre actif.</td></tr>';
+    notationAccessBody.querySelectorAll("select[data-notation-username]").forEach(select => {
+      select.addEventListener("change", () => saveNotationAccess(select.dataset.notationUsername, select.value, select));
+    });
+  } catch (error) {
+    notationAccessBody.innerHTML = `<tr><td colspan="3">${notationAdminEscape(error.message)}</td></tr>`;
+  }
+}
+
+administrationModePromise.then(isVisitor => {
+  if (!isVisitor) loadNotationAdministration();
+  else {
+    notationCsvFile.disabled = true;
+    notationImportButton.disabled = true;
+    downloadNotationTemplate.disabled = true;
+  }
+});
+
+
+/* ==========================================================
    PANNEAUX REPLIABLES DE L’ADMINISTRATION
    ========================================================== */
 (() => {
@@ -6263,6 +6648,7 @@ restoreDatabaseButton?.addEventListener(
     ["search-panel", ["Utilisateurs", "Rechercher et modifier un compte"]],
     ["create-panel", ["Utilisateurs", "Créer un compte"]],
     ["import-panel", ["Utilisateurs", "Importer des comptes CSV"]],
+    ["notations-admin-panel", ["Espace cadres", "Notations des élèves — SimpliNote"]],
     ["homepage-tiles-panel", ["Page d’accueil", "Affichage des domaines et rubriques"]],
     ["backup-panel", ["Sécurité", "Sauvegarde et restauration"]],
     ["consultations-panel", ["Traçabilité", "Suivi des consultations"]],

@@ -23,6 +23,7 @@ Le projet n’est donc plus uniquement statique.
 - `login.html` : connexion ;
 - `administration.html` : administration générale ;
 - `sanctions.html` : suivi disciplinaire ;
+- `notations.html` : rédaction et validation des littéraux SimpliNote ;
 - `assets/js/config.js` : domaines, rubriques et chemins ;
 - `assets/js/app.js` : moteur principal et éditeur ;
 - `assets/css/style.css` : présentation générale ;
@@ -97,7 +98,21 @@ Après chaque mise à jour importante :
 
 Les fiches, photos et documents bénéficient de l’historique GitHub.
 
-Les données dynamiques sont stockées dans Cloudflare D1, notamment les utilisateurs, consultations, sanctions, paramètres et réglages de visibilité.
+Les données dynamiques sont stockées dans Cloudflare D1, notamment les utilisateurs, consultations, sanctions, notations, paramètres et réglages de visibilité.
+
+## SimpliNote — notation des élèves
+
+La tuile **Notation des élèves** de l’espace cadres ouvre `notations.html`.
+
+- l’administrateur importe dans la page d’administration un CSV contenant `nom`, `prenom`, `grade`, `peloton`, `moyenne`, `classement` et, facultativement, `sexe` ;
+- l’administrateur affecte chaque compte cadre à P1, P2 ou P3 ;
+- un cadre ne peut consulter et modifier que les élèves de son peloton ;
+- la validation par le commandant de peloton transmet la notation au CDU et retire l’élève de la liste active ;
+- les administrateurs disposent de la vue CDU, peuvent modifier toutes les notations et les finaliser ;
+- l’export CSV est disponible par peloton ou pour toute la compagnie après finalisation CDU ;
+- chaque littéral est limité à 2 000 caractères et les opérations sensibles sont journalisées.
+
+Les tables D1 sont créées automatiquement au premier accès. Le script `cloudflare/d1-notations.sql` permet aussi de les initialiser manuellement.
 
 Avant toute intervention importante sur la base, effectuer une sauvegarde ou un export D1 depuis Cloudflare.
 
@@ -162,6 +177,10 @@ L’export produit un fichier JSON horodaté contenant les tables dynamiques dis
 - `discipline_students` ;
 - `discipline_sanctions` ;
 - `discipline_audit_log` ;
+- `notation_students` ;
+- `notation_records` ;
+- `notation_access` ;
+- `notation_audit_log` ;
 - `push_subscriptions`.
 
 L’accès est réservé aux administrateurs.
