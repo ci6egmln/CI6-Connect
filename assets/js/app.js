@@ -1206,6 +1206,40 @@ function normalizeBlockDisplay(value) {
     return "fixe";
 }
 
+function parseDownloadBlockHeader(value) {
+    const parts = String(value || "")
+        .split("|")
+        .map(part => part.trim());
+
+    const firstPart = parts[0] || "";
+    const normalizedFirstPart = normalizeText(firstPart)
+        .replace(/[\s_-]+/g, "");
+    const legacyDisplayValues = [
+        "fixe",
+        "ferme",
+        "replie",
+        "collapsed",
+        "ouvert",
+        "deplie",
+        "expanded"
+    ];
+
+    if (
+        parts.length <= 1 &&
+        legacyDisplayValues.includes(normalizedFirstPart)
+    ) {
+        return {
+            title: "Documents à télécharger",
+            display: normalizeBlockDisplay(firstPart)
+        };
+    }
+
+    return {
+        title: firstPart || "Documents à télécharger",
+        display: normalizeBlockDisplay(parts[1] || "fixe")
+    };
+}
+
 function renderFicheCard({
     color = "gris",
     title = "Information",
@@ -1270,6 +1304,14 @@ function renderDownloadBlock(content) {
         return `\n            <a class="download-item" href="${safeUrl}">\n              ${visual}\n              <strong>${safeLabel}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
     }).join("")}\n      </div>\n    </section>\n  `;
 }
+
+function renderTitledDownloadBlock(content, title) {
+    return renderDownloadBlock(content).replace(
+        "<strong>Documents à télécharger</strong>",
+        `<strong>${formatInline(title || "Documents à télécharger")}</strong>`
+    );
+}
+
 function renderImageBlock(title, content) {
   const firstLine = content
     .split("\n")
@@ -1845,18 +1887,26 @@ function renderCustomBlocks(markdown) {
     /*
      * DOCUMENTS À TÉLÉCHARGER
      *
-     * :::telechargements
+     * :::telechargements Titre du groupe | fixe
      * - Nom du document | assets/documents/document.pdf
      * :::
      */
     markdown = markdown.replace(
         /^[ \t]*:::telechargements(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, display, content) => renderCollapsibleMediaBlock(
-            renderDownloadBlock(content.trim()),
-            "Documents à télécharger",
-            "⬇️",
-            display ? display.trim() : "fixe"
-        )
+        (_, header, content) => {
+            const { title, display } =
+                parseDownloadBlockHeader(header);
+
+            return renderCollapsibleMediaBlock(
+                renderTitledDownloadBlock(
+                    content.trim(),
+                    title
+                ),
+                title,
+                "⬇️",
+                display
+            );
+        }
     );
 
 
@@ -3430,7 +3480,7 @@ function editorBlockMarkdown({
     }
 
     return [
-      `:::telechargements ${normalizeBlockDisplay(display)}`,
+      `:::telechargements ${title || "Documents à télécharger"} | ${normalizeBlockDisplay(display)}`,
       ...documents.map(document =>
         `- ${document.label} | ${document.url}`
       ),
@@ -3785,6 +3835,9 @@ function parseEditorBlocks(markdownBody) {
     }
 
     if (kind === "telechargements") {
+      const downloadHeader =
+        parseDownloadBlockHeader(header);
+
       const documents =
         content
           .split(/\r?\n/)
@@ -3806,8 +3859,8 @@ function parseEditorBlocks(markdownBody) {
 
       blocks.push({
         type: "documents",
-        title: "Documents à télécharger",
-        display: normalizeBlockDisplay(header),
+        title: downloadHeader.title,
+        display: downloadHeader.display,
         documents
       });
 
@@ -4331,7 +4384,10 @@ function openFicheEditor() {
             </div>
 
             <div class="fiche-editor-field">
-              <label for="editorBlockTitle">
+              <label
+                id="editorBlockTitleLabel"
+                for="editorBlockTitle"
+              >
                 Titre du bloc
               </label>
               <input
@@ -4846,6 +4902,9 @@ function openFicheEditor() {
 
   const blockTitle =
     overlay.querySelector("#editorBlockTitle");
+
+  const blockTitleLabel =
+    overlay.querySelector("#editorBlockTitleLabel");
 
   const blockDisplay =
     overlay.querySelector("#editorBlockDisplay");
@@ -5659,8 +5718,21 @@ function openFicheEditor() {
     mediaCaptionField.hidden =
       type === "documents";
 
-    blockTitle.parentElement.hidden =
-      type === "documents";
+    blockTitle.parentElement.hidden = false;
+
+    if (type === "documents") {
+      blockTitleLabel.textContent =
+        "Titre du groupe de documents";
+      blockTitle.placeholder =
+        "Ex. Règlements et notes de service";
+    } else {
+      blockTitleLabel.textContent =
+        "Titre du bloc";
+      blockTitle.placeholder =
+        colorGuidance[blockColor.value]
+          ?.titlePlaceholder ||
+        "Titre du bloc";
+    }
 
     documentsBox.hidden =
       ![
@@ -5825,7 +5897,9 @@ function openFicheEditor() {
         blockColor.value,
       title:
         blockTitle.value.trim() ||
-        colorGuidance[blockColor.value]?.defaultTitle ||
+        (type === "documents"
+          ? "Documents à télécharger"
+          : colorGuidance[blockColor.value]?.defaultTitle) ||
         "Information",
       icon:
         selectedIcon(),
