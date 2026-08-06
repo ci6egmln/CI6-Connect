@@ -713,6 +713,23 @@
         border-radius: 6px;
         background: #020304;
       }
+
+      .created-credentials-actions {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        padding-top: 13px;
+        border-top: 1px solid rgba(185, 239, 197, 0.28);
+      }
+
+      .created-credentials-actions p {
+        flex: 1 1 260px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
       
       @media (max-width: 650px) {
         .form-grid {
@@ -729,6 +746,10 @@
       
         .primary-button,
         .secondary-button {
+          width: 100%;
+        }
+
+        .created-credentials-actions .download-credentials-button {
           width: 100%;
         }
       }
@@ -4060,6 +4081,76 @@ showCreatePassword.addEventListener(
   }
 );
 
+function escapeCredentialHtml(value) {
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    character => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[character]
+  );
+}
+
+function credentialRoleLabel(role) {
+  if (role === "cadre") return "Cadre";
+  if (role === "visiteur") return "Visiteur";
+  return "Élève";
+}
+
+function createAccessSheetHtml(account, temporaryPassword) {
+  const loginUrl = `${location.origin}/login.html`;
+  const issuedAt = new Date().toLocaleString("fr-FR", {
+    dateStyle: "long",
+    timeStyle: "short"
+  });
+  const identity = account.displayName || account.nom || "Utilisateur";
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Accès CI6 Connect — ${escapeCredentialHtml(identity)}</title>
+  <style>
+    @page{size:A5;margin:14mm}*{box-sizing:border-box}body{margin:0;background:#fff;color:#17191b;font:14px/1.5 Arial,sans-serif}.sheet{max-width:650px;margin:auto;border:2px solid #1f2529;border-radius:12px;overflow:hidden}.head{padding:18px 20px;background:#11171b;color:#fff;border-bottom:5px solid #d6ad4b}.head small{display:block;color:#f4d77a;font-weight:800;letter-spacing:.12em}.head h1{margin:3px 0 0;font:700 27px Georgia,serif}.content{padding:20px}.identity{margin:0 0 16px;color:#333}.credentials{display:grid;gap:12px}.credential{padding:13px 15px;border:1px solid #bcc3c7;border-left:5px solid #1f74ad;border-radius:7px;background:#f5f7f8}.credential span{display:block;margin-bottom:3px;color:#596168;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.credential strong{font:800 19px Consolas,"Courier New",monospace;word-break:break-all}.steps{margin:18px 0 0;padding:14px 16px;border-radius:8px;background:#fff7df;border:1px solid #e4c56d}.steps h2{margin:0 0 7px;font-size:15px}.steps ol{margin:0;padding-left:20px}.warning{margin:15px 0 0;color:#70222a;font-weight:700}.footer{margin-top:17px;padding-top:10px;border-top:1px solid #d9dddf;color:#697176;font-size:10px}@media print{body{padding:0}.sheet{border-color:#111}}
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="head"><small>6e COMPAGNIE D’INSTRUCTION</small><h1>Vos accès à CI6 Connect</h1></header>
+    <section class="content">
+      <p class="identity"><strong>${escapeCredentialHtml(identity)}</strong>${account.peloton ? ` — ${escapeCredentialHtml(account.peloton)}` : ""}<br>Profil : ${escapeCredentialHtml(credentialRoleLabel(account.role))}</p>
+      <div class="credentials">
+        <div class="credential"><span>Adresse de connexion</span><strong>${escapeCredentialHtml(loginUrl)}</strong></div>
+        <div class="credential"><span>Identifiant</span><strong>${escapeCredentialHtml(account.username)}</strong></div>
+        <div class="credential"><span>Mot de passe temporaire</span><strong>${escapeCredentialHtml(temporaryPassword)}</strong></div>
+      </div>
+      <div class="steps"><h2>Première connexion</h2><ol><li>Ouvrez l’adresse ci-dessus.</li><li>Saisissez l’identifiant et le mot de passe temporaire.</li><li>Choisissez immédiatement votre nouveau mot de passe personnel.</li></ol></div>
+      <p class="warning">Ces informations sont personnelles. Ne les communiquez à personne et détruisez cette fiche après le changement du mot de passe.</p>
+      <div class="footer">Fiche générée le ${escapeCredentialHtml(issuedAt)}. Le mot de passe temporaire n’est pas conservé en clair par CI6 Connect.</div>
+    </section>
+  </main>
+</body>
+</html>`;
+}
+
+function downloadAccessSheet(account, temporaryPassword) {
+  const blob = new Blob(
+    [createAccessSheetHtml(account, temporaryPassword)],
+    { type: "text/html;charset=utf-8" }
+  );
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.download = `fiche-acces-ci6-${account.username}.html`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(downloadUrl);
+}
+
 createAccountForm.addEventListener(
   "submit",
   async event => {
@@ -4115,26 +4206,33 @@ createAccountForm.addEventListener(
       createAccountMessage.innerHTML = `
         <strong>✓ Compte créé avec succès</strong><br>
         Identifiant :
-        <strong>${data.username}</strong><br>
+        <strong>${escapeCredentialHtml(data.username)}</strong><br>
         Identité :
-        <strong>${data.displayName || data.nom}</strong><br>
-        ${data.peloton ? `Peloton : <strong>${data.peloton}</strong><br>` : ""}
+        <strong>${escapeCredentialHtml(data.displayName || data.nom)}</strong><br>
+        ${data.peloton ? `Peloton : <strong>${escapeCredentialHtml(data.peloton)}</strong><br>` : ""}
         Rôle :
         <strong>
-          ${data.role === "cadre"
-            ? "Cadre"
-            : data.role === "visiteur"
-              ? "Visiteur"
-              : "Élève"}
+          ${escapeCredentialHtml(credentialRoleLabel(data.role))}
         </strong><br>
         Mot de passe provisoire :
         <span class="created-password"></span><br>
         Le changement sera obligatoire à la première connexion.
+        <div class="created-credentials-actions">
+          <button id="downloadCreatedCredentials" class="download-credentials-button" type="button">Exporter la fiche d’accès</button>
+          <p>Cette fiche peut être ouverte, imprimée ou enregistrée au format PDF pour être remise individuellement à la personne.</p>
+        </div>
       `;
 
       createAccountMessage
         .querySelector(".created-password")
         .textContent = password;
+
+      createAccountMessage
+        .querySelector("#downloadCreatedCredentials")
+        .addEventListener("click", event => {
+          downloadAccessSheet(data, password);
+          event.currentTarget.textContent = "Fiche téléchargée ✓";
+        });
 
       createAccountForm.reset();
       createRole.value = "eleve";
