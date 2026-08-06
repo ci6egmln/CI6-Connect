@@ -161,8 +161,9 @@ export async function onRequestPost(context) {
       const customColor = ACTIVITY_COLORS.has(String(body.custom_color || "").toLowerCase())
         ? String(body.custom_color).toLowerCase()
         : "";
-      if (merge && !customLabel) return serviceJson({ error: "Le libellé de l’activité est obligatoire." }, 400);
-      if (merge && !customColor) return serviceJson({ error: "Choisissez une couleur pour l’activité." }, 400);
+      const customActivity = body.activity === true || Boolean(customColor);
+      if (customActivity && !customLabel) return serviceJson({ error: "Le libellé de l’activité est obligatoire." }, 400);
+      if (customActivity && !customColor) return serviceJson({ error: "Choisissez une couleur pour l’activité." }, 400);
       const groupId = merge ? crypto.randomUUID() : "";
       const saved = [];
 

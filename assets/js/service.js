@@ -75,6 +75,13 @@ function schoolVacationFor(date) {
 function entryKey(targetType, targetKey, date, slot) { return `${targetType}|${targetKey}|${date}|${slot}`; }
 function parseKey(key) { const [target_type, target_key, service_date, slot] = key.split("|"); return { target_type, target_key, service_date, slot }; }
 function typeFor(code) { return state.data?.serviceTypes.find(type => type.code === code); }
+function contrastText(color) {
+  const match = /^#([0-9a-f]{6})$/i.exec(String(color || ""));
+  if (!match) return "#ffffff";
+  const value = Number.parseInt(match[1], 16);
+  const red = value >> 16; const green = value >> 8 & 255; const blue = value & 255;
+  return (red * 299 + green * 587 + blue * 114) / 1000 >= 155 ? "#111111" : "#ffffff";
+}
 function message(target, text, type = "info") { const element = $(target); element.className = `message ${type}`; element.textContent = text; }
 
 function calculatePeriod() {
@@ -134,7 +141,10 @@ function renderPalette() {
     <button class="palette-button" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
       ${esc(type.code)}
     </button>`).join("");
-  $("servicePalette").querySelectorAll("[data-code]").forEach(button => button.onclick = () => applyService(button.dataset.code));
+  $("servicePalette").querySelectorAll("[data-code]").forEach(button => button.onclick = () => applyService(
+    button.dataset.code,
+    { merge: state.selected.size > 1 }
+  ));
 }
 
 function planningRows() {
@@ -241,7 +251,7 @@ function renderPlanning() {
       const nonWorkingDay = [0, 6].includes(item.day.getUTCDay()) || Boolean(holidayFor(item.day));
       const keys = groupedItems.map(slot => slot.key).join(",");
       const color = entry?.custom_color || type?.color || "#fff";
-      const textColor = entry?.custom_color ? "#ffffff" : type?.textColor || "#111";
+      const textColor = entry?.custom_color ? contrastText(entry.custom_color) : type?.textColor || "#111";
       html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${item.date === today ? " today" : ""}${entry ? " has-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
       slotIndex += span;
     }
@@ -289,7 +299,7 @@ function updateSelectionBar() {
 
 function clearSelection() { state.selected.clear(); state.lastSelected = ""; refreshSelectionClasses(); updateSelectionBar(); }
 
-async function applyService(code, { merge = false, customColor = "" } = {}) {
+async function applyService(code, { merge = false, customColor = "", activity = false } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
   const items = [...state.selected].map(key => ({
     ...parseKey(key),
@@ -298,13 +308,18 @@ async function applyService(code, { merge = false, customColor = "" } = {}) {
   }));
   message("planningMessage", "Enregistrement en cours…", "info");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity }) });
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     if (["RR", "RPC"].includes(code)) {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
       if (personEntries.length && confirm(`Déduire automatiquement ${number(personEntries.length * 0.5)} jour(s) des compteurs de repos concernés ?`)) {
         await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
       }
+    }
+    if (activity) {
+      $("entryDetails").hidden = true;
+      $("customLabel").value = "";
+      $("entryNotes").value = "";
     }
     message("planningMessage", `${data.entries.length} case${data.entries.length > 1 ? "s" : ""} enregistrée${data.entries.length > 1 ? "s" : ""}.`, "ok");
     renderPlanning(); clearSelection();
@@ -450,7 +465,7 @@ $("addActivity").onclick = () => {
     return;
   }
   const color = document.querySelector('input[name="activityColor"]:checked')?.value || "";
-  applyService("D", { merge: true, customColor: color });
+  applyService("D", { merge: true, customColor: color, activity: true });
 };
 $("exportPlanning").onclick = exportPlanning;
 $("movementDate").value = iso(utcDate());
