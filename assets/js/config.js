@@ -28,7 +28,7 @@ window.CI6_RUBRIQUES = [
 		/* PRÉSENTATION DE LA VILLE DE MONTLUCON */
 	    {
         id: "montlucon",
-        title: "Montluçon, la ville",
+        title: "Que faire à Montluçon ?",
         slug: "accueil-montlucon",
         description: "Vivre sa scolarité dans la ville de Montluçon",
 		keywords : ["Montluçon", "ville", "commerce", "plan", "activité", "cinéma", "visite"],
