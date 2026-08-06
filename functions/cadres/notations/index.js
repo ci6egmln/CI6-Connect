@@ -6,7 +6,7 @@ import {
   notationPermission
 } from "../../_shared/notations.js";
 
-const RESPONSIBILITIES = new Set(["", "tam", "popotier", "magasinier", "president", "tresorier", "secretaire"]);
+const RESPONSIBILITIES = new Set(["", "tam", "popotier", "magasinier", "president", "tresorier", "secretaire", "other"]);
 const PHYSICAL_PREPARATIONS = new Set(["", "limited", "good", "excellent"]);
 
 async function currentPromotion(db) {
@@ -117,11 +117,14 @@ export async function onRequestGet(context) {
           student_id: id,
           integration_level: 3,
           robustness_level: 3,
+          setback_recovery_level: 3,
+          mission_adaptation_level: 3,
           work_level: 3,
           results_level: 3,
           future_level: 3,
           physical_preparation: "",
           responsibility: "",
+          responsibility_label: "",
           responsibility_level: 3,
           literal: "",
           status: "todo"
@@ -176,12 +179,19 @@ export async function onRequestPost(context) {
     return notationJson({ error: "La préparation physique avant l’entrée en école doit être renseignée." }, 400);
   }
   const responsibility = String(body.responsibility || "").trim().toLowerCase();
+  const responsibilityLabel = String(body.responsibility_label || "").trim();
   const responsibilityLevel = Number(body.responsibility_level || 3);
   if (!RESPONSIBILITIES.has(responsibility)) {
     return notationJson({ error: "La responsabilité sélectionnée est invalide." }, 400);
   }
   if (responsibility && (!Number.isInteger(responsibilityLevel) || responsibilityLevel < 1 || responsibilityLevel > 5)) {
     return notationJson({ error: "Le degré d’implication doit être compris entre 1 et 5." }, 400);
+  }
+  if (responsibilityLabel.length > 120) {
+    return notationJson({ error: "Le libellé de la commission ou de la fonction est limité à 120 caractères." }, 400);
+  }
+  if (["validate-platoon", "finalize-company"].includes(action) && responsibility === "other" && !responsibilityLabel) {
+    return notationJson({ error: "Précisez la commission ou la fonction exercée." }, 400);
   }
 
   const literal = String(body.literal || "").trim();
@@ -211,13 +221,14 @@ export async function onRequestPost(context) {
   try {
     await db.prepare(`
       INSERT INTO notation_records (
-        student_id, integration_level, robustness_level, work_level,
-        results_level, future_level, physical_preparation, responsibility, responsibility_level,
+        student_id, integration_level, robustness_level, setback_recovery_level,
+        mission_adaptation_level, work_level, results_level, future_level,
+        physical_preparation, responsibility, responsibility_label, responsibility_level,
         literal, status,
         created_by, updated_by, updated_at,
         platoon_validated_by, platoon_validated_at,
         company_finalized_by, company_finalized_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
         CASE WHEN ?='platoon_validated' THEN ? ELSE NULL END,
         CASE WHEN ?='platoon_validated' THEN CURRENT_TIMESTAMP ELSE NULL END,
         CASE WHEN ?='company_finalized' THEN ? ELSE NULL END,
@@ -226,11 +237,14 @@ export async function onRequestPost(context) {
       ON CONFLICT(student_id) DO UPDATE SET
         integration_level=excluded.integration_level,
         robustness_level=excluded.robustness_level,
+        setback_recovery_level=excluded.setback_recovery_level,
+        mission_adaptation_level=excluded.mission_adaptation_level,
         work_level=excluded.work_level,
         results_level=excluded.results_level,
         future_level=excluded.future_level,
         physical_preparation=excluded.physical_preparation,
         responsibility=excluded.responsibility,
+        responsibility_label=excluded.responsibility_label,
         responsibility_level=excluded.responsibility_level,
         literal=excluded.literal,
         status=excluded.status,
@@ -252,11 +266,14 @@ export async function onRequestPost(context) {
       studentId,
       levels.integration,
       levels.robustness,
+      levels.setbackRecovery,
+      levels.missionAdaptation,
       levels.work,
       levels.results,
       levels.future,
       physicalPreparation,
       responsibility,
+      responsibility === "other" ? responsibilityLabel : "",
       responsibility ? responsibilityLevel : 3,
       literal,
       status,

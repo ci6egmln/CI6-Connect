@@ -57,7 +57,8 @@ export async function onRequestGet(context) {
       SELECT
         s.promotion, s.peloton, s.grade, s.nom, s.prenom,
         s.moyenne, s.classement, r.physical_preparation,
-        r.responsibility, r.responsibility_level,
+        r.robustness_level, r.setback_recovery_level, r.mission_adaptation_level,
+        r.responsibility, r.responsibility_label, r.responsibility_level,
         r.literal, r.status,
         r.platoon_validated_by, r.platoon_validated_at,
         r.company_finalized_by, r.company_finalized_at,
@@ -73,7 +74,9 @@ export async function onRequestGet(context) {
 
     const headers = [
       "promotion", "peloton", "grade", "nom", "prenom", "moyenne",
-      "classement", "preparation_physique_initiale", "responsabilite", "degre_implication", "litteral", "statut", "valide_par_commandant_peloton",
+      "classement", "preparation_physique_initiale", "evolution_physique",
+      "reaction_aux_difficultes", "adaptation_aux_moyens_disponibles",
+      "responsabilite", "responsabilite_libre", "degre_implication", "litteral", "statut", "valide_par_commandant_peloton",
       "date_validation_peloton", "finalise_par_cdu", "date_finalisation_cdu",
       "derniere_modification_par", "derniere_modification"
     ];
@@ -83,7 +86,9 @@ export async function onRequestGet(context) {
       lines.push([
         row.promotion, row.peloton, row.grade, row.nom, row.prenom,
         row.moyenne, row.classement, physicalPreparationLabel(row.physical_preparation),
-        row.responsibility, row.responsibility ? row.responsibility_level : "",
+        row.robustness_level, row.setback_recovery_level, row.mission_adaptation_level,
+        row.responsibility, row.responsibility_label,
+        row.responsibility ? row.responsibility_level : "",
         row.literal, row.status,
         row.platoon_validated_by, row.platoon_validated_at,
         row.company_finalized_by, row.company_finalized_at,

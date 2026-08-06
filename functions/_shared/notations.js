@@ -30,11 +30,14 @@ export async function ensureNotationSchema(db) {
       student_id INTEGER PRIMARY KEY,
       integration_level INTEGER NOT NULL DEFAULT 3,
       robustness_level INTEGER NOT NULL DEFAULT 3,
+      setback_recovery_level INTEGER NOT NULL DEFAULT 3,
+      mission_adaptation_level INTEGER NOT NULL DEFAULT 3,
       work_level INTEGER NOT NULL DEFAULT 3,
       results_level INTEGER NOT NULL DEFAULT 3,
       future_level INTEGER NOT NULL DEFAULT 3,
       physical_preparation TEXT NOT NULL DEFAULT '',
       responsibility TEXT NOT NULL DEFAULT '',
+      responsibility_label TEXT NOT NULL DEFAULT '',
       responsibility_level INTEGER NOT NULL DEFAULT 3,
       literal TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'draft',
@@ -77,6 +80,15 @@ export async function ensureNotationSchema(db) {
   }
   if (!recordColumnNames.has("physical_preparation")) {
     await db.prepare(`ALTER TABLE notation_records ADD COLUMN physical_preparation TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!recordColumnNames.has("setback_recovery_level")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN setback_recovery_level INTEGER NOT NULL DEFAULT 3`).run();
+  }
+  if (!recordColumnNames.has("mission_adaptation_level")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN mission_adaptation_level INTEGER NOT NULL DEFAULT 3`).run();
+  }
+  if (!recordColumnNames.has("responsibility_label")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility_label TEXT NOT NULL DEFAULT ''`).run();
   }
   if (!recordColumnNames.has("responsibility_level")) {
     await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility_level INTEGER NOT NULL DEFAULT 3`).run();
@@ -137,6 +149,8 @@ export function notationLevels(body) {
   const values = {
     integration: Number(body.integration_level),
     robustness: Number(body.robustness_level),
+    setbackRecovery: Number(body.setback_recovery_level),
+    missionAdaptation: Number(body.mission_adaptation_level),
     work: Number(body.work_level),
     results: Number(body.results_level),
     future: Number(body.future_level)
