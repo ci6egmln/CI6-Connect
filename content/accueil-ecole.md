@@ -20,7 +20,9 @@ L'école de Montluçon est la plus grande école de gendarmerie Française :
 - 150 personnels militaires ou civils de soutien
 :::
 
-:::bloc vert | Livret d'accueil | ✅ | ferme
+:::image-texte vert | Livret d'accueil | ✅ | ferme
+assets/photos/accueil-ecole-livret-accueil-ecole.webp
+
 Vous trouverez ci-joint le livret d'accueil de l'École de gendarmerie.
 
 Pour préparer votre incorporation, consultez la rubrique **« Quelles affaires dois-je apporter ? »** de ce module « Livret d'accueil ». Vous y trouverez la liste des effets obligatoires, des équipements recommandés ainsi que de nombreux conseils pratiques pour préparer sereinement votre arrivée.
