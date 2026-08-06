@@ -33,6 +33,7 @@ export async function ensureNotationSchema(db) {
       work_level INTEGER NOT NULL DEFAULT 3,
       results_level INTEGER NOT NULL DEFAULT 3,
       future_level INTEGER NOT NULL DEFAULT 3,
+      physical_preparation TEXT NOT NULL DEFAULT '',
       responsibility TEXT NOT NULL DEFAULT '',
       responsibility_level INTEGER NOT NULL DEFAULT 3,
       literal TEXT NOT NULL DEFAULT '',
@@ -73,6 +74,9 @@ export async function ensureNotationSchema(db) {
   const recordColumnNames = new Set((recordColumns.results || []).map(column => column.name));
   if (!recordColumnNames.has("responsibility")) {
     await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!recordColumnNames.has("physical_preparation")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN physical_preparation TEXT NOT NULL DEFAULT ''`).run();
   }
   if (!recordColumnNames.has("responsibility_level")) {
     await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility_level INTEGER NOT NULL DEFAULT 3`).run();

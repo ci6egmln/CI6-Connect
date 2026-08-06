@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS notation_records (
   work_level INTEGER NOT NULL DEFAULT 3,
   results_level INTEGER NOT NULL DEFAULT 3,
   future_level INTEGER NOT NULL DEFAULT 3,
+  physical_preparation TEXT NOT NULL DEFAULT '',
   responsibility TEXT NOT NULL DEFAULT '',
   responsibility_level INTEGER NOT NULL DEFAULT 3,
   literal TEXT NOT NULL DEFAULT '',
