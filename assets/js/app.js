@@ -1657,24 +1657,51 @@ function renderImageTextBlock(header, content) {
       .join("\n")
       .trim();
 
+  const linkedDocumentMatch =
+    text.match(
+      /\*\*Documents à télécharger\*\*[\s\S]*?-\s*\[([^\]]+)\]\(([^)]+)\)/i
+    );
+
+  const linkedDocument = linkedDocumentMatch
+    ? {
+        label: linkedDocumentMatch[1].trim(),
+        url: linkedDocumentMatch[2].trim()
+      }
+    : null;
+
+  const imageFigure = `
+    <figure class="media-card">
+      <img
+        src="${escapeHtml(src)}"
+        alt="${escapeHtml(caption || title)}"
+        loading="lazy"
+      >
+      ${caption ? `
+        <figcaption class="media-caption">
+          ${formatInline(caption)}
+        </figcaption>
+      ` : ""}
+    </figure>
+  `;
+
   return renderFicheCard({
     color,
     title,
     icon,
     display,
     body: `
-        <figure class="media-card">
-          <img
-            src="${escapeHtml(src)}"
-            alt="${escapeHtml(caption || title)}"
-            loading="lazy"
+        ${linkedDocument ? `
+          <a
+            class="media-document-preview-link"
+            href="${escapeHtml(linkedDocument.url)}"
+            aria-label="Ouvrir le document ${escapeHtml(linkedDocument.label)}"
           >
-          ${caption ? `
-            <figcaption class="media-caption">
-              ${formatInline(caption)}
-            </figcaption>
-          ` : ""}
-        </figure>
+            ${imageFigure}
+            <span class="media-document-preview-action">
+              Ouvrir le document
+            </span>
+          </a>
+        ` : imageFigure}
         ${text ? basicMarkdownToHtml(text) : ""}
     `
   });
@@ -2913,26 +2940,67 @@ function injectFicheEditorStyles() {
     }
 
     .fiche-editor-block-shell {
+      --editor-block-color: #aeb5bd;
+      --editor-block-toolbar: rgba(130,140,150,.16);
       position: relative;
-      padding-top: 48px;
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid var(--editor-block-color);
+      border-left-width: 5px;
       border-radius: 11px;
       background: rgba(255,255,255,.018);
       overflow: hidden;
     }
 
+    .fiche-editor-block-shell-bleu {
+      --editor-block-color: #4ea7e8;
+      --editor-block-toolbar: rgba(45,125,185,.18);
+    }
+
+    .fiche-editor-block-shell-vert {
+      --editor-block-color: #45c978;
+      --editor-block-toolbar: rgba(45,155,85,.18);
+    }
+
+    .fiche-editor-block-shell-rouge {
+      --editor-block-color: #e75b57;
+      --editor-block-toolbar: rgba(190,55,50,.18);
+    }
+
+    .fiche-editor-block-shell-orange {
+      --editor-block-color: #ee9c3b;
+      --editor-block-toolbar: rgba(190,105,30,.18);
+    }
+
+    .fiche-editor-block-shell-jaune {
+      --editor-block-color: #ddc64a;
+      --editor-block-toolbar: rgba(180,150,35,.18);
+    }
+
     .fiche-editor-block-toolbar {
-      position: absolute;
-      inset: 0 0 auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 7px;
+      min-height: 42px;
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--editor-block-color);
+      background: var(--editor-block-toolbar);
+      z-index: 2;
+    }
+
+    .fiche-editor-block-toolbar-label {
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .fiche-editor-block-toolbar-actions {
       display: flex;
       flex-wrap: wrap;
       justify-content: flex-end;
       gap: 7px;
-      min-height: 42px;
-      padding: 7px 9px;
-      border-bottom: 1px solid rgba(255,255,255,.1);
-      background: #111418;
-      z-index: 2;
     }
 
     .fiche-editor-mini-button {
@@ -2955,6 +3023,43 @@ function injectFicheEditorStyles() {
 
     .fiche-editor-block-content {
       padding: 12px;
+    }
+
+    .fiche-editor-existing-image {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 12px;
+      border: 1px solid rgba(190,115,201,.62);
+      border-radius: 10px;
+      background: rgba(190,115,201,.1);
+    }
+
+    .fiche-editor-existing-image[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-existing-image img {
+      display: block;
+      width: min(100%, 420px);
+      max-height: 260px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 9px;
+      background: #08090a;
+      object-fit: contain;
+    }
+
+    .fiche-editor-existing-image-path,
+    .fiche-editor-existing-image-link {
+      margin: 0;
+      color: #d7cfe0;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .fiche-editor-existing-image-link {
+      color: #f1d36b;
+      font-weight: 700;
     }
 
     .fiche-editor-empty {
@@ -3069,12 +3174,11 @@ function injectFicheEditorStyles() {
       }
 
       .fiche-editor-block-toolbar {
-        position: static;
         justify-content: flex-start;
       }
 
-      .fiche-editor-block-shell {
-        padding-top: 0;
+      .fiche-editor-block-toolbar-actions {
+        justify-content: flex-start;
       }
 
       .fiche-editor-block-content {
@@ -4263,6 +4367,33 @@ function openFicheEditor() {
                 Insérer une photo
               </div>
 
+              <div
+                id="editorExistingImageBox"
+                class="fiche-editor-existing-image"
+                hidden
+              >
+                <strong>Image actuellement insérée dans ce bloc</strong>
+                <img
+                  id="editorExistingImage"
+                  alt="Image actuellement insérée dans le bloc"
+                >
+                <p
+                  id="editorExistingImagePath"
+                  class="fiche-editor-existing-image-path"
+                ></p>
+                <p
+                  id="editorExistingImageLink"
+                  class="fiche-editor-existing-image-link"
+                ></p>
+                <button
+                  type="button"
+                  id="removeEditorExistingImageButton"
+                  class="fiche-editor-button secondary"
+                >
+                  Retirer l’image de ce bloc
+                </button>
+              </div>
+
               <div class="fiche-editor-field">
                 <label for="editorImageFile">
                   Choisir la photo
@@ -4403,10 +4534,10 @@ function openFicheEditor() {
                 <input
                   id="editorDocumentFile"
                   type="file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip"
                 >
                 <small class="fiche-editor-field-help">
-                  Documents et images JPEG, PNG ou WebP. Une image apparaîtra sous forme de miniature cliquable.
+                  Ajoutez ici le document à ouvrir. La photo insérée dans le bloc deviendra automatiquement l’aperçu cliquable du premier document.
                 </small>
               </div>
 
@@ -4714,6 +4845,21 @@ function openFicheEditor() {
   const imageFileInput =
     overlay.querySelector("#editorImageFile");
 
+  const existingImageBox =
+    overlay.querySelector("#editorExistingImageBox");
+
+  const existingImage =
+    overlay.querySelector("#editorExistingImage");
+
+  const existingImagePath =
+    overlay.querySelector("#editorExistingImagePath");
+
+  const existingImageLink =
+    overlay.querySelector("#editorExistingImageLink");
+
+  const removeExistingImageButton =
+    overlay.querySelector("#removeEditorExistingImageButton");
+
   const imageNameInput =
     overlay.querySelector("#editorImageName");
 
@@ -4875,6 +5021,26 @@ function openFicheEditor() {
     );
   }
 
+  function editorShellColor(block) {
+    const allowedColors = [
+      "bleu",
+      "vert",
+      "rouge",
+      "orange",
+      "jaune",
+      "gris"
+    ];
+
+    const requestedColor =
+      block.type === "documents"
+        ? "bleu"
+        : normalizeText(block.color || "gris");
+
+    return allowedColors.includes(requestedColor)
+      ? requestedColor
+      : "gris";
+  }
+
   function renderPreview() {
     refreshEditorWorkflow();
 
@@ -4892,47 +5058,53 @@ function openFicheEditor() {
       blocks
         .map((block, index) => `
           <section
-            class="fiche-editor-block-shell"
+            class="fiche-editor-block-shell fiche-editor-block-shell-${editorShellColor(block)}"
             data-editor-index="${index}"
           >
             <div class="fiche-editor-block-toolbar">
-              <button
-                type="button"
-                class="fiche-editor-mini-button"
-                data-action="edit"
-                data-index="${index}"
-              >
-                Modifier
-              </button>
+              <span class="fiche-editor-block-toolbar-label">
+                Actions de ce bloc
+              </span>
 
-              <button
-                type="button"
-                class="fiche-editor-mini-button"
-                data-action="up"
-                data-index="${index}"
-                ${index === 0 ? "disabled" : ""}
-              >
-                Monter
-              </button>
+              <div class="fiche-editor-block-toolbar-actions">
+                <button
+                  type="button"
+                  class="fiche-editor-mini-button"
+                  data-action="edit"
+                  data-index="${index}"
+                >
+                  Modifier
+                </button>
 
-              <button
-                type="button"
-                class="fiche-editor-mini-button"
-                data-action="down"
-                data-index="${index}"
-                ${index === blocks.length - 1 ? "disabled" : ""}
-              >
-                Descendre
-              </button>
+                <button
+                  type="button"
+                  class="fiche-editor-mini-button"
+                  data-action="up"
+                  data-index="${index}"
+                  ${index === 0 ? "disabled" : ""}
+                >
+                  Monter
+                </button>
 
-              <button
-                type="button"
-                class="fiche-editor-mini-button danger"
-                data-action="delete"
-                data-index="${index}"
-              >
-                Supprimer
-              </button>
+                <button
+                  type="button"
+                  class="fiche-editor-mini-button"
+                  data-action="down"
+                  data-index="${index}"
+                  ${index === blocks.length - 1 ? "disabled" : ""}
+                >
+                  Descendre
+                </button>
+
+                <button
+                  type="button"
+                  class="fiche-editor-mini-button danger"
+                  data-action="delete"
+                  data-index="${index}"
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
 
             <div class="fiche-editor-block-content">
@@ -5130,10 +5302,36 @@ function openFicheEditor() {
     renderIconsForColor(icon);
   }
 
+  function refreshExistingImage() {
+    const imagePath = mediaUrl.value.trim();
+    const hasExistingImage =
+      blockType.value === "texte-image" &&
+      Boolean(imagePath);
+
+    existingImageBox.hidden = !hasExistingImage;
+
+    if (!hasExistingImage) {
+      existingImage.removeAttribute("src");
+      existingImagePath.textContent = "";
+      existingImageLink.textContent = "";
+      return;
+    }
+
+    existingImage.src = imagePath;
+    existingImagePath.textContent = imagePath;
+
+    const linkedDocument = blockDocuments[0];
+
+    existingImageLink.textContent = linkedDocument
+      ? `Cette image ouvrira le document : ${linkedDocument.label}`
+      : "Ajoutez un document : cette image deviendra automatiquement son aperçu cliquable.";
+  }
+
   function refreshDocumentsList() {
     if (blockDocuments.length === 0) {
       documentsList.textContent =
         "Aucun document ajouté.";
+      refreshExistingImage();
       return;
     }
 
@@ -5169,6 +5367,8 @@ function openFicheEditor() {
           }
         );
       });
+
+    refreshExistingImage();
   }
 
   function refreshGalleryList() {
@@ -5270,6 +5470,8 @@ function openFicheEditor() {
       type === "galerie"
         ? "Ajouter cette photo à la galerie"
         : "Envoyer la photo";
+
+    refreshExistingImage();
   }
 
   function resetBlockForm() {
@@ -6141,6 +6343,8 @@ function openFicheEditor() {
           mediaUrl.value =
             data.path;
 
+          refreshExistingImage();
+
           uploadStatus.textContent =
             `Photo convertie, optimisée en WebP et enregistrée : ${data.path}`;
         }
@@ -6158,6 +6362,21 @@ function openFicheEditor() {
       } finally {
         uploadImageButton.disabled = false;
       }
+    }
+  );
+
+  removeExistingImageButton.addEventListener(
+    "click",
+    () => {
+      mediaUrl.value = "";
+      mediaCaption.value = "";
+      refreshExistingImage();
+
+      uploadStatus.textContent =
+        "L’image sera retirée de ce bloc après son enregistrement.";
+
+      uploadStatus.className =
+        "fiche-editor-upload-status success";
     }
   );
 

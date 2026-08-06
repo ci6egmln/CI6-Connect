@@ -1078,6 +1078,46 @@ input[type=search]:focus {
   box-shadow:0 14px 35px rgba(0,0,0,.28);
 }
 
+.media-document-preview-link {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 18px;
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease
+}
+
+.media-document-preview-link:hover,
+.media-document-preview-link:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0,0,0,.36)
+}
+
+.media-document-preview-link:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 3px
+}
+
+.media-document-preview-link .media-card {
+  pointer-events: none
+}
+
+.media-document-preview-action {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  background: rgba(8,10,12,.88);
+  color: #fff;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0,0,0,.34)
+}
+
 .media-card-title{
   display:flex;
   align-items:center;
