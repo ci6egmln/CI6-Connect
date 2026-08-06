@@ -589,6 +589,10 @@ input[type=search]:focus {
 .fiche-hero-cover .fiche-quote {
   color: #f1f1f1;
 }
+.fiche-content {
+  display: grid;
+  gap: 22px;
+}
 .fiche-content > p {
   margin: 0;
   color: rgba(245,247,250,.92);
@@ -889,10 +893,6 @@ input[type=search]:focus {
   .fiche-content {
     gap: 16px
   }
-  .fiche-content {
-    display: grid;
-    gap: 22px;
-  }	
   .fiche-content > p {
     font-size: 16px
   }
