@@ -48,7 +48,8 @@ export async function onRequestGet(context) {
     const result = await db.prepare(`
       SELECT
         s.promotion, s.peloton, s.grade, s.nom, s.prenom,
-        s.moyenne, s.classement, r.literal, r.status,
+        s.moyenne, s.classement, r.responsibility, r.responsibility_level,
+        r.literal, r.status,
         r.platoon_validated_by, r.platoon_validated_at,
         r.company_finalized_by, r.company_finalized_at,
         r.updated_by, r.updated_at
@@ -63,7 +64,7 @@ export async function onRequestGet(context) {
 
     const headers = [
       "promotion", "peloton", "grade", "nom", "prenom", "moyenne",
-      "classement", "litteral", "statut", "valide_par_commandant_peloton",
+      "classement", "responsabilite", "degre_implication", "litteral", "statut", "valide_par_commandant_peloton",
       "date_validation_peloton", "finalise_par_cdu", "date_finalisation_cdu",
       "derniere_modification_par", "derniere_modification"
     ];
@@ -72,7 +73,8 @@ export async function onRequestGet(context) {
     rows.forEach(row => {
       lines.push([
         row.promotion, row.peloton, row.grade, row.nom, row.prenom,
-        row.moyenne, row.classement, row.literal, row.status,
+        row.moyenne, row.classement, row.responsibility, row.responsibility ? row.responsibility_level : "",
+        row.literal, row.status,
         row.platoon_validated_by, row.platoon_validated_at,
         row.company_finalized_by, row.company_finalized_at,
         row.updated_by, row.updated_at

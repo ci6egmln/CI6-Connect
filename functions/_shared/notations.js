@@ -33,6 +33,8 @@ export async function ensureNotationSchema(db) {
       work_level INTEGER NOT NULL DEFAULT 3,
       results_level INTEGER NOT NULL DEFAULT 3,
       future_level INTEGER NOT NULL DEFAULT 3,
+      responsibility TEXT NOT NULL DEFAULT '',
+      responsibility_level INTEGER NOT NULL DEFAULT 3,
       literal TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'draft',
       created_by TEXT,
@@ -66,6 +68,15 @@ export async function ensureNotationSchema(db) {
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_notation_records_status
       ON notation_records(status)`)
   ]);
+
+  const recordColumns = await db.prepare(`PRAGMA table_info(notation_records)`).all();
+  const recordColumnNames = new Set((recordColumns.results || []).map(column => column.name));
+  if (!recordColumnNames.has("responsibility")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!recordColumnNames.has("responsibility_level")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility_level INTEGER NOT NULL DEFAULT 3`).run();
+  }
 }
 
 export function validPeloton(value) {

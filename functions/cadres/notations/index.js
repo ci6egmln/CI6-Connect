@@ -6,6 +6,8 @@ import {
   notationPermission
 } from "../../_shared/notations.js";
 
+const RESPONSIBILITIES = new Set(["", "tam", "popotier", "magasinier", "president", "tresorier", "secretaire"]);
+
 async function currentPromotion(db) {
   try {
     const row = await db.prepare(`SELECT value FROM settings WHERE key='notation_current_promotion' LIMIT 1`).first();
@@ -107,6 +109,8 @@ export async function onRequestGet(context) {
           work_level: 3,
           results_level: 3,
           future_level: 3,
+          responsibility: "",
+          responsibility_level: 3,
           literal: "",
           status: "todo"
         },
@@ -152,6 +156,14 @@ export async function onRequestPost(context) {
 
   const levels = notationLevels(body);
   if (!levels) return notationJson({ error: "Les cinq niveaux doivent être compris entre 1 et 5." }, 400);
+  const responsibility = String(body.responsibility || "").trim().toLowerCase();
+  const responsibilityLevel = Number(body.responsibility_level || 3);
+  if (!RESPONSIBILITIES.has(responsibility)) {
+    return notationJson({ error: "La responsabilité sélectionnée est invalide." }, 400);
+  }
+  if (responsibility && (!Number.isInteger(responsibilityLevel) || responsibilityLevel < 1 || responsibilityLevel > 5)) {
+    return notationJson({ error: "Le degré d’implication doit être compris entre 1 et 5." }, 400);
+  }
 
   const literal = String(body.literal || "").trim();
   if (literal.length > 2000) return notationJson({ error: "Le littéral dépasse 2 000 caractères." }, 400);
@@ -181,11 +193,12 @@ export async function onRequestPost(context) {
     await db.prepare(`
       INSERT INTO notation_records (
         student_id, integration_level, robustness_level, work_level,
-        results_level, future_level, literal, status,
+        results_level, future_level, responsibility, responsibility_level,
+        literal, status,
         created_by, updated_by, updated_at,
         platoon_validated_by, platoon_validated_at,
         company_finalized_by, company_finalized_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
         CASE WHEN ?='platoon_validated' THEN ? ELSE NULL END,
         CASE WHEN ?='platoon_validated' THEN CURRENT_TIMESTAMP ELSE NULL END,
         CASE WHEN ?='company_finalized' THEN ? ELSE NULL END,
@@ -197,6 +210,8 @@ export async function onRequestPost(context) {
         work_level=excluded.work_level,
         results_level=excluded.results_level,
         future_level=excluded.future_level,
+        responsibility=excluded.responsibility,
+        responsibility_level=excluded.responsibility_level,
         literal=excluded.literal,
         status=excluded.status,
         updated_by=excluded.updated_by,
@@ -220,6 +235,8 @@ export async function onRequestPost(context) {
       levels.work,
       levels.results,
       levels.future,
+      responsibility,
+      responsibility ? responsibilityLevel : 3,
       literal,
       status,
       permission.username,
