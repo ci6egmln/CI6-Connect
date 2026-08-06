@@ -3062,6 +3062,41 @@ function injectFicheEditorStyles() {
       font-weight: 700;
     }
 
+    .fiche-editor-document-image-box {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid rgba(190,115,201,.62);
+      border-radius: 10px;
+      background: rgba(190,115,201,.1);
+    }
+
+    .fiche-editor-document-image-box[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-document-image-box img {
+      display: block;
+      width: min(100%, 300px);
+      max-height: 190px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 9px;
+      background: #08090a;
+      object-fit: contain;
+    }
+
+    .fiche-editor-document-image-box img[hidden] {
+      display: none;
+    }
+
+    .fiche-editor-document-image-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+    }
+
     .fiche-editor-empty {
       padding: 28px 18px;
       text-align: center;
@@ -4566,6 +4601,52 @@ function openFicheEditor() {
                 id="editorDocumentsList"
                 class="fiche-editor-upload-status success"
               ></div>
+
+              <div
+                id="editorDocumentImageBox"
+                class="fiche-editor-document-image-box"
+                hidden
+              >
+                <strong>Image cliquable associée au document</strong>
+
+                <img
+                  id="editorDocumentImagePreview"
+                  alt="Aperçu de l’image associée au document"
+                  hidden
+                >
+
+                <input
+                  id="editorDocumentImageFile"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                  hidden
+                >
+
+                <div class="fiche-editor-document-image-actions">
+                  <button
+                    type="button"
+                    id="chooseEditorDocumentImageButton"
+                    class="fiche-editor-button secondary"
+                    ${isVisitorMode() ? "disabled" : ""}
+                  >
+                    Joindre une image au document
+                  </button>
+
+                  <button
+                    type="button"
+                    id="removeEditorDocumentImageButton"
+                    class="fiche-editor-mini-button danger"
+                    hidden
+                  >
+                    Retirer l’image
+                  </button>
+                </div>
+
+                <div
+                  id="editorDocumentImageStatus"
+                  class="fiche-editor-upload-status"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -4820,6 +4901,24 @@ function openFicheEditor() {
 
   const documentsList =
     overlay.querySelector("#editorDocumentsList");
+
+  const documentImageBox =
+    overlay.querySelector("#editorDocumentImageBox");
+
+  const documentImagePreview =
+    overlay.querySelector("#editorDocumentImagePreview");
+
+  const documentImageFileInput =
+    overlay.querySelector("#editorDocumentImageFile");
+
+  const chooseDocumentImageButton =
+    overlay.querySelector("#chooseEditorDocumentImageButton");
+
+  const removeDocumentImageButton =
+    overlay.querySelector("#removeEditorDocumentImageButton");
+
+  const documentImageStatus =
+    overlay.querySelector("#editorDocumentImageStatus");
 
   const coverPathInput =
     overlay.querySelector("#editorFicheCover");
@@ -5302,6 +5401,36 @@ function openFicheEditor() {
     renderIconsForColor(icon);
   }
 
+  function refreshDocumentImage() {
+    const imagePath = mediaUrl.value.trim();
+    const canAssociateImage =
+      blockType.value === "texte-image" &&
+      blockDocuments.length > 0;
+
+    documentImageBox.hidden = !canAssociateImage;
+
+    if (!canAssociateImage) {
+      documentImagePreview.hidden = true;
+      documentImagePreview.removeAttribute("src");
+      removeDocumentImageButton.hidden = true;
+      return;
+    }
+
+    const hasImage = Boolean(imagePath);
+
+    documentImagePreview.hidden = !hasImage;
+    removeDocumentImageButton.hidden = !hasImage;
+    chooseDocumentImageButton.textContent = hasImage
+      ? "Remplacer l’image du document"
+      : "Joindre une image au document";
+
+    if (hasImage) {
+      documentImagePreview.src = imagePath;
+    } else {
+      documentImagePreview.removeAttribute("src");
+    }
+  }
+
   function refreshExistingImage() {
     const imagePath = mediaUrl.value.trim();
     const hasExistingImage =
@@ -5314,6 +5443,7 @@ function openFicheEditor() {
       existingImage.removeAttribute("src");
       existingImagePath.textContent = "";
       existingImageLink.textContent = "";
+      refreshDocumentImage();
       return;
     }
 
@@ -5325,6 +5455,8 @@ function openFicheEditor() {
     existingImageLink.textContent = linkedDocument
       ? `Cette image ouvrira le document : ${linkedDocument.label}`
       : "Ajoutez un document : cette image deviendra automatiquement son aperçu cliquable.";
+
+    refreshDocumentImage();
   }
 
   function refreshDocumentsList() {
@@ -5492,6 +5624,10 @@ function openFicheEditor() {
     documentFileInput.value = "";
     documentSelectedFile.textContent = "";
     documentUploadStatus.textContent = "";
+    documentImageFileInput.value = "";
+    documentImageStatus.textContent = "";
+    documentImageStatus.className =
+      "fiche-editor-upload-status";
     updateColorGuidance();
     refreshGalleryList();
     refreshDocumentsList();
@@ -5879,6 +6015,133 @@ function openFicheEditor() {
           error.message;
       } finally {
         uploadDocumentButton.disabled =
+          isVisitorMode();
+      }
+    }
+  );
+
+  chooseDocumentImageButton.addEventListener(
+    "click",
+    () => {
+      if (isVisitorMode()) {
+        return;
+      }
+
+      if (blockDocuments.length === 0) {
+        documentImageStatus.textContent =
+          "Ajoutez d’abord le document à ouvrir.";
+        documentImageStatus.className =
+          "fiche-editor-upload-status error";
+        return;
+      }
+
+      documentImageFileInput.click();
+    }
+  );
+
+  removeDocumentImageButton.addEventListener(
+    "click",
+    () => {
+      mediaUrl.value = "";
+      mediaCaption.value = "";
+      refreshExistingImage();
+
+      documentImageStatus.textContent =
+        "L’image associée sera retirée après l’enregistrement du bloc.";
+      documentImageStatus.className =
+        "fiche-editor-upload-status success";
+    }
+  );
+
+  documentImageFileInput.addEventListener(
+    "change",
+    async () => {
+      const file =
+        documentImageFileInput.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      if (!isConvertibleImageFile(file)) {
+        documentImageStatus.textContent =
+          "Format non pris en charge. Choisissez une image JPEG, PNG ou WebP.";
+        documentImageStatus.className =
+          "fiche-editor-upload-status error";
+        documentImageFileInput.value = "";
+        return;
+      }
+
+      chooseDocumentImageButton.disabled = true;
+      documentImageStatus.textContent =
+        "Conversion de l’image en WebP…";
+      documentImageStatus.className =
+        "fiche-editor-upload-status";
+
+      try {
+        const webpFile =
+          await convertPhotoToWebp(file);
+
+        documentImageStatus.textContent =
+          "Envoi de l’image dans GitHub…";
+
+        const formData = new FormData();
+        const documentLabelValue =
+          blockDocuments[0]?.label || "document";
+
+        formData.append("photo", webpFile);
+        formData.append(
+          "photoName",
+          `${documentLabelValue}-apercu`
+        );
+        formData.append(
+          "fichePath",
+          currentEditableFiche?.path || ""
+        );
+        formData.append(
+          "ficheTitle",
+          overlay
+            .querySelector("#editorFicheTitle")
+            ?.value
+            ?.trim() ||
+          currentEditableFiche?.item?.title ||
+          ""
+        );
+
+        const response = await fetch(
+          "/cadres/photo-upload",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.path) {
+          throw new Error(
+            data.error ||
+            "L’envoi de l’image associée au document a échoué."
+          );
+        }
+
+        mediaUrl.value = data.path;
+        mediaCaption.value = "";
+        refreshExistingImage();
+
+        documentImageStatus.textContent =
+          "Image ajoutée : elle ouvrira le document lorsque l’utilisateur cliquera dessus.";
+        documentImageStatus.className =
+          "fiche-editor-upload-status success";
+      } catch (error) {
+        documentImageStatus.textContent =
+          error.message;
+        documentImageStatus.className =
+          "fiche-editor-upload-status error";
+      } finally {
+        documentImageFileInput.value = "";
+        chooseDocumentImageButton.disabled =
           isVisitorMode();
       }
     }
