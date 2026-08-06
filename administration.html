@@ -1806,7 +1806,11 @@
     padding: 14px 18px;
     border: 0;
     border-bottom: 1px solid transparent;
-    background: transparent;
+    background:
+      var(
+        --admin-title-background,
+        rgba(40,45,52,.72)
+      );
     color: inherit;
     text-align: left;
     cursor: pointer;
@@ -1814,7 +1818,11 @@
 
   .admin-section-toggle:hover,
   .admin-section-toggle:focus-visible {
-    background: rgba(212,175,55,.055);
+    background:
+      var(
+        --admin-title-background-hover,
+        rgba(55,61,70,.82)
+      );
   }
 
   .admin-section-toggle-title {
@@ -1824,11 +1832,20 @@
   .admin-section-toggle-title .small-label {
     display: block;
     margin-bottom: 3px;
+    color:
+      var(
+        --admin-title-color,
+        var(--gold-light)
+      );
   }
 
   .admin-section-toggle-title strong {
     display: block;
-    color: var(--gold-light);
+    color:
+      var(
+        --admin-title-color,
+        var(--gold-light)
+      );
     font-size: 18px;
     line-height: 1.2;
   }
@@ -1845,7 +1862,69 @@
   }
 
   .admin-collapsible.is-open .admin-section-toggle {
-    border-bottom-color: rgba(212,175,55,.18);
+    border-bottom-color:
+      var(
+        --admin-title-border,
+        rgba(212,175,55,.35)
+      );
+  }
+
+  main > section.admin-collapsible {
+    border-color:
+      var(
+        --admin-title-border,
+        rgba(212,175,55,.35)
+      ) !important;
+  }
+
+  .admin-theme-accounts {
+    --admin-title-color: #b9ddff;
+    --admin-title-border: rgba(60,145,225,.72);
+    --admin-title-background:
+      linear-gradient(135deg,rgba(24,91,151,.84),rgba(16,51,91,.9));
+    --admin-title-background-hover:
+      linear-gradient(135deg,rgba(31,111,181,.94),rgba(20,65,112,.96));
+  }
+
+  .admin-theme-access {
+    --admin-title-color: #ffd0da;
+    --admin-title-border: rgba(174,67,91,.74);
+    --admin-title-background:
+      linear-gradient(135deg,rgba(116,31,51,.88),rgba(66,18,32,.94));
+    --admin-title-background-hover:
+      linear-gradient(135deg,rgba(142,39,63,.96),rgba(82,23,39,.98));
+  }
+
+  .admin-theme-sanctions {
+    --admin-title-color: #ffd4ab;
+    --admin-title-border: rgba(224,121,45,.78);
+    --admin-title-background:
+      linear-gradient(135deg,rgba(157,72,20,.88),rgba(91,39,12,.94));
+    --admin-title-background-hover:
+      linear-gradient(135deg,rgba(188,87,26,.96),rgba(112,49,16,.98));
+  }
+
+  .admin-theme-promotion {
+    --admin-title-color: #bdebd3;
+    --admin-title-border: rgba(64,157,112,.76);
+    --admin-title-background:
+      linear-gradient(135deg,rgba(28,105,72,.88),rgba(16,63,44,.94));
+    --admin-title-background-hover:
+      linear-gradient(135deg,rgba(35,130,89,.96),rgba(20,80,55,.98));
+  }
+
+  .sanctions-panel {
+    margin-top: 22px;
+    padding: 24px;
+    border: 1px solid rgba(224,121,45,.58);
+    border-radius: 13px;
+    background: rgba(8,10,12,.94);
+  }
+
+  .sanctions-panel-description {
+    margin: 0 0 18px;
+    color: rgba(255,255,255,.76);
+    line-height: 1.6;
   }
 
   .admin-section-content {
@@ -2911,6 +2990,24 @@
   
     <div id="collectiveAccessMessage"></div>
   </section>
+
+<section class="sanctions-panel">
+  <div class="panel-heading">
+    <div>
+      <span class="small-label">Sanctions</span>
+      <h2>Suivi et gestion des sanctions</h2>
+    </div>
+  </div>
+
+  <p class="sanctions-panel-description">
+    Accédez au suivi disciplinaire des élèves, à la saisie des sanctions
+    et aux exports de la compagnie.
+  </p>
+
+  <a class="button" href="/sanctions">
+    Ouvrir le module des sanctions
+  </a>
+</section>
 
 <section class="training-close-panel">
   <div class="panel-heading">
@@ -6643,18 +6740,75 @@ administrationModePromise.then(isVisitor => {
    PANNEAUX REPLIABLES DE L’ADMINISTRATION
    ========================================================== */
 (() => {
+  const administrationMain =
+    document.querySelector("main.page");
+
+  const promotionSettingsSection =
+    administrationMain?.querySelector(
+      ".promotion-settings"
+    );
+
+  const notationSection =
+    administrationMain?.querySelector(
+      ":scope > .notations-admin-panel"
+    );
+
+  /*
+   * Les trois panneaux de comptes restent regroupés en tête.
+   * Les paramètres de promotion viennent immédiatement après.
+   */
+  if (
+    administrationMain &&
+    promotionSettingsSection &&
+    notationSection
+  ) {
+    administrationMain.insertBefore(
+      promotionSettingsSection,
+      notationSection
+    );
+  }
+
+  const orderedSectionClasses = [
+    "search-panel",
+    "create-panel",
+    "import-panel",
+    "collective-access-panel",
+    "session-security-panel",
+    "consultations-panel",
+    "backup-panel",
+    "sanctions-panel",
+    "promotion-settings",
+    "notations-admin-panel",
+    "homepage-tiles-panel",
+    "training-close-panel"
+  ];
+
+  if (administrationMain) {
+    orderedSectionClasses.forEach(className => {
+      const section =
+        administrationMain.querySelector(
+          `:scope > .${className}`
+        );
+
+      if (section) {
+        administrationMain.appendChild(section);
+      }
+    });
+  }
+
   const sectionLabels = new Map([
-    ["promotion-settings", ["Promotion", "Paramètres de la promotion"]],
-    ["search-panel", ["Utilisateurs", "Rechercher et modifier un compte"]],
-    ["create-panel", ["Utilisateurs", "Créer un compte"]],
-    ["import-panel", ["Utilisateurs", "Importer des comptes CSV"]],
-    ["notations-admin-panel", ["Espace cadres", "Notations des élèves — SimpliNote"]],
-    ["homepage-tiles-panel", ["Page d’accueil", "Affichage des domaines et rubriques"]],
-    ["backup-panel", ["Sécurité", "Sauvegarde et restauration"]],
-    ["consultations-panel", ["Traçabilité", "Suivi des consultations"]],
-    ["session-security-panel", ["Sécurité", "Connexions sur un second appareil"]],
-    ["collective-access-panel", ["Connexion", "Accès collectif"]],
-    ["training-close-panel", ["Fin de promotion", "Clôture de la formation"]]
+    ["search-panel", ["Gestion des comptes", "Rechercher et modifier un compte", "accounts"]],
+    ["create-panel", ["Gestion des comptes", "Créer un compte", "accounts"]],
+    ["import-panel", ["Gestion des comptes", "Importer des comptes CSV", "accounts"]],
+    ["promotion-settings", ["Gestion de la promotion", "Paramètres de la promotion", "promotion"]],
+    ["notations-admin-panel", ["Gestion de la promotion", "Notations des élèves — SimpliNote", "promotion"]],
+    ["homepage-tiles-panel", ["Gestion du site", "Affichage des domaines et rubriques", "promotion"]],
+    ["backup-panel", ["Contrôle et sécurité", "Sauvegarde et restauration", "access"]],
+    ["consultations-panel", ["Contrôle et traçabilité", "Suivi des consultations", "access"]],
+    ["session-security-panel", ["Contrôle des accès", "Connexions sur un second appareil", "access"]],
+    ["collective-access-panel", ["Contrôle des accès", "Accès collectif", "access"]],
+    ["sanctions-panel", ["Sanctions", "Suivi et gestion des sanctions", "sanctions"]],
+    ["training-close-panel", ["Gestion de la promotion", "Clôture de la formation", "promotion"]]
   ]);
 
   const storageKey =
@@ -6722,8 +6876,12 @@ administrationModePromise.then(isVisitor => {
     const identity =
       sectionIdentity(section);
 
-    const [label, title] =
+    const [label, title, theme] =
       sectionLabels.get(identity);
+
+    section.classList.add(
+      `admin-theme-${theme}`
+    );
 
     const content =
       document.createElement("div");
