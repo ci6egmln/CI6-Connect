@@ -8,6 +8,7 @@ import {
 
 const RESPONSIBILITIES = new Set(["", "tam", "popotier", "magasinier", "president", "tresorier", "secretaire", "other"]);
 const PHYSICAL_PREPARATIONS = new Set(["", "limited", "good", "excellent"]);
+const OVERALL_NUANCES = new Set(["", "progress", "steady", "irregular", "decline"]);
 
 async function currentPromotion(db) {
   try {
@@ -126,6 +127,9 @@ export async function onRequestGet(context) {
           responsibility: "",
           responsibility_label: "",
           responsibility_level: 3,
+          overall_nuance: "",
+          particular_note: "",
+          return_note: "",
           literal: "",
           status: "todo"
         },
@@ -162,12 +166,46 @@ export async function onRequestPost(context) {
   }
 
   const action = String(body.action || "save");
-  if (!["save", "validate-platoon", "finalize-company"].includes(action)) {
+  if (!["save", "validate-platoon", "finalize-company", "return-platoon"].includes(action)) {
     return notationJson({ error: "Action de notation inconnue." }, 400);
   }
   const studentId = Number(body.student_id);
   const student = await studentForPermission(db, studentId, permission);
   if (!student) return notationJson({ error: "Élève introuvable dans votre périmètre." }, 404);
+
+  const previous = await db.prepare(`SELECT * FROM notation_records WHERE student_id=? LIMIT 1`).bind(studentId).first();
+  const previousStatus = previous?.status || "todo";
+
+  if (action === "return-platoon") {
+    if (!permission.isAdmin) {
+      return notationJson({ error: "Le retour au commandant de peloton est réservé au CDU." }, 403);
+    }
+    if (!previous || !["platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
+      return notationJson({ error: "Cette notation ne peut pas être rendue au commandant de peloton dans son état actuel." }, 409);
+    }
+    const returnNote = String(body.return_note || "").trim();
+    if (returnNote.length > 300) {
+      return notationJson({ error: "La demande de correction est limitée à 300 caractères." }, 400);
+    }
+    try {
+      await db.prepare(`
+        UPDATE notation_records
+        SET status='returned_to_platoon',
+            return_note=?, returned_by=?, returned_at=CURRENT_TIMESTAMP,
+            company_finalized_by=NULL, company_finalized_at=NULL,
+            exported_at=NULL, updated_by=?, updated_at=CURRENT_TIMESTAMP
+        WHERE student_id=?
+      `).bind(returnNote, permission.username, permission.username, studentId).run();
+      const next = await db.prepare(`SELECT * FROM notation_records WHERE student_id=? LIMIT 1`).bind(studentId).first();
+      await auditNotation(db, studentId, action, permission.username, previous, next);
+      return notationJson({ success: true, record: next });
+    } catch (error) {
+      return notationJson({
+        error: "La notation n’a pas pu être rendue au commandant de peloton.",
+        details: error instanceof Error ? error.message : String(error)
+      }, 500);
+    }
+  }
 
   const levels = notationLevels(body);
   if (!levels) return notationJson({ error: "Les cinq niveaux doivent être compris entre 1 et 5." }, 400);
@@ -193,6 +231,14 @@ export async function onRequestPost(context) {
   if (["validate-platoon", "finalize-company"].includes(action) && responsibility === "other" && !responsibilityLabel) {
     return notationJson({ error: "Précisez la commission ou la fonction exercée." }, 400);
   }
+  const overallNuance = String(body.overall_nuance || "").trim().toLowerCase();
+  const particularNote = String(body.particular_note || "").trim();
+  if (!OVERALL_NUANCES.has(overallNuance)) {
+    return notationJson({ error: "La nuance générale sélectionnée est invalide." }, 400);
+  }
+  if (particularNote.length > 100) {
+    return notationJson({ error: "L’élément particulier est limité à 100 caractères." }, 400);
+  }
 
   const literal = String(body.literal || "").trim();
   if (literal.length > 2000) return notationJson({ error: "Le littéral dépasse 2 000 caractères." }, 400);
@@ -200,21 +246,22 @@ export async function onRequestPost(context) {
     return notationJson({ error: "Le littéral ne peut pas être vide lors de la validation." }, 400);
   }
 
-  const previous = await db.prepare(`SELECT * FROM notation_records WHERE student_id=? LIMIT 1`).bind(studentId).first();
-  const previousStatus = previous?.status || "todo";
-
-  if (!permission.isAdmin && !["todo", "draft"].includes(previousStatus)) {
+  if (!permission.isAdmin && !["todo", "draft", "returned_to_platoon"].includes(previousStatus)) {
     return notationJson({ error: "Cette notation a déjà été transmise au commandant de compagnie." }, 409);
   }
 
   if (action === "finalize-company" && !permission.isAdmin) {
     return notationJson({ error: "Finalisation réservée aux administrateurs." }, 403);
   }
+  if (action === "finalize-company" && !["platoon_validated", "company_finalized"].includes(previousStatus)) {
+    return notationJson({ error: "La notation doit d’abord être transmise par le commandant de peloton." }, 409);
+  }
 
   let status = "draft";
+  if (action === "save" && previousStatus === "returned_to_platoon") status = "returned_to_platoon";
   if (action === "validate-platoon") status = "platoon_validated";
   if (action === "finalize-company") status = "company_finalized";
-  if (permission.isAdmin && action === "save" && ["platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
+  if (permission.isAdmin && action === "save" && ["returned_to_platoon", "platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
     status = previousStatus === "exported" ? "company_finalized" : previousStatus;
   }
 
@@ -224,11 +271,11 @@ export async function onRequestPost(context) {
         student_id, integration_level, robustness_level, setback_recovery_level,
         mission_adaptation_level, work_level, results_level, future_level,
         physical_preparation, responsibility, responsibility_label, responsibility_level,
-        literal, status,
+        overall_nuance, particular_note, literal, status,
         created_by, updated_by, updated_at,
         platoon_validated_by, platoon_validated_at,
         company_finalized_by, company_finalized_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP,
         CASE WHEN ?='platoon_validated' THEN ? ELSE NULL END,
         CASE WHEN ?='platoon_validated' THEN CURRENT_TIMESTAMP ELSE NULL END,
         CASE WHEN ?='company_finalized' THEN ? ELSE NULL END,
@@ -246,6 +293,8 @@ export async function onRequestPost(context) {
         responsibility=excluded.responsibility,
         responsibility_label=excluded.responsibility_label,
         responsibility_level=excluded.responsibility_level,
+        overall_nuance=excluded.overall_nuance,
+        particular_note=excluded.particular_note,
         literal=excluded.literal,
         status=excluded.status,
         updated_by=excluded.updated_by,
@@ -275,6 +324,8 @@ export async function onRequestPost(context) {
       responsibility,
       responsibility === "other" ? responsibilityLabel : "",
       responsibility ? responsibilityLevel : 3,
+      overallNuance,
+      particularNote,
       literal,
       status,
       permission.username,

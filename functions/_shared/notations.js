@@ -39,6 +39,8 @@ export async function ensureNotationSchema(db) {
       responsibility TEXT NOT NULL DEFAULT '',
       responsibility_label TEXT NOT NULL DEFAULT '',
       responsibility_level INTEGER NOT NULL DEFAULT 3,
+      overall_nuance TEXT NOT NULL DEFAULT '',
+      particular_note TEXT NOT NULL DEFAULT '',
       literal TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'draft',
       created_by TEXT,
@@ -49,6 +51,9 @@ export async function ensureNotationSchema(db) {
       platoon_validated_at TEXT,
       company_finalized_by TEXT,
       company_finalized_at TEXT,
+      returned_by TEXT,
+      returned_at TEXT,
+      return_note TEXT NOT NULL DEFAULT '',
       exported_at TEXT,
       FOREIGN KEY(student_id) REFERENCES notation_students(id)
     )`),
@@ -92,6 +97,21 @@ export async function ensureNotationSchema(db) {
   }
   if (!recordColumnNames.has("responsibility_level")) {
     await db.prepare(`ALTER TABLE notation_records ADD COLUMN responsibility_level INTEGER NOT NULL DEFAULT 3`).run();
+  }
+  if (!recordColumnNames.has("overall_nuance")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN overall_nuance TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!recordColumnNames.has("particular_note")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN particular_note TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!recordColumnNames.has("returned_by")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN returned_by TEXT`).run();
+  }
+  if (!recordColumnNames.has("returned_at")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN returned_at TEXT`).run();
+  }
+  if (!recordColumnNames.has("return_note")) {
+    await db.prepare(`ALTER TABLE notation_records ADD COLUMN return_note TEXT NOT NULL DEFAULT ''`).run();
   }
 }
 

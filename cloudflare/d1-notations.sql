@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS notation_records (
   responsibility TEXT NOT NULL DEFAULT '',
   responsibility_label TEXT NOT NULL DEFAULT '',
   responsibility_level INTEGER NOT NULL DEFAULT 3,
+  overall_nuance TEXT NOT NULL DEFAULT '',
+  particular_note TEXT NOT NULL DEFAULT '',
   literal TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'draft',
   created_by TEXT,
@@ -37,6 +39,9 @@ CREATE TABLE IF NOT EXISTS notation_records (
   platoon_validated_at TEXT,
   company_finalized_by TEXT,
   company_finalized_at TEXT,
+  returned_by TEXT,
+  returned_at TEXT,
+  return_note TEXT NOT NULL DEFAULT '',
   exported_at TEXT,
   FOREIGN KEY(student_id) REFERENCES notation_students(id)
 );

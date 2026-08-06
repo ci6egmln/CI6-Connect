@@ -217,6 +217,8 @@ function renderPlanning() {
     const date = iso(day); const holiday = holidayFor(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holiday);
     html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
   });
+  const todayIndex = days.findIndex(day => iso(day) === today);
+  if (todayIndex >= 0) html += `<div class="today-column-marker" style="grid-column:${todayIndex * 2 + 4}/span 2;grid-row:3/${rows.length + 3}" aria-hidden="true"></div>`;
   rows.forEach((row, rowIndex) => {
     const gridRow = rowIndex + 3;
     const identity = row.vacation
@@ -231,7 +233,7 @@ function renderPlanning() {
     if (row.vacation) {
       days.forEach((day, dayIndex) => {
         const vacation = schoolVacationFor(day);
-        html += `<div class="vacation-day${vacation ? " active" : ""}" style="grid-column:${dayIndex * 2 + 4}/span 2;grid-row:${gridRow}"${vacation ? ` title="${esc(vacation)}"` : ""}></div>`;
+        html += `<div class="vacation-day${vacation ? " active" : ""}${iso(day) === today ? " today" : ""}" style="grid-column:${dayIndex * 2 + 4}/span 2;grid-row:${gridRow}"${vacation ? ` title="${esc(vacation)}"` : ""}></div>`;
       });
       return;
     }
@@ -255,7 +257,9 @@ function renderPlanning() {
       const keys = groupedItems.map(slot => slot.key).join(",");
       const color = entry?.custom_color || type?.color || "#fff";
       const textColor = entry?.custom_color ? contrastText(entry.custom_color) : type?.textColor || "#111";
-      html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${item.date === today ? " today" : ""}${entry ? " has-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
+      const startsDay = item.slot === "M";
+      const endsDay = groupedItems.at(-1)?.slot === "N";
+      html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${startsDay ? " day-start" : ""}${endsDay ? " day-end" : ""}${entry ? " has-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
       slotIndex += span;
     }
   });

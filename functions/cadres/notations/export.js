@@ -24,6 +24,15 @@ function physicalPreparationLabel(value) {
   }[String(value || "")] || "";
 }
 
+function overallNuanceLabel(value) {
+  return {
+    progress: "En progression",
+    steady: "Constant",
+    irregular: "Irrégulier",
+    decline: "En régression"
+  }[String(value || "")] || "";
+}
+
 export async function onRequestGet(context) {
   const db = context.env.DB;
   if (!db) return notationJson({ error: "Liaison D1 indisponible." }, 500);
@@ -59,9 +68,11 @@ export async function onRequestGet(context) {
         s.moyenne, s.classement, r.physical_preparation,
         r.robustness_level, r.setback_recovery_level, r.mission_adaptation_level,
         r.responsibility, r.responsibility_label, r.responsibility_level,
+        r.overall_nuance, r.particular_note,
         r.literal, r.status,
         r.platoon_validated_by, r.platoon_validated_at,
         r.company_finalized_by, r.company_finalized_at,
+        r.returned_by, r.returned_at, r.return_note,
         r.updated_by, r.updated_at
       FROM notation_students s
       JOIN notation_records r ON r.student_id=s.id
@@ -76,8 +87,10 @@ export async function onRequestGet(context) {
       "promotion", "peloton", "grade", "nom", "prenom", "moyenne",
       "classement", "preparation_physique_initiale", "evolution_physique",
       "reaction_aux_difficultes", "adaptation_aux_moyens_disponibles",
-      "responsabilite", "responsabilite_libre", "degre_implication", "litteral", "statut", "valide_par_commandant_peloton",
+      "responsabilite", "responsabilite_libre", "degre_implication",
+      "nuance_generale", "element_particulier", "litteral", "statut", "valide_par_commandant_peloton",
       "date_validation_peloton", "finalise_par_cdu", "date_finalisation_cdu",
+      "rendu_par_cdu", "date_retour_peloton", "demande_correction_cdu",
       "derniere_modification_par", "derniere_modification"
     ];
     const lines = [headers.join(";")];
@@ -89,9 +102,11 @@ export async function onRequestGet(context) {
         row.robustness_level, row.setback_recovery_level, row.mission_adaptation_level,
         row.responsibility, row.responsibility_label,
         row.responsibility ? row.responsibility_level : "",
+        overallNuanceLabel(row.overall_nuance), row.particular_note,
         row.literal, row.status,
         row.platoon_validated_by, row.platoon_validated_at,
         row.company_finalized_by, row.company_finalized_at,
+        row.returned_by, row.returned_at, row.return_note,
         row.updated_by, row.updated_at
       ].map(csv).join(";"));
     });
