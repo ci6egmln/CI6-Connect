@@ -2144,6 +2144,45 @@ function injectFicheEditorStyles() {
       outline-offset: 2px;
     }
 
+    .fiche-editor-format-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .fiche-editor-format-button {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      min-height: 40px;
+      padding: 6px;
+      color: #ffffff !important;
+      border: 1px solid #4d9be8 !important;
+      border-radius: 9px;
+      background:
+        linear-gradient(
+          135deg,
+          #2476bd,
+          #123f70
+        ) !important;
+      box-shadow: 0 6px 14px rgba(18,63,112,.25);
+      cursor: pointer;
+    }
+
+    .fiche-editor-format-button:hover,
+    .fiche-editor-format-button:focus-visible {
+      color: #ffffff !important;
+      border-color: #76baff !important;
+      background:
+        linear-gradient(
+          135deg,
+          #328bd5,
+          #18558f
+        ) !important;
+      outline: 3px solid rgba(77,155,232,.25);
+      outline-offset: 2px;
+    }
+
     .fiche-editor-button.workflow-secondary {
       color: #dcecff !important;
       border-color: rgba(77,155,232,.72) !important;
