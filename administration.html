@@ -1792,6 +1792,12 @@
      ========================================================== */
   main > section.admin-collapsible {
     padding: 0 !important;
+    margin-top: 18px !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-radius: 13px !important;
+    background: rgba(8,10,12,.94) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.18);
     overflow: hidden;
   }
 
@@ -1878,39 +1884,31 @@
   }
 
   .admin-theme-accounts {
-    --admin-title-color: #b9ddff;
-    --admin-title-border: rgba(60,145,225,.72);
-    --admin-title-background:
-      linear-gradient(135deg,rgba(24,91,151,.84),rgba(16,51,91,.9));
-    --admin-title-background-hover:
-      linear-gradient(135deg,rgba(31,111,181,.94),rgba(20,65,112,.96));
+    --admin-title-color: #8dc9f3;
+    --admin-title-border: rgba(78,167,232,.58);
+    --admin-title-background: rgba(45,125,185,.18);
+    --admin-title-background-hover: rgba(45,125,185,.28);
   }
 
   .admin-theme-access {
-    --admin-title-color: #ffd0da;
-    --admin-title-border: rgba(174,67,91,.74);
-    --admin-title-background:
-      linear-gradient(135deg,rgba(116,31,51,.88),rgba(66,18,32,.94));
-    --admin-title-background-hover:
-      linear-gradient(135deg,rgba(142,39,63,.96),rgba(82,23,39,.98));
+    --admin-title-color: #d98ca0;
+    --admin-title-border: rgba(174,67,91,.58);
+    --admin-title-background: rgba(135,42,65,.18);
+    --admin-title-background-hover: rgba(135,42,65,.28);
   }
 
   .admin-theme-sanctions {
-    --admin-title-color: #ffd4ab;
-    --admin-title-border: rgba(224,121,45,.78);
-    --admin-title-background:
-      linear-gradient(135deg,rgba(157,72,20,.88),rgba(91,39,12,.94));
-    --admin-title-background-hover:
-      linear-gradient(135deg,rgba(188,87,26,.96),rgba(112,49,16,.98));
+    --admin-title-color: #ee9c3b;
+    --admin-title-border: rgba(238,156,59,.58);
+    --admin-title-background: rgba(190,105,30,.18);
+    --admin-title-background-hover: rgba(190,105,30,.28);
   }
 
   .admin-theme-promotion {
-    --admin-title-color: #bdebd3;
-    --admin-title-border: rgba(64,157,112,.76);
-    --admin-title-background:
-      linear-gradient(135deg,rgba(28,105,72,.88),rgba(16,63,44,.94));
-    --admin-title-background-hover:
-      linear-gradient(135deg,rgba(35,130,89,.96),rgba(20,80,55,.98));
+    --admin-title-color: #68d391;
+    --admin-title-border: rgba(69,201,120,.58);
+    --admin-title-background: rgba(45,155,85,.18);
+    --admin-title-background-hover: rgba(45,155,85,.28);
   }
 
   .sanctions-panel {
@@ -1941,7 +1939,11 @@
   }
 
   .training-close-panel {
-    border-color: rgba(255,152,104,.42) !important;
+    border-color:
+      var(
+        --admin-title-border,
+        rgba(69,201,120,.58)
+      ) !important;
   }
 
   .training-close-intro {
