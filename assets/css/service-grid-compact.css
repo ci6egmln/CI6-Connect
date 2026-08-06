@@ -113,7 +113,7 @@
   min-height: 29px;
   height: 29px;
   border: 0;
-  border-right: 1px solid rgba(0, 0, 0, .28);
+  border-right: 0;
   border-bottom: 1px solid #343b40;
   background: #e4e6e7;
   color: #111;
@@ -131,23 +131,23 @@
 }
 
 .day-head {
-  border-left: 2px solid #111516;
-  border-right: 2px solid #111516;
+  border-left: 0;
+  border-right: 1px solid #343b40;
 }
 
 .slot-cell:not(.merged-activity).day-start {
-  border-left: 2px solid #111516;
+  border-left: 0;
 }
 
 .slot-cell:not(.merged-activity).day-end {
-  border-right: 2px solid #111516;
+  border-right: 1px solid #343b40;
 }
 
 .today-column-marker {
   z-index: 6;
   pointer-events: none;
-  border-left: 3px solid #2f9fe5;
-  border-right: 3px solid #2f9fe5;
+  border-left: 2px solid #2f9fe5;
+  border-right: 2px solid #2f9fe5;
 }
 
 .slot-cell.peloton {
@@ -343,8 +343,8 @@
 }
 
 .vacation-day {
-  border-left: 2px solid #111516;
-  border-right: 2px solid #111516;
+  border-left: 0;
+  border-right: 1px solid #343b40;
 }
 
 .vacation-day.active {
