@@ -26,6 +26,33 @@ function addMonths(date, amount) { const copy = new Date(date); copy.setUTCMonth
 function daysBetween(start, end) { const result = []; for (let date = start; date <= end; date = addDays(date, 1)) result.push(date); return result; }
 function frDate(value, options = { day: "2-digit", month: "short", year: "numeric" }) { return utcDate(value).toLocaleDateString("fr-FR", { ...options, timeZone: "UTC" }); }
 function number(value) { return Number(value || 0).toLocaleString("fr-FR", { maximumFractionDigits: 2 }); }
+const holidayCache = new Map();
+function easterSunday(year) {
+  const a = year % 19; const b = Math.floor(year / 100); const c = year % 100;
+  const d = Math.floor(b / 4); const e = b % 4; const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3); const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4); const k = c % 4; const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+function holidaysFor(year) {
+  if (holidayCache.has(year)) return holidayCache.get(year);
+  const fixed = {
+    "01-01": "Jour de l’An", "05-01": "Fête du Travail", "05-08": "Victoire de 1945",
+    "07-14": "Fête nationale", "08-15": "Assomption", "11-01": "Toussaint",
+    "11-11": "Armistice", "12-25": "Noël"
+  };
+  const days = new Map(Object.entries(fixed).map(([date, label]) => [`${year}-${date}`, label]));
+  const easter = easterSunday(year);
+  days.set(iso(addDays(easter, 1)), "Lundi de Pâques");
+  days.set(iso(addDays(easter, 39)), "Ascension");
+  days.set(iso(addDays(easter, 50)), "Lundi de Pentecôte");
+  holidayCache.set(year, days);
+  return days;
+}
+function holidayFor(date) { return holidaysFor(date.getUTCFullYear()).get(iso(date)) || ""; }
 function entryKey(targetType, targetKey, date, slot) { return `${targetType}|${targetKey}|${date}|${slot}`; }
 function parseKey(key) { const [target_type, target_key, service_date, slot] = key.split("|"); return { target_type, target_key, service_date, slot }; }
 function typeFor(code) { return state.data?.serviceTypes.find(type => type.code === code); }
@@ -126,16 +153,16 @@ function renderPlanning() {
   let monthColumn = 3;
   groups.forEach((group, index) => { html += `<div class="month-head${index % 2 ? " alt" : ""}" style="grid-column:${monthColumn}/span ${group.count};grid-row:1">${esc(group.label)}</div>`; monthColumn += group.count; });
   days.forEach((day, index) => {
-    const date = iso(day); const weekend = [0, 6].includes(day.getUTCDay());
-    html += `<div class="day-head${weekend ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index + 3};grid-row:2"><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
+    const date = iso(day); const holiday = holidayFor(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holiday);
+    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index + 3};grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
   });
   rows.forEach((row, rowIndex) => {
     const gridRow = rowIndex + 3;
     html += `<div class="row-name${row.peloton ? " peloton" : ""}" style="grid-column:1;grid-row:${gridRow}"><div>${row.grade ? `<small>${esc(row.grade)}</small>` : ""}${esc(row.name)}${row.pelotonName ? `<small>${esc(row.pelotonName)}</small>` : ""}</div></div>`;
     html += `<div class="row-counter" style="grid-column:2;grid-row:${gridRow}">${counterFor(row)}</div>`;
     days.forEach((day, dayIndex) => {
-      const date = iso(day); const weekend = [0, 6].includes(day.getUTCDay());
-      html += `<div class="day-cell${weekend ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}">`;
+      const date = iso(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holidayFor(day));
+      html += `<div class="day-cell${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}">`;
       for (const slot of ["M", "N"]) {
         const key = entryKey(row.targetType, row.targetKey, date, slot);
         const entry = state.entries.get(key); const type = entry ? typeFor(entry.service_code) : null;
