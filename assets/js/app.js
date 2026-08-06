@@ -4065,6 +4065,8 @@ function openFicheEditor() {
         </div>
       </section>
 
+      <div id="ficheEditorBlockFormAnchor" hidden></div>
+
       <section
         id="ficheEditorBlockForm"
         class="fiche-editor-panel fiche-editor-block-form"
@@ -4537,6 +4539,11 @@ function openFicheEditor() {
 
   const blockForm =
     overlay.querySelector("#ficheEditorBlockForm");
+
+  const blockFormAnchor =
+    overlay.querySelector("#ficheEditorBlockFormAnchor");
+
+  let editingBlockShell = null;
 
   const blockFormTitle =
     overlay.querySelector("#ficheEditorBlockFormTitle");
@@ -5276,7 +5283,18 @@ function openFicheEditor() {
     updateBlockFields();
   }
 
+  function restoreBlockFormPosition() {
+    if (editingBlockShell) {
+      editingBlockShell.hidden = false;
+      editingBlockShell = null;
+    }
+
+    blockFormAnchor.after(blockForm);
+  }
+
   function openBlockForm(index = null) {
+    restoreBlockFormPosition();
+
     editingIndex =
       Number.isInteger(index)
         ? index
@@ -5344,6 +5362,20 @@ function openFicheEditor() {
     }
 
     updateBlockFields();
+
+    if (editingIndex !== null) {
+      const shell =
+        preview.querySelector(
+          `[data-editor-index="${editingIndex}"]`
+        );
+
+      if (shell) {
+        editingBlockShell = shell;
+        shell.before(blockForm);
+        shell.hidden = true;
+      }
+    }
+
     blockForm.hidden = false;
     refreshEditorWorkflow();
 
@@ -5355,6 +5387,7 @@ function openFicheEditor() {
 
   function closeBlockForm() {
     blockForm.hidden = true;
+    restoreBlockFormPosition();
     editingIndex = null;
     resetBlockForm();
     refreshEditorWorkflow();
