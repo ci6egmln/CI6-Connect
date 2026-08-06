@@ -131,6 +131,10 @@ export async function onRequestGet(context) {
     "notation_records",
     "notation_access",
     "notation_audit_log",
+    "service_people",
+    "service_entries",
+    "service_recovery_ledger",
+    "service_audit_log",
     "push_subscriptions",
     "administration_audit_log"
   ];

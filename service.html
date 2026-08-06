@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b0d">
+  <title>Service — CI6 Connect</title>
+  <link rel="stylesheet" href="/assets/css/service.css">
+  <link rel="stylesheet" href="/assets/css/service-admin.css">
+</head>
+<body>
+<main class="service-app">
+  <header class="service-topbar">
+    <div class="service-brand">
+      <div class="service-mark" aria-hidden="true"><span>S</span></div>
+      <div><div class="eyebrow">ESPACE CADRES</div><h1>Service</h1><p>Planning prévisionnel, permanences et repos récupérateurs</p></div>
+    </div>
+    <div class="top-actions">
+      <button id="managePeople" class="button secondary" type="button" hidden>Gérer les cadres</button>
+      <a class="button secondary" href="/#espace-cadres">Retour à l’espace cadres</a>
+    </div>
+  </header>
+
+  <nav class="module-tabs" aria-label="Rubriques du module Service">
+    <button class="module-tab active" data-tab="planning" type="button">Planning</button>
+    <button class="module-tab" data-tab="sop" type="button">Équité SOP</button>
+    <button class="module-tab" data-tab="recovery" type="button">Repos récupérateurs</button>
+  </nav>
+
+  <section id="planningTab" class="tab-panel">
+    <div class="planning-toolbar panel-soft">
+      <div class="period-controls">
+        <button id="previousPeriod" class="icon-button" type="button" title="Reculer d’une semaine">←</button>
+        <button id="today" class="button compact" type="button">Semaine actuelle</button>
+        <button id="nextPeriod" class="icon-button" type="button" title="Avancer d’une semaine">→</button>
+        <strong id="periodLabel" class="period-label"></strong>
+      </div>
+      <div class="range-shortcuts" aria-label="Période future">
+        <button class="range-button" data-months="3" type="button">3 mois</button>
+        <button class="range-button" data-months="6" type="button">6 mois</button>
+        <button class="range-button" data-months="12" type="button">12 mois</button>
+        <button class="range-button" data-months="18" type="button">18 mois</button>
+      </div>
+      <div class="toolbar-actions">
+        <button id="refreshPlanning" class="button secondary compact" type="button">Actualiser</button>
+        <button id="exportPlanning" class="button secondary compact" type="button">Exporter CSV</button>
+      </div>
+    </div>
+
+    <div class="selection-bar panel-soft">
+      <div><strong id="selectionCount">Aucune case sélectionnée</strong><span id="selectionHelp"> Cliquez sur une case. Maj + clic sélectionne une plage sur la même ligne.</span></div>
+      <div class="selection-actions"><button id="clearSelection" class="button secondary compact" type="button">Effacer la sélection</button><button id="deleteSelection" class="button danger compact" type="button" disabled>Supprimer le contenu</button></div>
+    </div>
+
+    <section class="palette-panel panel-soft" aria-labelledby="paletteTitle">
+      <div class="palette-heading"><div><strong id="paletteTitle">Poser un service</strong><span> Sélectionnez une ou plusieurs cases, puis choisissez le service.</span></div><button id="toggleDetails" class="button secondary compact" type="button">Ajouter un libellé ou une note</button></div>
+      <div id="entryDetails" class="entry-details" hidden><label>Libellé personnalisé<input id="customLabel" maxlength="80" placeholder="Ex. Renfort CI9"></label><label>Note interne<input id="entryNotes" maxlength="500" placeholder="Précision facultative"></label></div>
+      <div id="servicePalette" class="service-palette"></div>
+    </section>
+
+    <div id="planningMessage" class="message" aria-live="polite"></div>
+    <div id="planningViewport" class="planning-viewport" tabindex="0" aria-label="Planning de service">
+      <div class="loading">Chargement du planning…</div>
+    </div>
+    <p class="planning-tip">Les noms restent visibles pendant le défilement. Sur téléphone, utilisez de préférence la vue de 7 semaines et faites glisser horizontalement.</p>
+  </section>
+
+  <section id="sopTab" class="tab-panel" hidden>
+    <div class="section-head"><div><h2>Répartition des SOP</h2><p>Suivi des postes réalisés et programmés pour répartir les charges équitablement.</p></div></div>
+    <div class="sop-summary"><div class="summary-card"><span>Moyenne par cadre</span><strong id="sopAverage">0</strong></div><div class="summary-card"><span>Écart maximal</span><strong id="sopGap">0</strong></div><div class="summary-card"><span>SOP programmées</span><strong id="sopPlanned">0</strong></div></div>
+    <div class="panel table-panel"><table class="data-table"><thead><tr><th>Cadre</th><th>Peloton</th><th>Réalisées</th><th>Prévues</th><th>Total</th><th>Dernière SOP</th><th>Écart à la moyenne</th></tr></thead><tbody id="sopBody"></tbody></table></div>
+    <p class="hint">Dans le planning, la palette SOP applique le poste à la case sélectionnée. Les cadres les moins chargés apparaissent en tête de ce tableau.</p>
+  </section>
+
+  <section id="recoveryTab" class="tab-panel" hidden>
+    <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div><button id="newMovement" class="button" type="button">Ajouter un mouvement</button></div>
+    <div id="recoveryCards" class="recovery-cards"></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Motif</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryMessage" class="message" aria-live="polite"></div>
+  </section>
+</main>
+
+<dialog id="movementDialog" class="service-dialog">
+  <form id="movementForm" method="dialog">
+    <div class="dialog-head"><div><div class="eyebrow">REPOS RÉCUPÉRATEURS</div><h2>Ajouter un mouvement</h2></div><button id="closeMovementDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <label>Cadre<select id="movementPerson" required></select></label>
+    <div class="form-grid"><label>Type<select id="movementType"><option value="credit">Crédit acquis</option><option value="debit">Repos pris</option><option value="adjustment">Ajustement positif</option></select></label><label>Nombre de jours<input id="movementAmount" type="number" min="0.5" max="100" step="0.5" value="0.5" required></label></div>
+    <label>Date<input id="movementDate" type="date" required></label>
+    <label>Motif<input id="movementReason" maxlength="250" placeholder="Ex. samedi travaillé, permanence, repos pris…" required></label>
+    <div class="dialog-actions"><button id="cancelMovement" class="button secondary" type="button">Annuler</button><button id="saveMovement" class="button" type="submit">Enregistrer</button></div>
+  </form>
+</dialog>
+
+<dialog id="peopleDialog" class="service-dialog wide-dialog">
+  <form method="dialog">
+    <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Cadres du planning</h2></div><button class="dialog-close" value="cancel" aria-label="Fermer">×</button></div>
+    <p class="hint">Les comptes cadres actifs sont proposés automatiquement. Complétez le grade, le peloton et l’ordre d’affichage.</p>
+    <div id="peopleEditor" class="people-editor"></div>
+    <div class="dialog-actions"><button id="addPerson" class="button secondary" type="button">Ajouter un cadre</button><button class="button" value="cancel">Fermer</button></div>
+  </form>
+</dialog>
+
+<script src="/assets/js/service.js" defer></script>
+</body>
+</html>

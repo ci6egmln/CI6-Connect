@@ -1356,6 +1356,9 @@ export async function onRequest(context) {
 
   if (
     path.startsWith("/cadres/") ||
+    path === "/service" ||
+    path === "/service/" ||
+    path === "/service.html" ||
     path === "/sanctions" ||
     path === "/notations" ||
     path === "/notations/" ||

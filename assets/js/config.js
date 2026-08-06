@@ -1130,9 +1130,10 @@ window.CI6_RUBRIQUES = [
         id: "service",
         title: "Planning et feuille hebdomadaire",
         slug: "cadres-service",
-        description: "Planning prévisionnel et feuille hebdomadaire",
-        content: "content/cadres-service.md",
-        card: "assets/cards/cadres-service.webp"
+        description: "Planning prévisionnel, permanences, SOP et repos récupérateurs",
+        href: "/service",
+        card: "assets/cards/cadres-service.webp",
+        allowVisitor: false
     },{
         id: "sanctions",
         title: "Suivi des sanctions",

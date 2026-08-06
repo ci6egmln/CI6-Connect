@@ -10,6 +10,10 @@ const ALLOWED_TABLES = [
   "notation_records",
   "notation_access",
   "notation_audit_log",
+  "service_people",
+  "service_entries",
+  "service_recovery_ledger",
+  "service_audit_log",
   "push_subscriptions",
   "administration_audit_log"
 ];
@@ -26,12 +30,20 @@ const INSERT_ORDER = [
   "notation_records",
   "notation_access",
   "notation_audit_log",
+  "service_people",
+  "service_entries",
+  "service_recovery_ledger",
+  "service_audit_log",
   "push_subscriptions",
   "administration_audit_log"
 ];
 
 const DELETE_ORDER = [
   "administration_audit_log",
+  "service_audit_log",
+  "service_recovery_ledger",
+  "service_entries",
+  "service_people",
   "notation_audit_log",
   "notation_access",
   "notation_records",

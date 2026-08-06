@@ -1,0 +1,9 @@
+.person-row {
+  grid-template-columns: 90px minmax(180px, 1.5fr) 80px 72px 75px 75px 88px;
+}
+
+@media (max-width: 850px) {
+  .person-row {
+    grid-template-columns: 70px 1fr 70px;
+  }
+}
