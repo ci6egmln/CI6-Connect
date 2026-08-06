@@ -86,7 +86,7 @@ function updatePeriodLabel() {
 function renderPalette() {
   $("servicePalette").innerHTML = state.data.serviceTypes.map(type => `
     <button class="palette-button" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
-      ${esc(type.code)}<span>${esc(type.label)}</span>
+      ${esc(type.code)}
     </button>`).join("");
   $("servicePalette").querySelectorAll("[data-code]").forEach(button => button.onclick = () => applyService(button.dataset.code));
 }

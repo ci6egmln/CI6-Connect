@@ -1,0 +1,35 @@
+.service-palette {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  gap: 5px;
+  padding-top: 7px;
+}
+
+.palette-button {
+  min-width: 42px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border-width: 1px;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.day-head.today {
+  background: #22282c;
+  color: #ffffff;
+  box-shadow: inset 0 0 0 2px #2f9fe5;
+}
+
+.day-cell.today {
+  box-shadow: inset 0 0 0 2px #2f9fe5;
+}
+
+@media (max-width: 850px) {
+  .palette-button {
+    min-width: 39px;
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+}

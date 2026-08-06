@@ -1,19 +1,19 @@
 export const SERVICE_TYPES = [
-  { code: "P", label: "Permanence", color: "#f5a9b8", textColor: "#241014", countsPermanence: true },
-  { code: "PTPH", label: "Permanence téléphonique", color: "#81d4c7", textColor: "#08231f", countsPermanence: true },
-  { code: "SOP", label: "Sous-officier de permanence", color: "#5b8f63", textColor: "#ffffff", countsSop: true },
-  { code: "OP", label: "Officier de permanence", color: "#5b8f63", textColor: "#ffffff" },
-  { code: "ASD", label: "Adjoint au service de permanence", color: "#5b8f63", textColor: "#ffffff" },
-  { code: "R", label: "Repos", color: "#43a854", textColor: "#071b0b" },
-  { code: "RR", label: "Repos récupérateur", color: "#43a854", textColor: "#173d1e", recoveryDebit: 0.5 },
+  { code: "P", label: "Permanence", color: "#f2ad2f", textColor: "#241707", countsPermanence: true },
+  { code: "SOP", label: "Sous-officier de permanence", color: "#6f42a8", textColor: "#ffffff", countsSop: true },
+  { code: "OP", label: "Officier de permanence", color: "#6f42a8", textColor: "#ffffff" },
+  { code: "ASD", label: "Adjoint au service de permanence", color: "#6f42a8", textColor: "#ffffff" },
+  { code: "R", label: "Repos", color: "#48a95a", textColor: "#071b0b" },
+  { code: "RR", label: "Repos récupérateur", color: "#62b96d", textColor: "#0c2711", recoveryDebit: 0.5 },
+  { code: "PTPH", label: "Permanence téléphonique", color: "#7bc989", textColor: "#0b2812", countsPermanence: true },
   { code: "RPJ", label: "Repos post-journée", color: "#02913d", textColor: "#ffcc6a" },
   { code: "RPC", label: "Repos post-cérémonie", color: "#02913d", textColor: "#ffd533", recoveryDebit: 0.5 },
+  { code: "M", label: "Maladie", color: "#7d2637", textColor: "#ffffff" },
+  { code: "D", label: "Détachement / divers", color: "#ffffff", textColor: "#111111" },
+  { code: "OCCUPE", label: "Occupé", color: "#ffffff", textColor: "#d10000" },
+  { code: "PREV", label: "Prévision", color: "#bca3a4", textColor: "#211819" },
   { code: "PERM_POSEE", label: "Permission posée", color: "#ad10d7", textColor: "#ffffff" },
   { code: "PERM_VALIDEE", label: "Permission validée", color: "#00561b", textColor: "#ffffff" },
-  { code: "M", label: "Maladie", color: "#ff37b8", textColor: "#1f0618" },
-  { code: "D", label: "Détachement / divers", color: "#ffffff", textColor: "#111111" },
-  { code: "PREV", label: "Prévision", color: "#bca3a4", textColor: "#211819" },
-  { code: "OCCUPE", label: "Occupé", color: "#ffffff", textColor: "#d10000" }
 ];
 
 export function serviceJson(data, status = 200) {
