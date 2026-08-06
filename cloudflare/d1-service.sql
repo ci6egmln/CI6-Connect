@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS service_entries (
   slot TEXT NOT NULL CHECK(slot IN ('M','N')),
   service_code TEXT NOT NULL,
   custom_label TEXT NOT NULL DEFAULT '',
+  custom_color TEXT NOT NULL DEFAULT '',
+  group_id TEXT NOT NULL DEFAULT '',
   notes TEXT NOT NULL DEFAULT '',
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -34,6 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_service_entries_period
   ON service_entries(service_date, target_type, target_key);
 CREATE INDEX IF NOT EXISTS idx_service_entries_target
   ON service_entries(target_type, target_key, service_date);
+CREATE INDEX IF NOT EXISTS idx_service_entries_group
+  ON service_entries(group_id);
 
 CREATE TABLE IF NOT EXISTS service_recovery_ledger (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -9,6 +9,7 @@ import {
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TARGET_PATTERN = /^(?:\d+|P[123])$/;
 const VALID_CODES = new Set(SERVICE_TYPES.map(item => item.code));
+const ACTIVITY_COLORS = new Set(["#f2c230", "#2489c5", "#8a5a32", "#c63f4d", "#36a45c"]);
 
 function validDate(value) {
   if (!DATE_PATTERN.test(value)) return false;
@@ -30,7 +31,8 @@ async function bootstrap(db, permission, start, end) {
 
   const entriesResult = await db.prepare(`
     SELECT id, target_type, target_key, service_date, slot, service_code,
-           custom_label, notes, created_by, created_at, updated_by, updated_at
+           custom_label, custom_color, group_id, notes,
+           created_by, created_at, updated_by, updated_at
     FROM service_entries
     WHERE service_date BETWEEN ? AND ?
     ORDER BY service_date, target_type, target_key, slot
@@ -155,6 +157,13 @@ export async function onRequestPost(context) {
       if (!VALID_CODES.has(code)) return serviceJson({ error: "Type de service invalide." }, 400);
       const customLabel = cleanText(body.custom_label, 80);
       const notes = cleanText(body.notes, 500);
+      const merge = body.merge === true;
+      const customColor = ACTIVITY_COLORS.has(String(body.custom_color || "").toLowerCase())
+        ? String(body.custom_color).toLowerCase()
+        : "";
+      if (merge && !customLabel) return serviceJson({ error: "Le libellé de l’activité est obligatoire." }, 400);
+      if (merge && !customColor) return serviceJson({ error: "Choisissez une couleur pour l’activité." }, 400);
+      const groupId = merge ? crypto.randomUUID() : "";
       const saved = [];
 
       for (const raw of items) {
@@ -181,15 +190,17 @@ export async function onRequestPost(context) {
 
         const result = await db.prepare(`
           INSERT INTO service_entries
-            (target_type, target_key, service_date, slot, service_code, custom_label, notes, created_by, updated_by)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (target_type, target_key, service_date, slot, service_code, custom_label, custom_color, group_id, notes, created_by, updated_by)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(target_type, target_key, service_date, slot) DO UPDATE SET
             service_code=excluded.service_code,
             custom_label=excluded.custom_label,
+            custom_color=excluded.custom_color,
+            group_id=excluded.group_id,
             notes=excluded.notes,
             updated_by=excluded.updated_by,
             updated_at=CURRENT_TIMESTAMP
-        `).bind(targetType, targetKey, date, slot, code, customLabel, notes, permission.username, permission.username).run();
+        `).bind(targetType, targetKey, date, slot, code, customLabel, customColor, groupId, notes, permission.username, permission.username).run();
 
         const current = await db.prepare(`
           SELECT * FROM service_entries
@@ -257,6 +268,31 @@ export async function onRequestPost(context) {
       `).bind(personId, date, amount, movementType, reason, permission.username).run();
       await auditService(db, "recovery-movement", null, permission.username, null, { id: result.meta?.last_row_id, personId, date, amount, movementType, reason });
       return serviceJson({ success: true, id: result.meta?.last_row_id });
+    }
+
+    if (action === "save-people") {
+      if (!permission.isAdmin) return serviceJson({ error: "Paramétrage réservé aux administrateurs." }, 403);
+      const people = Array.isArray(body.people) ? body.people : [];
+      if (!people.length || people.length > 200) return serviceJson({ error: "Liste de cadres invalide." }, 400);
+      const normalized = people.map(raw => ({
+        id: Number(raw.id || 0),
+        grade: cleanText(raw.grade, 30),
+        displayName: cleanText(raw.display_name, 120),
+        peloton: cleanText(raw.peloton, 10).toUpperCase(),
+        sortOrder: Math.max(0, Math.min(9999, Number(raw.sort_order || 100))),
+        active: raw.active === false ? 0 : 1,
+        sopEligible: raw.sop_eligible === false ? 0 : 1
+      }));
+      if (normalized.some(person => !person.displayName || (person.id && !Number.isInteger(person.id)) || (person.peloton && !["P1", "P2", "P3"].includes(person.peloton)))) {
+        return serviceJson({ error: "Un cadre contient un nom, un identifiant ou un peloton invalide." }, 400);
+      }
+      const statements = normalized.map(person => person.id
+        ? db.prepare(`UPDATE service_people SET grade=?, display_name=?, peloton=?, sort_order=?, active=?, sop_eligible=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`)
+          .bind(person.grade, person.displayName, person.peloton, person.sortOrder, person.active, person.sopEligible, person.id)
+        : db.prepare(`INSERT INTO service_people (grade, display_name, peloton, sort_order, active, sop_eligible) VALUES (?, ?, ?, ?, ?, ?)`)
+          .bind(person.grade, person.displayName, person.peloton, person.sortOrder, person.active, person.sopEligible));
+      await db.batch(statements);
+      return serviceJson({ success: true, saved: normalized.length });
     }
 
     if (action === "save-person") {

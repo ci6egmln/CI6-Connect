@@ -56,7 +56,21 @@
 
     <section class="palette-panel panel-soft" aria-labelledby="paletteTitle">
       <div class="palette-heading"><div><strong id="paletteTitle">Poser un service</strong><span> Sélectionnez une ou plusieurs cases, puis choisissez le service.</span></div><button id="toggleDetails" class="button secondary compact" type="button">Ajouter un libellé ou une note</button></div>
-      <div id="entryDetails" class="entry-details" hidden><label>Libellé personnalisé<input id="customLabel" maxlength="80" placeholder="Ex. Renfort CI9"></label><label>Note interne<input id="entryNotes" maxlength="500" placeholder="Précision facultative"></label></div>
+      <div id="entryDetails" class="entry-details" hidden>
+        <label>Libellé de l’activité<input id="customLabel" maxlength="80" placeholder="Ex. Exercice terrain"></label>
+        <label>Note interne<input id="entryNotes" maxlength="500" placeholder="Précision facultative"></label>
+        <fieldset class="activity-color-field">
+          <legend>Couleur vive du bandeau</legend>
+          <div class="activity-colors" aria-label="Couleur de l’activité">
+            <label title="Jaune"><input type="radio" name="activityColor" value="#f2c230" checked><span style="--activity-color:#f2c230"></span><em>Jaune</em></label>
+            <label title="Bleu"><input type="radio" name="activityColor" value="#2489c5"><span style="--activity-color:#2489c5"></span><em>Bleu</em></label>
+            <label title="Marron"><input type="radio" name="activityColor" value="#8a5a32"><span style="--activity-color:#8a5a32"></span><em>Marron</em></label>
+            <label title="Rouge"><input type="radio" name="activityColor" value="#c63f4d"><span style="--activity-color:#c63f4d"></span><em>Rouge</em></label>
+            <label title="Vert"><input type="radio" name="activityColor" value="#36a45c"><span style="--activity-color:#36a45c"></span><em>Vert</em></label>
+          </div>
+        </fieldset>
+        <div class="activity-action"><button id="addActivity" class="button compact" type="button">Ajouter l’activité</button><span>Les cases voisines seront réunies en un seul bandeau par ligne.</span></div>
+      </div>
       <div id="servicePalette" class="service-palette"></div>
     </section>
 
@@ -98,7 +112,8 @@
     <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Cadres du planning</h2></div><button class="dialog-close" value="cancel" aria-label="Fermer">×</button></div>
     <p class="hint">Les comptes cadres actifs sont proposés automatiquement. Complétez le grade, le peloton et l’ordre d’affichage.</p>
     <div id="peopleEditor" class="people-editor"></div>
-    <div class="dialog-actions"><button id="addPerson" class="button secondary" type="button">Ajouter un cadre</button><button class="button" value="cancel">Fermer</button></div>
+    <div id="peopleMessage" class="message" aria-live="polite"></div>
+    <div class="dialog-actions"><button id="addPerson" class="button secondary" type="button">Ajouter un cadre</button><button id="saveAllPeople" class="button" type="button">Enregistrer toutes les modifications</button><button class="button secondary" value="cancel">Fermer</button></div>
   </form>
 </dialog>
 

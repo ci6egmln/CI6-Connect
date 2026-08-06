@@ -59,6 +59,8 @@ export async function ensureServiceSchema(db) {
       slot TEXT NOT NULL CHECK(slot IN ('M','N')),
       service_code TEXT NOT NULL,
       custom_label TEXT NOT NULL DEFAULT '',
+      custom_color TEXT NOT NULL DEFAULT '',
+      group_id TEXT NOT NULL DEFAULT '',
       notes TEXT NOT NULL DEFAULT '',
       created_by TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -97,6 +99,16 @@ export async function ensureServiceSchema(db) {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     )`)
   ]);
+
+  const entryColumns = await db.prepare(`PRAGMA table_info(service_entries)`).all();
+  const entryColumnNames = new Set((entryColumns.results || []).map(column => column.name));
+  if (!entryColumnNames.has("custom_color")) {
+    await db.prepare(`ALTER TABLE service_entries ADD COLUMN custom_color TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!entryColumnNames.has("group_id")) {
+    await db.prepare(`ALTER TABLE service_entries ADD COLUMN group_id TEXT NOT NULL DEFAULT ''`).run();
+  }
+  await db.prepare(`CREATE INDEX IF NOT EXISTS idx_service_entries_group ON service_entries(group_id)`).run();
 
   await db.prepare(`
     INSERT OR IGNORE INTO service_people (username, display_name, sort_order, active, sop_eligible)

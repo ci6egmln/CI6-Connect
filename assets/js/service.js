@@ -165,11 +165,29 @@ function monthGroups(days) {
 }
 
 function counterFor(row) {
-  if (row.peloton || row.vacation) return "—";
+  if (row.vacation) return { permanence: "", recovery: "" };
+  if (row.peloton) return { permanence: "—", recovery: "—" };
   const id = Number(row.targetKey);
   const permanence = state.data.permanence.find(item => Number(item.person_id) === id)?.total || 0;
   const recovery = state.data.recovery.find(item => Number(item.person_id) === id)?.balance || 0;
-  return `<span title="Permanences / solde de repos">P ${number(permanence)}<br>RR ${number(recovery)}</span>`;
+  return { permanence: number(permanence), recovery: number(recovery) };
+}
+
+function nameColumnWidth(rows) {
+  const context = document.createElement("canvas").getContext("2d");
+  if (!context) return 130;
+  let longest = 0;
+  rows.filter(row => !row.vacation).forEach(row => {
+    const surname = row.person ? planningSurname(row.person) : row.name;
+    context.font = "800 12px Arial";
+    let width = context.measureText(surname).width;
+    if (row.grade) {
+      context.font = "700 10px Arial";
+      width += context.measureText(row.grade).width + 6;
+    }
+    longest = Math.max(longest, width);
+  });
+  return Math.ceil(Math.max(72, longest + 16));
 }
 
 function renderPlanning() {
@@ -177,13 +195,14 @@ function renderPlanning() {
   const rows = planningRows();
   const today = iso(utcDate());
   const groups = monthGroups(days);
-  let html = `<div class="planning-grid" style="--days:${days.length}">`;
-  html += '<div class="grid-corner" style="grid-column:1;grid-row:1/3">Cadres et pelotons</div><div class="counter-head" style="grid-column:2;grid-row:1/3">P / RR</div>';
-  let monthColumn = 3;
-  groups.forEach((group, index) => { html += `<div class="month-head${index % 2 ? " alt" : ""}" style="grid-column:${monthColumn}/span ${group.count};grid-row:1">${esc(group.label)}</div>`; monthColumn += group.count; });
+  const nameWidth = nameColumnWidth(rows);
+  let html = `<div class="planning-grid" style="--slots:${days.length * 2};--name-width:${nameWidth}px">`;
+  html += '<div class="grid-corner" style="grid-column:1;grid-row:1/3">Cadres</div><div class="counter-head permanence" style="grid-column:2;grid-row:1/3" title="Permanences">P</div><div class="counter-head recovery" style="grid-column:3;grid-row:1/3" title="Solde de repos récupérateurs">RR</div>';
+  let monthColumn = 4;
+  groups.forEach((group, index) => { html += `<div class="month-head${index % 2 ? " alt" : ""}" style="grid-column:${monthColumn}/span ${group.count * 2};grid-row:1">${esc(group.label)}</div>`; monthColumn += group.count * 2; });
   days.forEach((day, index) => {
     const date = iso(day); const holiday = holidayFor(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holiday);
-    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index + 3};grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
+    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
   });
   rows.forEach((row, rowIndex) => {
     const gridRow = rowIndex + 3;
@@ -193,46 +212,62 @@ function renderPlanning() {
         ? `<span class="row-identity">${row.grade ? `<span class="row-grade">${esc(row.grade)}</span>` : ""}<span>${esc(planningSurname(row.person))}</span></span>`
         : esc(row.name);
     html += `<div class="row-name${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:1;grid-row:${gridRow}"><div>${identity}</div></div>`;
-    html += `<div class="row-counter${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:2;grid-row:${gridRow}">${counterFor(row)}</div>`;
-    days.forEach((day, dayIndex) => {
-      if (row.vacation) {
+    const counters = counterFor(row);
+    html += `<div class="row-counter permanence${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:2;grid-row:${gridRow}" title="Permanences">${counters.permanence}</div>`;
+    html += `<div class="row-counter recovery${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:3;grid-row:${gridRow}" title="Solde RR">${counters.recovery}</div>`;
+    if (row.vacation) {
+      days.forEach((day, dayIndex) => {
         const vacation = schoolVacationFor(day);
-        html += `<div class="vacation-day${vacation ? " active" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}"${vacation ? ` title="${esc(vacation)}"` : ""}></div>`;
-        return;
-      }
-      const date = iso(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holidayFor(day));
-      html += `<div class="day-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}">`;
-      for (const slot of ["M", "N"]) {
-        const key = entryKey(row.targetType, row.targetKey, date, slot);
-        const entry = state.entries.get(key); const type = entry ? typeFor(entry.service_code) : null;
-        const label = entry?.custom_label || entry?.service_code || "";
-        const title = entry ? `${type?.label || entry.service_code}${entry.custom_label ? ` — ${entry.custom_label}` : ""}${entry.notes ? `\n${entry.notes}` : ""}\nModifié par ${entry.updated_by}` : `${row.name} — ${frDate(date)} ${slot === "M" ? "matin" : "nuit"}`;
-        html += `<button class="slot-cell${entry ? " has-entry" : ""}" data-key="${key}" type="button" title="${esc(title)}"${entry ? ` style="--entry-color:${type?.color || "#fff"};--entry-text:${type?.textColor || "#111"}"` : ""}><span class="slot-code">${esc(label)}</span></button>`;
-      }
-      html += "</div>";
-    });
+        html += `<div class="vacation-day${vacation ? " active" : ""}" style="grid-column:${dayIndex * 2 + 4}/span 2;grid-row:${gridRow}"${vacation ? ` title="${esc(vacation)}"` : ""}></div>`;
+      });
+      return;
+    }
+    const slots = days.flatMap(day => ["M", "N"].map(slot => {
+      const date = iso(day);
+      const key = entryKey(row.targetType, row.targetKey, date, slot);
+      return { key, date, day, slot, entry: state.entries.get(key) };
+    }));
+    for (let slotIndex = 0; slotIndex < slots.length;) {
+      const item = slots[slotIndex];
+      const groupId = item.entry?.group_id || "";
+      let span = 1;
+      if (groupId) while (slotIndex + span < slots.length && slots[slotIndex + span].entry?.group_id === groupId) span += 1;
+      const grouped = span > 1 || Boolean(groupId);
+      const groupedItems = slots.slice(slotIndex, slotIndex + span);
+      const entry = item.entry;
+      const type = entry ? typeFor(entry.service_code) : null;
+      const label = entry?.custom_label || entry?.service_code || "";
+      const title = entry ? `${type?.label || entry.service_code}${entry.custom_label ? ` — ${entry.custom_label}` : ""}${entry.notes ? `\n${entry.notes}` : ""}\nModifié par ${entry.updated_by}` : `${row.name} — ${frDate(item.date)} ${item.slot === "M" ? "matin" : "nuit"}`;
+      const nonWorkingDay = [0, 6].includes(item.day.getUTCDay()) || Boolean(holidayFor(item.day));
+      const keys = groupedItems.map(slot => slot.key).join(",");
+      const color = entry?.custom_color || type?.color || "#fff";
+      const textColor = entry?.custom_color ? "#ffffff" : type?.textColor || "#111";
+      html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${item.date === today ? " today" : ""}${entry ? " has-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
+      slotIndex += span;
+    }
   });
   html += "</div>";
   $("planningViewport").innerHTML = html;
-  $("planningViewport").querySelectorAll(".slot-cell").forEach(cell => cell.onclick = event => selectCell(cell.dataset.key, event.shiftKey));
+  $("planningViewport").querySelectorAll(".slot-cell").forEach(cell => cell.onclick = event => selectCells(cell.dataset.keys.split(","), event.shiftKey));
 }
 
-function selectCell(key, extend) {
+function selectCells(keys, extend) {
+  const key = keys.at(-1);
   if (extend && state.lastSelected) {
     const previous = parseKey(state.lastSelected); const current = parseKey(key);
     if (previous.target_type === current.target_type && previous.target_key === current.target_key) {
       const ordered = daysBetween(state.start, state.end).flatMap(day => ["M", "N"].map(slot => entryKey(current.target_type, current.target_key, iso(day), slot)));
       const a = ordered.indexOf(state.lastSelected); const b = ordered.indexOf(key);
       if (a >= 0 && b >= 0) for (let index = Math.min(a, b); index <= Math.max(a, b); index += 1) state.selected.add(ordered[index]);
-    } else state.selected.add(key);
-  } else if (state.selected.has(key)) state.selected.delete(key);
-  else state.selected.add(key);
+    } else keys.forEach(selectedKey => state.selected.add(selectedKey));
+  } else if (keys.every(selectedKey => state.selected.has(selectedKey))) keys.forEach(selectedKey => state.selected.delete(selectedKey));
+  else keys.forEach(selectedKey => state.selected.add(selectedKey));
   state.lastSelected = key;
   refreshSelectionClasses();
   updateSelectionBar();
 }
 
-function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-key]").forEach(cell => cell.classList.toggle("selected", state.selected.has(cell.dataset.key))); }
+function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-keys]").forEach(cell => cell.classList.toggle("selected", cell.dataset.keys.split(",").some(key => state.selected.has(key)))); }
 function updateSelectionBar() {
   const count = state.selected.size;
   $("selectionCount").textContent = count ? `${count} case${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}` : "Aucune case sélectionnée";
@@ -241,7 +276,7 @@ function updateSelectionBar() {
 
 function clearSelection() { state.selected.clear(); state.lastSelected = ""; refreshSelectionClasses(); updateSelectionBar(); }
 
-async function applyService(code) {
+async function applyService(code, { merge = false, customColor = "" } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
   const items = [...state.selected].map(key => ({
     ...parseKey(key),
@@ -250,7 +285,7 @@ async function applyService(code) {
   }));
   message("planningMessage", "Enregistrement en cours…", "info");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, notes: $("entryNotes").value }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge }) });
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     if (["RR", "RPC"].includes(code)) {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
@@ -333,25 +368,52 @@ async function saveMovement(event) {
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
 
-function renderPeopleEditor() {
-  const rows = [...(state.data.peopleAdmin || state.data.people), { id: "", grade: "", display_name: "", peloton: "", sort_order: 100, active: 1, sop_eligible: 1, isNew: true }];
-  $("peopleEditor").innerHTML = rows.map(person => `<div class="person-row" data-person-row="${person.id || "new"}"><input data-field="grade" value="${esc(person.grade)}" placeholder="Grade" aria-label="Grade"><input data-field="display_name" value="${esc(person.display_name)}" placeholder="Nom du cadre" aria-label="Nom"><select data-field="peloton" aria-label="Peloton"><option value="">—</option>${["P1", "P2", "P3"].map(value => `<option value="${value}"${person.peloton === value ? " selected" : ""}>${value}</option>`).join("")}</select><input data-field="sort_order" type="number" min="0" max="9999" value="${Number(person.sort_order || 100)}" aria-label="Ordre"><label class="check-line"><input data-field="sop_eligible" type="checkbox"${Number(person.sop_eligible) ? " checked" : ""}> SOP</label><label class="check-line"><input data-field="active" type="checkbox"${Number(person.active) ? " checked" : ""}> Actif</label><button class="button compact person-save" type="button" data-save-person="${person.id || "new"}">${person.isNew ? "Ajouter" : "Enregistrer"}</button></div>`).join("");
-  $("peopleEditor").querySelectorAll("[data-save-person]").forEach(button => button.onclick = () => savePerson(button));
+function personEditorRow(person = {}, rowKey = "new") {
+  return `<div class="person-row" data-person-row="${person.id || rowKey}"><input data-field="grade" value="${esc(person.grade || "")}" placeholder="Grade" aria-label="Grade"><input data-field="display_name" value="${esc(person.display_name || "")}" placeholder="Nom du cadre" aria-label="Nom"><select data-field="peloton" aria-label="Peloton"><option value="">—</option>${["P1", "P2", "P3"].map(value => `<option value="${value}"${person.peloton === value ? " selected" : ""}>${value}</option>`).join("")}</select><input data-field="sort_order" type="number" min="0" max="9999" value="${Number(person.sort_order || 100)}" aria-label="Ordre"><label class="check-line"><input data-field="sop_eligible" type="checkbox"${Number(person.sop_eligible ?? 1) ? " checked" : ""}> SOP</label><label class="check-line"><input data-field="active" type="checkbox"${Number(person.active ?? 1) ? " checked" : ""}> Actif</label></div>`;
 }
 
-async function savePerson(button) {
-  const row = button.closest("[data-person-row]"); const id = row.dataset.personRow === "new" ? 0 : Number(row.dataset.personRow);
-  const field = name => row.querySelector(`[data-field="${name}"]`);
+function renderPeopleEditor() {
+  $("peopleEditor").innerHTML = (state.data.peopleAdmin || state.data.people).map(person => personEditorRow(person)).join("");
+  message("peopleMessage", "", "info");
+}
+
+function addPersonEditorRow() {
+  const key = `new-${Date.now()}`;
+  $("peopleEditor").insertAdjacentHTML("beforeend", personEditorRow({}, key));
+  const row = $("peopleEditor").querySelector(`[data-person-row="${key}"]`);
+  row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  row.querySelector('[data-field="display_name"]').focus();
+}
+
+async function saveAllPeople() {
+  const people = [...$("peopleEditor").querySelectorAll("[data-person-row]")].map(row => {
+    const field = name => row.querySelector(`[data-field="${name}"]`);
+    return {
+      id: /^\d+$/.test(row.dataset.personRow) ? Number(row.dataset.personRow) : 0,
+      grade: field("grade").value,
+      display_name: field("display_name").value.trim(),
+      peloton: field("peloton").value,
+      sort_order: Number(field("sort_order").value),
+      sop_eligible: field("sop_eligible").checked,
+      active: field("active").checked
+    };
+  }).filter(person => person.id || person.display_name);
+  if (!people.length) return message("peopleMessage", "Aucun cadre à enregistrer.", "error");
+  $("saveAllPeople").disabled = true;
+  message("peopleMessage", "Enregistrement de l’ensemble des cadres…", "info");
   try {
-    await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "save-person", id, grade: field("grade").value, display_name: field("display_name").value, peloton: field("peloton").value, sort_order: Number(field("sort_order").value), sop_eligible: field("sop_eligible").checked, active: field("active").checked }) });
-    await loadPlanning({ preserveScroll: true }); renderPeopleEditor();
-  } catch (error) { alert(error.message); }
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "save-people", people }) });
+    await loadPlanning({ preserveScroll: true });
+    renderPeopleEditor();
+    message("peopleMessage", `${data.saved} cadre${data.saved > 1 ? "s" : ""} enregistré${data.saved > 1 ? "s" : ""}.`, "ok");
+  } catch (error) { message("peopleMessage", error.message, "error"); }
+  finally { $("saveAllPeople").disabled = false; }
 }
 
 function exportPlanning() {
   const people = new Map(state.data.people.map(person => [String(person.id), [person.grade, person.display_name].filter(Boolean).join(" ")]));
   const rows = [...state.entries.values()].sort((a, b) => `${a.service_date}${a.slot}`.localeCompare(`${b.service_date}${b.slot}`));
-  const csv = [["date", "creneau", "type_ligne", "cadre_ou_peloton", "service", "libelle", "note", "modifie_par"], ...rows.map(entry => [entry.service_date, entry.slot === "M" ? "Matin" : "Nuit", entry.target_type, entry.target_type === "person" ? people.get(entry.target_key) : entry.target_key, entry.service_code, entry.custom_label, entry.notes, entry.updated_by])].map(columns => columns.map(value => { const text = String(value ?? ""); return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }).join(";")).join("\r\n");
+  const csv = [["date", "creneau", "type_ligne", "cadre_ou_peloton", "service", "libelle", "couleur", "groupe", "note", "modifie_par"], ...rows.map(entry => [entry.service_date, entry.slot === "M" ? "Matin" : "Nuit", entry.target_type, entry.target_type === "person" ? people.get(entry.target_key) : entry.target_key, entry.service_code, entry.custom_label, entry.custom_color, entry.group_id, entry.notes, entry.updated_by])].map(columns => columns.map(value => { const text = String(value ?? ""); return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text; }).join(";")).join("\r\n");
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" })); link.download = `planning-service-${iso(state.start)}-${iso(state.end)}.csv`; link.click(); URL.revokeObjectURL(link.href);
 }
 
@@ -367,6 +429,16 @@ $("refreshPlanning").onclick = () => loadPlanning({ preserveScroll: true });
 $("clearSelection").onclick = clearSelection;
 $("deleteSelection").onclick = deleteSelection;
 $("toggleDetails").onclick = () => { $("entryDetails").hidden = !$("entryDetails").hidden; };
+$("addActivity").onclick = () => {
+  const label = $("customLabel").value.trim();
+  if (!label) {
+    message("planningMessage", "Saisissez le libellé de l’activité.", "error");
+    $("customLabel").focus();
+    return;
+  }
+  const color = document.querySelector('input[name="activityColor"]:checked')?.value || "";
+  applyService("D", { merge: true, customColor: color });
+};
 $("exportPlanning").onclick = exportPlanning;
 $("movementDate").value = iso(utcDate());
 $("newMovement").onclick = () => $("movementDialog").showModal();
@@ -375,6 +447,7 @@ $("cancelMovement").onclick = () => $("movementDialog").close();
 $("closeMovementDialog").onclick = () => $("movementDialog").close();
 $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
 $("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };
-$("addPerson").onclick = () => { const last = $("peopleEditor").querySelector('[data-person-row="new"]'); last?.scrollIntoView({ behavior: "smooth" }); last?.querySelector('[data-field="display_name"]')?.focus(); };
+$("addPerson").onclick = addPersonEditorRow;
+$("saveAllPeople").onclick = saveAllPeople;
 
 loadPlanning();

@@ -1,14 +1,38 @@
 :root {
   --name-width: 190px;
-  --counter-width: 72px;
+  --p-counter-width: 31px;
+  --rr-counter-width: 39px;
   --day-width: 40px;
+}
+
+.planning-grid {
+  grid-template-columns: var(--name-width) var(--p-counter-width) var(--rr-counter-width) repeat(var(--slots), calc(var(--day-width) / 2));
+}
+
+.counter-head.permanence,
+.row-counter.permanence {
+  left: var(--name-width);
+}
+
+.counter-head.recovery,
+.row-counter.recovery {
+  left: calc(var(--name-width) + var(--p-counter-width));
+}
+
+.counter-head {
+  padding: 4px 2px;
+}
+
+.row-counter {
+  padding: 0 2px;
+  font-size: 10px;
 }
 
 .row-name,
 .row-counter,
 .day-cell {
-  min-height: 36px;
-  height: 36px;
+  min-height: 29px;
+  height: 29px;
 }
 
 .row-name {
@@ -19,8 +43,8 @@
 .row-name.peloton,
 .row-counter.peloton,
 .day-cell.peloton {
-  min-height: 32px;
-  height: 32px;
+  min-height: 27px;
+  height: 27px;
 }
 
 .row-name.peloton {
@@ -42,8 +66,118 @@
 }
 
 .slot-cell {
+  min-width: 0;
+  min-height: 29px;
+  height: 29px;
+  border: 0;
+  border-right: 1px solid rgba(0, 0, 0, .28);
+  border-bottom: 1px solid #343b40;
+  background: #e4e6e7;
+  color: #111;
   font-size: 8px;
   padding: 1px;
+}
+
+.slot-cell.weekend {
+  background: #b9bdc0;
+}
+
+.slot-cell.has-entry {
+  background: var(--entry-color);
+  color: var(--entry-text);
+}
+
+.slot-cell.today {
+  box-shadow: inset 0 0 0 2px #3d9bd4;
+}
+
+.slot-cell.peloton {
+  min-height: 27px;
+  height: 27px;
+}
+
+.slot-cell.merged-activity {
+  z-index: 2;
+  border: 2px solid rgba(255, 255, 255, .42);
+  border-radius: 4px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18), 0 1px 4px rgba(0, 0, 0, .35);
+  padding: 2px 7px;
+}
+
+.slot-cell.merged-activity .slot-code {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: .01em;
+}
+
+.activity-color-field {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 10px 10px;
+  border: 1px solid #596168;
+  border-radius: 8px;
+}
+
+.activity-color-field legend {
+  padding: 0 5px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.activity-colors {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.activity-colors label {
+  display: flex;
+  grid-template-columns: none;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.activity-colors input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.activity-colors span {
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, .6);
+  border-radius: 6px;
+  background: var(--activity-color);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18);
+}
+
+.activity-colors input:checked + span {
+  outline: 3px solid #70c9ff;
+  outline-offset: 2px;
+}
+
+.activity-colors em {
+  font-style: normal;
+}
+
+.activity-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-action span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .slot-cell .slot-code {
@@ -53,22 +187,28 @@
 .row-name.vacation,
 .row-counter.vacation,
 .vacation-day {
-  min-height: 19px;
-  height: 19px;
-  border-bottom: 1px solid #786927;
+  min-height: 13px;
+  height: 13px;
+  border-bottom: 1px solid #b87516;
   background: #191b1c;
 }
 
 .row-name.vacation {
-  color: #f0d66e;
-  background: #353018;
-  font-size: 10px;
+  color: #ffd78a;
+  background: #3a2812;
+  font-size: 9px;
   font-weight: 800;
+}
+
+.row-name.vacation > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row-counter.vacation {
   color: transparent;
-  background: #353018;
+  background: #3a2812;
 }
 
 .vacation-day {
@@ -76,28 +216,38 @@
 }
 
 .vacation-day.active {
-  background: #c7a72e;
-  box-shadow: inset 0 0 0 1px #ead56f;
+  background: #f2ad2f;
+  box-shadow: inset 0 0 0 1px #ffd573;
 }
 
 @media (max-width: 850px) {
   :root {
-    --name-width: 155px;
-    --counter-width: 58px;
+    --p-counter-width: 29px;
+    --rr-counter-width: 36px;
     --day-width: 36px;
   }
 
   .row-name,
   .row-counter,
-  .day-cell {
-    min-height: 34px;
-    height: 34px;
+  .day-cell,
+  .slot-cell {
+    min-height: 28px;
+    height: 28px;
+  }
+
+  .entry-details {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-colors em,
+  .activity-action span {
+    display: none;
   }
 
   .row-name.vacation,
   .row-counter.vacation,
   .vacation-day {
-    min-height: 18px;
-    height: 18px;
+    min-height: 12px;
+    height: 12px;
   }
 }
