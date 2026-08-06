@@ -1,0 +1,103 @@
+:root {
+  --name-width: 190px;
+  --counter-width: 72px;
+  --day-width: 40px;
+}
+
+.row-name,
+.row-counter,
+.day-cell {
+  min-height: 36px;
+  height: 36px;
+}
+
+.row-name {
+  padding: 3px 7px;
+  font-size: 12px;
+}
+
+.row-name.peloton,
+.row-counter.peloton,
+.day-cell.peloton {
+  min-height: 32px;
+  height: 32px;
+}
+
+.row-name.peloton {
+  font-size: 12px;
+}
+
+.row-identity {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.row-grade {
+  color: #aeb8bf;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.slot-cell {
+  font-size: 8px;
+  padding: 1px;
+}
+
+.slot-cell .slot-code {
+  font-size: 8px;
+}
+
+.row-name.vacation,
+.row-counter.vacation,
+.vacation-day {
+  min-height: 19px;
+  height: 19px;
+  border-bottom: 1px solid #786927;
+  background: #191b1c;
+}
+
+.row-name.vacation {
+  color: #f0d66e;
+  background: #353018;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.row-counter.vacation {
+  color: transparent;
+  background: #353018;
+}
+
+.vacation-day {
+  border-right: 1px solid #3f4142;
+}
+
+.vacation-day.active {
+  background: #c7a72e;
+  box-shadow: inset 0 0 0 1px #ead56f;
+}
+
+@media (max-width: 850px) {
+  :root {
+    --name-width: 155px;
+    --counter-width: 58px;
+    --day-width: 36px;
+  }
+
+  .row-name,
+  .row-counter,
+  .day-cell {
+    min-height: 34px;
+    height: 34px;
+  }
+
+  .row-name.vacation,
+  .row-counter.vacation,
+  .vacation-day {
+    min-height: 18px;
+    height: 18px;
+  }
+}

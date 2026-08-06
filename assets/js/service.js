@@ -53,6 +53,25 @@ function holidaysFor(year) {
   return days;
 }
 function holidayFor(date) { return holidaysFor(date.getUTCFullYear()).get(iso(date)) || ""; }
+const ZONE_A_VACATIONS = [
+  { start: "2026-07-04", end: "2026-09-01", label: "Vacances d’été" },
+  { start: "2026-10-17", end: "2026-11-02", label: "Vacances de la Toussaint" },
+  { start: "2026-12-19", end: "2027-01-04", label: "Vacances de Noël" },
+  { start: "2027-02-13", end: "2027-03-01", label: "Vacances d’hiver — zone A" },
+  { start: "2027-04-10", end: "2027-04-26", label: "Vacances de printemps — zone A" },
+  { start: "2027-05-07", end: "2027-05-08", label: "Journée sans classe" },
+  { start: "2027-07-03", end: "2027-09-02", label: "Vacances d’été" },
+  { start: "2027-10-23", end: "2027-11-08", label: "Vacances de la Toussaint" },
+  { start: "2027-12-18", end: "2028-01-03", label: "Vacances de Noël" },
+  { start: "2028-02-19", end: "2028-03-06", label: "Vacances d’hiver — zone A" },
+  { start: "2028-04-22", end: "2028-05-09", label: "Vacances de printemps — zone A" },
+  { start: "2028-05-26", end: "2028-05-28", label: "Journées sans classe" },
+  { start: "2028-07-04", end: "2028-09-04", label: "Vacances d’été" }
+];
+function schoolVacationFor(date) {
+  const value = iso(date);
+  return ZONE_A_VACATIONS.find(period => value >= period.start && value < period.end)?.label || "";
+}
 function entryKey(targetType, targetKey, date, slot) { return `${targetType}|${targetKey}|${date}|${slot}`; }
 function parseKey(key) { const [target_type, target_key, service_date, slot] = key.split("|"); return { target_type, target_key, service_date, slot }; }
 function typeFor(code) { return state.data?.serviceTypes.find(type => type.code === code); }
@@ -119,9 +138,19 @@ function renderPalette() {
 }
 
 function planningRows() {
-  const pelotons = state.data.pelotons.map(key => ({ targetType: "peloton", targetKey: key, name: key, grade: "Activité collective", peloton: true }));
+  const pelotons = state.data.pelotons.map(key => ({ targetType: "peloton", targetKey: key, name: key, peloton: true }));
   const people = state.data.people.map(person => ({ targetType: "person", targetKey: String(person.id), name: person.display_name, grade: person.grade, pelotonName: person.peloton, person }));
-  return [...pelotons, ...people];
+  return [...pelotons, { vacation: true, name: "Vacances scolaires — zone A" }, ...people];
+}
+
+function planningSurname(person) {
+  let name = String(person.display_name || "").trim();
+  const grade = String(person.grade || "").trim();
+  if (grade && name.toLocaleUpperCase("fr-FR").startsWith(`${grade.toLocaleUpperCase("fr-FR")} `)) name = name.slice(grade.length).trim();
+  if (name.includes(",")) return name.split(",")[0].trim();
+  const tokens = name.split(/\s+/).filter(Boolean);
+  const uppercaseTokens = tokens.filter(token => /[A-Za-zÀ-ÖØ-öø-ÿ]/.test(token) && token === token.toLocaleUpperCase("fr-FR"));
+  return (uppercaseTokens.length ? uppercaseTokens.join(" ") : tokens[0]) || name;
 }
 
 function monthGroups(days) {
@@ -136,7 +165,7 @@ function monthGroups(days) {
 }
 
 function counterFor(row) {
-  if (row.peloton) return "—";
+  if (row.peloton || row.vacation) return "—";
   const id = Number(row.targetKey);
   const permanence = state.data.permanence.find(item => Number(item.person_id) === id)?.total || 0;
   const recovery = state.data.recovery.find(item => Number(item.person_id) === id)?.balance || 0;
@@ -158,11 +187,21 @@ function renderPlanning() {
   });
   rows.forEach((row, rowIndex) => {
     const gridRow = rowIndex + 3;
-    html += `<div class="row-name${row.peloton ? " peloton" : ""}" style="grid-column:1;grid-row:${gridRow}"><div>${row.grade ? `<small>${esc(row.grade)}</small>` : ""}${esc(row.name)}${row.pelotonName ? `<small>${esc(row.pelotonName)}</small>` : ""}</div></div>`;
-    html += `<div class="row-counter" style="grid-column:2;grid-row:${gridRow}">${counterFor(row)}</div>`;
+    const identity = row.vacation
+      ? esc(row.name)
+      : row.person
+        ? `<span class="row-identity">${row.grade ? `<span class="row-grade">${esc(row.grade)}</span>` : ""}<span>${esc(planningSurname(row.person))}</span></span>`
+        : esc(row.name);
+    html += `<div class="row-name${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:1;grid-row:${gridRow}"><div>${identity}</div></div>`;
+    html += `<div class="row-counter${row.peloton ? " peloton" : ""}${row.vacation ? " vacation" : ""}" style="grid-column:2;grid-row:${gridRow}">${counterFor(row)}</div>`;
     days.forEach((day, dayIndex) => {
+      if (row.vacation) {
+        const vacation = schoolVacationFor(day);
+        html += `<div class="vacation-day${vacation ? " active" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}"${vacation ? ` title="${esc(vacation)}"` : ""}></div>`;
+        return;
+      }
       const date = iso(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holidayFor(day));
-      html += `<div class="day-cell${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}">`;
+      html += `<div class="day-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${dayIndex + 3};grid-row:${gridRow}">`;
       for (const slot of ["M", "N"]) {
         const key = entryKey(row.targetType, row.targetKey, date, slot);
         const entry = state.entries.get(key); const type = entry ? typeFor(entry.service_code) : null;
