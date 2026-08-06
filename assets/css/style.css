@@ -666,6 +666,47 @@ input[type=search]:focus {
   letter-spacing: .04em;
   text-transform: uppercase
 }
+.fiche-card-collapsible > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none
+}
+.fiche-card-collapsible > summary::-webkit-details-marker {
+  display: none
+}
+.fiche-card-collapsible > summary:focus-visible {
+  outline: 3px solid rgba(78,167,232,.72);
+  outline-offset: -3px
+}
+.fiche-card-chevron {
+  width: 11px;
+  height: 11px;
+  margin-left: auto;
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .2s ease
+}
+.fiche-card-collapsible[open] .fiche-card-chevron {
+  transform: rotate(225deg)
+}
+.fiche-card-embedded > .fiche-card,
+.fiche-card-embedded > .media-card {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none
+}
+.fiche-card-embedded > .fiche-card > .fiche-card-head,
+.fiche-card-embedded > .media-card > .media-card-title {
+  display: none
+}
+.fiche-card-embedded > .fiche-card > .fiche-card-body {
+  padding: 0
+}
+.fiche-card-embedded > .fiche-card-download > .download-list {
+  padding-top: 14px
+}
 .fiche-card-icon {
   display: inline-grid;
   place-items: center;
@@ -1513,4 +1554,3 @@ input[type=search]:focus {
     width: 100%;
   }
 }
-
