@@ -411,6 +411,10 @@ function canAccessRoles(allowedRoles) {
 }
 
 function isItemVisible(item) {
+  if (item?.allowVisitor === false && isVisitorMode()) {
+    return false;
+  }
+
   return canAccessRoles(
     item.effectiveAccess || item.access
   );

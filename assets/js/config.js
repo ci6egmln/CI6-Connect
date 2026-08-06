@@ -1141,6 +1141,14 @@ window.CI6_RUBRIQUES = [
         href: "/sanctions",
         card: "assets/cards/cadres-sanctions.webp"
     },{
+        id: "simplinote",
+        title: "Notation des élèves",
+        slug: "cadres-simplinote",
+        description: "Rédaction, validation et export des littéraux de notation",
+        href: "/notations",
+        card: "assets/cards/cadres-simplinote.webp",
+        allowVisitor: false
+    },{
         id: "Documents",
         title: "Documents utiles",
         slug: "cadres-documents",
