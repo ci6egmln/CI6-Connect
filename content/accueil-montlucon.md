@@ -25,9 +25,7 @@ assets/photos/accueil-montlucon-jules-guesde.webp | Buste de Jules Guesde - Mus�
 assets/photos/accueil-montlucon-chateau-ducs-bourbon.webp | Château des ducs de Bourbon
 :::
 
-:::image-texte jaune | Le guide de Montluçon - culture, visites, activités, loisirs, sports, nature et points de vente | 💡 | ferme
-assets/photos/accueil-montlucon-guide-de-montlucon-apercu.webp
-
+:::bloc jaune | Le guide de Montluçon - culture, visites, activités, loisirs, sports, nature et points de vente | 💡 | ferme
 Consultez ou télécharger le guide joint. Vous y trouverez une mine d'informations sur Montluçon et les activités que cette ville vous offre.
 **Documents à télécharger**
 - [guide de montlucon](assets/documents/accueil-montlucon-guide-de-montlucon.pdf)
