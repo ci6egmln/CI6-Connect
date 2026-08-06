@@ -35,7 +35,7 @@ export async function onRequestPost(context) {
 
   const requestedActive = body.active;
 
-  if (!/^(?:[A-Z]{3}\d{3}|\d{6})$/.test(username.toUpperCase())) {
+  if (!/^[A-Z]{3}\d{3}$/.test(username.toUpperCase())) {
     return jsonResponse(
       {
         error:

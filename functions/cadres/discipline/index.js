@@ -131,7 +131,7 @@ export async function onRequestPost(context) {
   const observations = String(body.observations || "").trim();
   const sanctionDate = String(body.sanction_date || "").trim() || new Date().toISOString();
 
-  if (!/^(?:[A-Z]{3}\d{3}|\d{6})$/.test(studentNigend.toUpperCase())) return json({ error: "Identifiant invalide." }, 400);
+  if (!/^[A-Z]{3}\d{3}$/.test(studentNigend.toUpperCase())) return json({ error: "Identifiant invalide." }, 400);
   if (!validType(sanctionType)) return json({ error: "Type de sanction invalide." }, 400);
   if (!reasonCode && !reasonFree) return json({ error: "Le motif est obligatoire." }, 400);
 

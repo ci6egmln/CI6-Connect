@@ -468,7 +468,7 @@ export async function onRequest(context) {
       String(formData.get("username") || "").trim();
 
     const individualUsername =
-      /^(?:[A-Za-z]{3}\d{3}|\d{6})$/.test(enteredUsername)
+      /^[A-Za-z]{3}\d{3}$/.test(enteredUsername)
         ? enteredUsername.toUpperCase()
         : "";
 

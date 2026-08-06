@@ -240,6 +240,6 @@ Toute évolution doit privilégier la clarté, la réduction des manipulations, 
 
 Les nouveaux comptes utilisent un identifiant généré automatiquement au format `ABC123` : trois lettres majuscules suivies de trois chiffres. Pour les élèves et visiteurs, les trois lettres sont aléatoires et ne contiennent ni nom, ni prénom, ni NIGEND, ni peloton. Pour les cadres et administrateurs, elles reprennent les trois premières lettres normalisées du nom afin que le compte reste aisément reconnaissable (par exemple `PAN482`), sans utiliser le NIGEND.
 
-Les noms, prénoms et pelotons restent réservés aux fonctions internes de recherche, de suivi des consultations et de suivi disciplinaire. Les anciens identifiants numériques restent temporairement acceptés afin de ne pas bloquer les comptes déjà créés ; aucun nouveau compte numérique n’est généré.
+Les noms, prénoms et pelotons restent réservés aux fonctions internes de recherche, de suivi des consultations et de suivi disciplinaire. Seuls les identifiants pseudonymes au format `ABC123` sont désormais acceptés pour les comptes individuels.
 
 Lors du premier accès ou après une réinitialisation, le mot de passe personnel doit contenir au moins 12 caractères et différer d’au moins la moitié du mot de passe provisoire.
