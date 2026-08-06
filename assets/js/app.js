@@ -1158,7 +1158,7 @@ function parseFrontMatter(markdown) {
 
 function basicMarkdownToHtml(markdown) {
     const htmlBlocks = [];
-    return (markdown = markdown.replace(/<section[\s\S]*?<\/section>/gim, match => {
+    return (markdown = markdown.replace(/<(section|details)\b[\s\S]*?<\/\1>/gim, match => {
         const token = `@@HTML_BLOCK_${htmlBlocks.length}@@`;
         return htmlBlocks.push(match), `\n\n${token}\n\n`;
     })).replace(/\r\n/g, "\n").split(/\n{2,}/).map(block => block.trim()).filter(Boolean).map(block => {
@@ -1177,6 +1177,74 @@ function basicMarkdownToHtml(markdown) {
 function getDownloadIcon(path) {
     const lower = (path || "").toLowerCase();
     return lower.endsWith(".pdf") ? "📄" : lower.endsWith(".doc") || lower.endsWith(".docx") ? "📝" : lower.endsWith(".xls") || lower.endsWith(".xlsx") ? "📊" : lower.endsWith(".ppt") || lower.endsWith(".pptx") ? "📽️" : lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp") ? "🖼️" : lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".webm") ? "🎥" : lower.endsWith(".zip") || lower.endsWith(".rar") || lower.endsWith(".7z") ? "🗂️" : lower.startsWith("http") ? "🌐" : "📎";
+}
+
+function normalizeBlockDisplay(value) {
+    const normalized = normalizeText(value || "fixe")
+        .replace(/[\s_-]+/g, "");
+
+    if (["ferme", "replie", "collapsed"].includes(normalized)) {
+        return "ferme";
+    }
+
+    if (["ouvert", "deplie", "expanded"].includes(normalized)) {
+        return "ouvert";
+    }
+
+    return "fixe";
+}
+
+function renderFicheCard({
+    color = "gris",
+    title = "Information",
+    icon = "ℹ️",
+    body = "",
+    display = "fixe"
+}) {
+    const mode = normalizeBlockDisplay(display);
+    const heading = `
+        <span class="fiche-card-icon">${formatInline(icon)}</span>
+        <strong>${formatInline(title)}</strong>
+    `;
+
+    if (mode === "fixe") {
+        return `
+            <section class="fiche-card fiche-card-${escapeHtml(color)}">
+                <div class="fiche-card-head">${heading}</div>
+                <div class="fiche-card-body">${body}</div>
+            </section>
+        `;
+    }
+
+    return `
+        <details class="fiche-card fiche-card-${escapeHtml(color)} fiche-card-collapsible"${mode === "ouvert" ? " open" : ""}>
+            <summary class="fiche-card-head">
+                ${heading}
+                <span class="fiche-card-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="fiche-card-body">${body}</div>
+        </details>
+    `;
+}
+
+function renderCollapsibleMediaBlock(
+    html,
+    title,
+    icon,
+    display,
+    color = "gris"
+) {
+    if (normalizeBlockDisplay(display) === "fixe") {
+        return html;
+    }
+
+    return renderFicheCard({
+        color,
+        title,
+        icon,
+        display,
+        body: `<div class="fiche-card-embedded">${html}</div>`
+    });
 }
 
 function renderDownloadBlock(content) {
@@ -1549,6 +1617,7 @@ function renderImageTextBlock(header, content) {
   const color = parts[0] || "gris";
   const title = parts[1] || "Illustration";
   const icon = parts[2] || "🖼️";
+  const display = parts[3] || "fixe";
 
   const lines =
     String(content || "")
@@ -1575,14 +1644,12 @@ function renderImageTextBlock(header, content) {
       .join("\n")
       .trim();
 
-  return `
-    <section class="fiche-card fiche-card-${escapeHtml(color)}">
-      <div class="fiche-card-head">
-        <span class="fiche-card-icon">${escapeHtml(icon)}</span>
-        <strong>${formatInline(title)}</strong>
-      </div>
-
-      <div class="fiche-card-body">
+  return renderFicheCard({
+    color,
+    title,
+    icon,
+    display,
+    body: `
         <figure class="media-card">
           <img
             src="${escapeHtml(src)}"
@@ -1595,11 +1662,9 @@ function renderImageTextBlock(header, content) {
             </figcaption>
           ` : ""}
         </figure>
-
         ${text ? basicMarkdownToHtml(text) : ""}
-      </div>
-    </section>
-  `;
+    `
+  });
 }
 
 function renderCustomBlocks(markdown) {
@@ -1632,10 +1697,22 @@ function renderCustomBlocks(markdown) {
      */
     markdown = markdown.replace(
         /^[ \t]*:::video-lien(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, title, content) => renderOnlineVideoBlock(
-            title ? title.trim() : "",
-            content.trim()
-        )
+        (_, header, content) => {
+            const [title, display] = String(header || "")
+                .split("|")
+                .map(part => part.trim());
+            const html = renderOnlineVideoBlock(
+                title || "",
+                content.trim()
+            );
+            return renderCollapsibleMediaBlock(
+                html,
+                title || "Vidéo",
+                "🎥",
+                display || "fixe",
+                "bleu"
+            );
+        }
     );
 
 
@@ -1648,10 +1725,21 @@ function renderCustomBlocks(markdown) {
      */
     markdown = markdown.replace(
         /^[ \t]*:::image(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, title, content) => renderImageBlock(
-            title ? title.trim() : "",
-            content.trim()
-        )
+        (_, header, content) => {
+            const [title, display] = String(header || "")
+                .split("|")
+                .map(part => part.trim());
+            const html = renderImageBlock(
+                title || "",
+                content.trim()
+            );
+            return renderCollapsibleMediaBlock(
+                html,
+                title || "Illustration",
+                "🖼️",
+                display || "fixe"
+            );
+        }
     );
 
 
@@ -1665,10 +1753,21 @@ function renderCustomBlocks(markdown) {
      */
     markdown = markdown.replace(
         /^[ \t]*:::galerie(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, title, content) => renderGalleryBlock(
-            title ? title.trim() : "",
-            content.trim()
-        )
+        (_, header, content) => {
+            const [title, display] = String(header || "")
+                .split("|")
+                .map(part => part.trim());
+            const html = renderGalleryBlock(
+                title || "",
+                content.trim()
+            );
+            return renderCollapsibleMediaBlock(
+                html,
+                title || "Galerie",
+                "🖼️",
+                display || "fixe"
+            );
+        }
     );
 
 
@@ -1681,10 +1780,21 @@ function renderCustomBlocks(markdown) {
      */
     markdown = markdown.replace(
         /^[ \t]*:::video(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, title, content) => renderVideoBlock(
-            title ? title.trim() : "",
-            content.trim()
-        )
+        (_, header, content) => {
+            const [title, display] = String(header || "")
+                .split("|")
+                .map(part => part.trim());
+            const html = renderVideoBlock(
+                title || "",
+                content.trim()
+            );
+            return renderCollapsibleMediaBlock(
+                html,
+                title || "Vidéo",
+                "🎥",
+                display || "fixe"
+            );
+        }
     );
 
 
@@ -1696,8 +1806,13 @@ function renderCustomBlocks(markdown) {
      * :::
      */
     markdown = markdown.replace(
-        /^[ \t]*:::telechargements[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
-        (_, content) => renderDownloadBlock(content.trim())
+        /^[ \t]*:::telechargements(?:[ \t]+([^\r\n]+))?[ \t]*\r?\n([\s\S]*?)^[ \t]*:::[ \t]*$/gim,
+        (_, display, content) => renderCollapsibleMediaBlock(
+            renderDownloadBlock(content.trim()),
+            "Documents à télécharger",
+            "⬇️",
+            display ? display.trim() : "fixe"
+        )
     );
 
 
@@ -1719,6 +1834,7 @@ function renderCustomBlocks(markdown) {
             const requestedColor = normalizeText(parts[0] || "gris");
             const title = parts[1] || "Information";
             const icon = parts[2] || "ℹ️";
+            const display = parts[3] || "fixe";
 
             const allowedColors = [
                 "bleu",
@@ -1733,18 +1849,13 @@ function renderCustomBlocks(markdown) {
                 ? requestedColor
                 : "gris";
 
-            return `
-                <section class="fiche-card fiche-card-${color}">
-                    <div class="fiche-card-head">
-                        <span class="fiche-card-icon">${formatInline(icon)}</span>
-                        <strong>${formatInline(title)}</strong>
-                    </div>
-
-                    <div class="fiche-card-body">
-                        ${basicMarkdownToHtml(content.trim())}
-                    </div>
-                </section>
-            `;
+            return renderFicheCard({
+                color,
+                title,
+                icon,
+                display,
+                body: basicMarkdownToHtml(content.trim())
+            });
         }
     );
 
@@ -3001,9 +3112,9 @@ function buildFrontMatter(meta) {
   return lines.join("\n");
 }
 
-function onlineVideoMarkdown(title, url, caption) {
+function onlineVideoMarkdown(title, url, caption, display = "fixe") {
   return [
-    `:::video-lien ${title || "Vidéo"}`,
+    `:::video-lien ${title || "Vidéo"} | ${normalizeBlockDisplay(display)}`,
     `${url}${caption ? ` | ${caption}` : ""}`,
     ":::"
   ].join("\n");
@@ -3031,6 +3142,7 @@ function editorBlockMarkdown({
   text,
   mediaUrl,
   caption,
+  display = "fixe",
   galleryImages = [],
   documents = []
 }) {
@@ -3040,7 +3152,7 @@ function editorBlockMarkdown({
     }
 
     return [
-      `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
+      `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"} | ${normalizeBlockDisplay(display)}`,
       text.trim() + documentsMarkdownList(documents),
       ":::"
     ].join("\n");
@@ -3055,14 +3167,14 @@ function editorBlockMarkdown({
 
     if (!mediaUrl) {
       return [
-        `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"}`,
+        `:::bloc ${color || "gris"} | ${title || "Information"} | ${icon || "ℹ️"} | ${normalizeBlockDisplay(display)}`,
         text.trim() + documentsMarkdownList(documents),
         ":::"
       ].join("\n");
     }
 
     return [
-      `:::image-texte ${color || "gris"} | ${title || "Illustration"} | ${icon || "🖼️"}`,
+      `:::image-texte ${color || "gris"} | ${title || "Illustration"} | ${icon || "🖼️"} | ${normalizeBlockDisplay(display)}`,
       `${mediaUrl}${caption ? ` | ${caption}` : ""}`,
       "",
       text.trim() + documentsMarkdownList(documents),
@@ -3078,7 +3190,7 @@ function editorBlockMarkdown({
     }
 
     return [
-      `:::galerie ${title || "Galerie"}`,
+      `:::galerie ${title || "Galerie"} | ${normalizeBlockDisplay(display)}`,
       ...galleryImages.map(image =>
         `${image.path}${image.caption ? ` | ${image.caption}` : ""}`
       ),
@@ -3094,7 +3206,7 @@ function editorBlockMarkdown({
     }
 
     return [
-      ":::telechargements",
+      `:::telechargements ${normalizeBlockDisplay(display)}`,
       ...documents.map(document =>
         `- ${document.label} | ${document.url}`
       ),
@@ -3112,7 +3224,8 @@ function editorBlockMarkdown({
     return onlineVideoMarkdown(
       title,
       mediaUrl,
-      caption
+      caption,
+      display
     );
   }
 
@@ -3306,6 +3419,7 @@ function parseEditorBlocks(markdownBody) {
         title: "Contenu",
         color: "gris",
         icon: "📄",
+        display: "fixe",
         text
       });
     }
@@ -3343,7 +3457,7 @@ function parseEditorBlocks(markdownBody) {
     const content = contentLines.join("\n").trim();
 
     if (kind === "bloc") {
-      const [color, title, icon] =
+      const [color, title, icon, display] =
         header.split("|").map(part => part.trim());
 
       const extracted =
@@ -3354,6 +3468,7 @@ function parseEditorBlocks(markdownBody) {
         color: color || "gris",
         title: title || "Information",
         icon: icon || "ℹ️",
+        display: normalizeBlockDisplay(display),
         text: extracted.text,
         documents: extracted.documents
       });
@@ -3362,7 +3477,7 @@ function parseEditorBlocks(markdownBody) {
     }
 
     if (kind === "image-texte") {
-      const [color, title, icon] =
+      const [color, title, icon, display] =
         header.split("|").map(part => part.trim());
 
       const contentParts = content.split(/\r?\n/);
@@ -3382,6 +3497,7 @@ function parseEditorBlocks(markdownBody) {
         color: color || "gris",
         title: title || "Illustration",
         icon: icon || "🖼️",
+        display: normalizeBlockDisplay(display),
         text: extracted.text,
         mediaUrl: mediaUrl || "",
         caption: caption || "",
@@ -3392,6 +3508,9 @@ function parseEditorBlocks(markdownBody) {
     }
 
     if (kind === "galerie") {
+      const [title, display] =
+        header.split("|").map(part => part.trim());
+
       const galleryImages =
         content
           .split(/\r?\n/)
@@ -3409,7 +3528,8 @@ function parseEditorBlocks(markdownBody) {
 
       blocks.push({
         type: "galerie",
-        title: header || "Galerie",
+        title: title || "Galerie",
+        display: normalizeBlockDisplay(display),
         galleryImages
       });
 
@@ -3417,6 +3537,9 @@ function parseEditorBlocks(markdownBody) {
     }
 
     if (kind === "video-lien") {
+      const [title, display] =
+        header.split("|").map(part => part.trim());
+
       const firstLine =
         content
           .split(/\r?\n/)
@@ -3428,7 +3551,8 @@ function parseEditorBlocks(markdownBody) {
 
       blocks.push({
         type: "video",
-        title: header || "Vidéo",
+        title: title || "Vidéo",
+        display: normalizeBlockDisplay(display),
         mediaUrl: mediaUrl || "",
         caption: caption || ""
       });
@@ -3459,6 +3583,7 @@ function parseEditorBlocks(markdownBody) {
       blocks.push({
         type: "documents",
         title: "Documents à télécharger",
+        display: normalizeBlockDisplay(header),
         documents
       });
 
@@ -3480,6 +3605,7 @@ function parseEditorBlocks(markdownBody) {
         color: "gris",
         title: header || "Illustration",
         icon: "🖼️",
+        display: "fixe",
         text: caption || "",
         mediaUrl: mediaUrl || "",
         caption: caption || ""
@@ -3504,6 +3630,7 @@ function serializeEditorBlock(block) {
     text: block.text || "",
     mediaUrl: block.mediaUrl || "",
     caption: block.caption || "",
+    display: block.display || "fixe",
     galleryImages: block.galleryImages || [],
     documents: block.documents || []
   });
@@ -3987,6 +4114,26 @@ function openFicheEditor() {
               >
             </div>
 
+            <div class="fiche-editor-field">
+              <label for="editorBlockDisplay">
+                Affichage du bloc
+              </label>
+              <select id="editorBlockDisplay">
+                <option value="fixe">
+                  Toujours ouvert
+                </option>
+                <option value="ouvert">
+                  Déroulant, ouvert au départ
+                </option>
+                <option value="ferme">
+                  Déroulant, fermé au départ
+                </option>
+              </select>
+              <small class="fiche-editor-field-help">
+                Un bloc déroulant s’ouvre et se ferme en touchant son titre.
+              </small>
+            </div>
+
             <fieldset
               id="editorBlockIconField"
               class="fiche-editor-field"
@@ -4369,6 +4516,9 @@ function openFicheEditor() {
 
   const blockTitle =
     overlay.querySelector("#editorBlockTitle");
+
+  const blockDisplay =
+    overlay.querySelector("#editorBlockDisplay");
 
   const blockText =
     overlay.querySelector("#editorBlockText");
@@ -5067,6 +5217,7 @@ function openFicheEditor() {
     blockType.value = "texte-image";
     blockColor.value = "bleu";
     blockTitle.value = "";
+    blockDisplay.value = "fixe";
     blockText.value = "";
     mediaUrl.value = "";
     mediaCaption.value = "";
@@ -5115,6 +5266,9 @@ function openFicheEditor() {
 
       blockTitle.value =
         block.title || "";
+
+      blockDisplay.value =
+        normalizeBlockDisplay(block.display);
 
       blockText.value =
         block.text || "";
@@ -5181,6 +5335,8 @@ function openFicheEditor() {
         "Information",
       icon:
         selectedIcon(),
+      display:
+        normalizeBlockDisplay(blockDisplay.value),
       text:
         blockText.value.trim(),
       mediaUrl:
