@@ -1179,6 +1179,14 @@ function getDownloadIcon(path) {
     return lower.endsWith(".pdf") ? "📄" : lower.endsWith(".doc") || lower.endsWith(".docx") ? "📝" : lower.endsWith(".xls") || lower.endsWith(".xlsx") ? "📊" : lower.endsWith(".ppt") || lower.endsWith(".pptx") ? "📽️" : lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp") ? "🖼️" : lower.endsWith(".mp4") || lower.endsWith(".mov") || lower.endsWith(".webm") ? "🎥" : lower.endsWith(".zip") || lower.endsWith(".rar") || lower.endsWith(".7z") ? "🗂️" : lower.startsWith("http") ? "🌐" : "📎";
 }
 
+function isDownloadImage(path) {
+    const cleanPath = String(path || "")
+        .split(/[?#]/)[0]
+        .toLowerCase();
+
+    return /\.(?:jpe?g|png|webp)$/.test(cleanPath);
+}
+
 function normalizeBlockDisplay(value) {
     const normalized = normalizeText(value || "fixe")
         .replace(/[\s_-]+/g, "");
@@ -1250,7 +1258,12 @@ function renderCollapsibleMediaBlock(
 function renderDownloadBlock(content) {
     return `\n    <section class="fiche-card fiche-card-download">\n      <div class="fiche-card-head">\n        <span class="fiche-card-icon">⬇️</span>\n        <strong>Documents à télécharger</strong>\n      </div>\n\n      <div class="download-list">\n        ${content.split("\n").map(line => line.trim()).filter(line => line.startsWith("-")).map(line => line.replace(/^-/, "").trim()).map(item => {
         const [label, url] = item.split("|").map(part => part.trim());
-        return `\n            <a class="download-item" href="${url}">\n              <span>${getDownloadIcon(url || "")}</span>\n              <strong>${label}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
+        const safeUrl = escapeHtml(url || "");
+        const safeLabel = escapeHtml(label || "Document");
+        const visual = isDownloadImage(url)
+            ? `\n              <img\n                class="download-item-thumbnail"\n                src="${safeUrl}"\n                alt="Aperçu de ${safeLabel}"\n                loading="lazy"\n              >`
+            : `\n              <span class="download-item-icon">${getDownloadIcon(url || "")}</span>`;
+        return `\n            <a class="download-item" href="${safeUrl}">\n              ${visual}\n              <strong>${safeLabel}</strong>\n              <em>Ouvrir</em>\n            </a>\n          `;
     }).join("")}\n      </div>\n    </section>\n  `;
 }
 function renderImageBlock(title, content) {
@@ -4390,10 +4403,10 @@ function openFicheEditor() {
                 <input
                   id="editorDocumentFile"
                   type="file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ods,.odt,.ppt,.pptx,.csv,.txt,.zip,.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                 >
                 <small class="fiche-editor-field-help">
-                  Le titre est proposé automatiquement à partir du nom du fichier et peut être corrigé avant l’envoi.
+                  Documents et images JPEG, PNG ou WebP. Une image apparaîtra sous forme de miniature cliquable.
                 </small>
               </div>
 

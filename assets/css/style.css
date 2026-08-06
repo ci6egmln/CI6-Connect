@@ -798,9 +798,19 @@ input[type=search]:focus {
   border-color: var(--gold);
   background: rgba(255,255,255,.065)
 }
-.download-item span {
+.download-item-icon {
   flex: 0 0 auto;
   font-size: 28px
+}
+.download-item-thumbnail {
+  display: block;
+  flex: 0 0 auto;
+  width: 76px;
+  height: 56px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 9px;
+  background: rgba(0,0,0,.28);
+  object-fit: cover
 }
 .download-item strong {
   flex: 1
@@ -922,8 +932,12 @@ input[type=search]:focus {
     gap: 12px;
     padding: 14px
   }
-  .download-item span {
+  .download-item-icon {
     font-size: 24px
+  }
+  .download-item-thumbnail {
+    width: 60px;
+    height: 46px
   }
 	.fiche-hero {
     margin-bottom: 24px;

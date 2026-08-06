@@ -128,7 +128,11 @@ export async function onRequestPost(context) {
     "pptx",
     "csv",
     "txt",
-    "zip"
+    "zip",
+    "jpg",
+    "jpeg",
+    "png",
+    "webp"
   ]);
 
   if (document.size > 10 * 1024 * 1024) {
@@ -152,7 +156,7 @@ export async function onRequestPost(context) {
     return jsonResponse(
       {
         error:
-          "Format refusé. Utilisez PDF, DOC, DOCX, XLS, XLSX, ODS, ODT, PPT, PPTX, CSV, TXT ou ZIP."
+          "Format refusé. Utilisez un document courant ou une image JPEG, PNG ou WebP."
       },
       415
     );
