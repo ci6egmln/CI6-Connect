@@ -127,6 +127,10 @@ export async function onRequestGet(context) {
     "discipline_students",
     "discipline_sanctions",
     "discipline_audit_log",
+    "notation_students",
+    "notation_records",
+    "notation_access",
+    "notation_audit_log",
     "push_subscriptions",
     "administration_audit_log"
   ];

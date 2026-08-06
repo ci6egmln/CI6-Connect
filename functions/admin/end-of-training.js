@@ -1,3 +1,5 @@
+import { ensureNotationSchema } from "../_shared/notations.js";
+
 function jsonResponse(data, status = 200) {
   return new Response(
     JSON.stringify(data, null, 2),
@@ -454,6 +456,8 @@ export async function onRequestPost(context) {
         );
       }
 
+      await ensureNotationSchema(context.env.DB);
+
       const count =
         await context.env.DB
           .prepare(`
@@ -479,6 +483,18 @@ export async function onRequestPost(context) {
       );
 
       await context.env.DB.batch([
+        context.env.DB
+          .prepare(`
+            DELETE FROM notation_audit_log
+          `),
+        context.env.DB
+          .prepare(`
+            DELETE FROM notation_records
+          `),
+        context.env.DB
+          .prepare(`
+            DELETE FROM notation_students
+          `),
         context.env.DB
           .prepare(`
             DELETE FROM discipline_audit_log

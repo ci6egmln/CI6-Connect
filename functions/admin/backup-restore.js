@@ -6,6 +6,10 @@ const ALLOWED_TABLES = [
   "discipline_students",
   "discipline_sanctions",
   "discipline_audit_log",
+  "notation_students",
+  "notation_records",
+  "notation_access",
+  "notation_audit_log",
   "push_subscriptions",
   "administration_audit_log"
 ];
@@ -18,12 +22,20 @@ const INSERT_ORDER = [
   "discipline_students",
   "discipline_sanctions",
   "discipline_audit_log",
+  "notation_students",
+  "notation_records",
+  "notation_access",
+  "notation_audit_log",
   "push_subscriptions",
   "administration_audit_log"
 ];
 
 const DELETE_ORDER = [
   "administration_audit_log",
+  "notation_audit_log",
+  "notation_access",
+  "notation_records",
+  "notation_students",
   "discipline_audit_log",
   "discipline_sanctions",
   "discipline_students",

@@ -1356,7 +1356,10 @@ export async function onRequest(context) {
 
   if (
     path.startsWith("/cadres/") ||
-    path === "/sanctions"
+    path === "/sanctions" ||
+    path === "/notations" ||
+    path === "/notations/" ||
+    path === "/notations.html"
   ) {
     if (
       session.type !== "user" ||
