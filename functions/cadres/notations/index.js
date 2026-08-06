@@ -26,6 +26,15 @@ async function totalEg(db) {
   }
 }
 
+async function incorporationDate(db) {
+  try {
+    const row = await db.prepare(`SELECT value FROM settings WHERE key='incorporation_date' LIMIT 1`).first();
+    return row?.value || "";
+  } catch {
+    return "";
+  }
+}
+
 async function studentForPermission(db, id, permission) {
   const student = await db.prepare(`
     SELECT * FROM notation_students
@@ -88,6 +97,7 @@ export async function onRequestGet(context) {
         success: true,
         permission,
         promotion,
+        incorporationDate: await incorporationDate(db),
         totalEg: count,
         students: result.results || []
       });
