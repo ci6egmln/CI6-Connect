@@ -248,20 +248,33 @@ function renderPlanning() {
   });
   html += "</div>";
   $("planningViewport").innerHTML = html;
-  $("planningViewport").querySelectorAll(".slot-cell").forEach(cell => cell.onclick = event => selectCells(cell.dataset.keys.split(","), event.shiftKey));
+  $("planningViewport").querySelectorAll(".slot-cell").forEach(cell => cell.onclick = event => selectCells(
+    cell.dataset.keys.split(","),
+    { extend: event.shiftKey, additive: event.ctrlKey || event.metaKey }
+  ));
 }
 
-function selectCells(keys, extend) {
+function selectCells(keys, { extend = false, additive = false } = {}) {
   const key = keys.at(-1);
   if (extend && state.lastSelected) {
     const previous = parseKey(state.lastSelected); const current = parseKey(key);
     if (previous.target_type === current.target_type && previous.target_key === current.target_key) {
       const ordered = daysBetween(state.start, state.end).flatMap(day => ["M", "N"].map(slot => entryKey(current.target_type, current.target_key, iso(day), slot)));
       const a = ordered.indexOf(state.lastSelected); const b = ordered.indexOf(key);
+      if (!additive) state.selected.clear();
       if (a >= 0 && b >= 0) for (let index = Math.min(a, b); index <= Math.max(a, b); index += 1) state.selected.add(ordered[index]);
-    } else keys.forEach(selectedKey => state.selected.add(selectedKey));
-  } else if (keys.every(selectedKey => state.selected.has(selectedKey))) keys.forEach(selectedKey => state.selected.delete(selectedKey));
-  else keys.forEach(selectedKey => state.selected.add(selectedKey));
+    } else {
+      if (!additive) state.selected.clear();
+      keys.forEach(selectedKey => state.selected.add(selectedKey));
+    }
+  } else if (additive) {
+    if (keys.every(selectedKey => state.selected.has(selectedKey))) keys.forEach(selectedKey => state.selected.delete(selectedKey));
+    else keys.forEach(selectedKey => state.selected.add(selectedKey));
+  } else {
+    const onlyThisSelection = state.selected.size === keys.length && keys.every(selectedKey => state.selected.has(selectedKey));
+    state.selected.clear();
+    if (!onlyThisSelection) keys.forEach(selectedKey => state.selected.add(selectedKey));
+  }
   state.lastSelected = key;
   refreshSelectionClasses();
   updateSelectionBar();

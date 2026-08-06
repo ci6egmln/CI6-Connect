@@ -9,6 +9,49 @@
   grid-template-columns: var(--name-width) var(--p-counter-width) var(--rr-counter-width) repeat(var(--slots), calc(var(--day-width) / 2));
 }
 
+.planning-toolbar,
+.selection-bar,
+.palette-panel {
+  padding: 6px 9px;
+  margin-bottom: 6px;
+}
+
+.planning-toolbar,
+.selection-bar,
+.palette-heading,
+.planning-toolbar .period-controls,
+.planning-toolbar .range-shortcuts,
+.planning-toolbar .toolbar-actions,
+.selection-actions {
+  gap: 5px;
+}
+
+.planning-toolbar .icon-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.planning-toolbar .button.compact,
+.selection-bar .button.compact,
+.palette-panel .button.compact,
+.planning-toolbar .range-button {
+  min-height: 27px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.selection-bar span,
+.palette-heading span {
+  font-size: 11px;
+}
+
+.palette-panel .service-palette {
+  padding-top: 4px;
+}
+
 .counter-head.permanence,
 .row-counter.permanence {
   left: var(--name-width);
@@ -237,6 +280,31 @@
 
   .entry-details {
     grid-template-columns: 1fr;
+  }
+
+  .planning-toolbar,
+  .selection-bar,
+  .palette-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .planning-toolbar .toolbar-actions,
+  .planning-toolbar .range-shortcuts,
+  .selection-actions {
+    margin-top: 0;
+  }
+
+  #selectionHelp,
+  .palette-heading span {
+    display: none;
+  }
+
+  .palette-panel .service-palette {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
   }
 
   .activity-colors em,
