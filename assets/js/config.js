@@ -80,7 +80,7 @@ window.CI6_RUBRIQUES = [
 		/* LISTE DU MATÉRIEL OBLIGATOIRE ET CONSEILLÉ */
 		{
       id: "fournitures",
-        title: "Que doit-on apporter ?",
+        title: "Que doit-je apporter ?",
         slug: "accueil-fournitures",
         description: "Liste des fournitures utiles, optionnelles ou nécessaires à emporter",
 		keywords : ["matériel", "vêtements", "toilette", "cirage", "chaussure", "valise", "boussole"],
