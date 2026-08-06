@@ -20,10 +20,6 @@ L'école de Montluçon est la plus grande école de gendarmerie Française :
 - 150 personnels militaires ou civils de soutien
 :::
 
-:::video-lien L'école de gendarmerie de Montluçon en vidéo | fixe
-https://youtu.be/GKanGBBM0jM | Vidéo tournée en période Covid. Le port du masque n'est plus obligatoire.
-:::
-
 :::image-texte vert | Livret d'accueil | ✅ | ferme
 assets/photos/accueil-ecole-livret-accueil-ecole.webp
 
@@ -32,4 +28,8 @@ Vous trouverez ci-joint le livret d'accueil de l'École de gendarmerie.
 Pour préparer votre incorporation, consultez la rubrique **« Quelles affaires dois-je apporter ? »** de ce module « Livret d'accueil ». Vous y trouverez la liste des effets obligatoires, des équipements recommandés ainsi que de nombreux conseils pratiques pour préparer sereinement votre arrivée.
 **Documents à télécharger**
 - [Livret d'accueil de l'école de gendarmerie de Montluçon](assets/documents/accueil-ecole-livret-d-accueil-de-l-ecole-de-gendarmerie-de-montlucon.pdf)
+:::
+
+:::video-lien L'école de gendarmerie de Montluçon en vidéo | ferme
+https://youtu.be/GKanGBBM0jM | Vidéo tournée en période Covid. Le port du masque n'est plus obligatoire.
 :::
