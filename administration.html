@@ -1150,8 +1150,8 @@
   }
   
 /* SUIVI DES CONSULTATIONS */
-.consultations-panel{margin-top:22px;padding:24px;border:1px solid rgba(214,173,58,.5);border-radius:13px;background:rgba(8,10,12,.94)}
-.consultations-panel h2{margin:5px 0 10px;color:var(--gold-light)}
+.consultations-panel,.session-security-panel{margin-top:22px;padding:24px;border:1px solid rgba(214,173,58,.5);border-radius:13px;background:rgba(8,10,12,.94)}
+.consultations-panel h2,.session-security-panel h2{margin:5px 0 10px;color:var(--gold-light)}
 .consultations-description{margin:0 0 20px;color:var(--muted);line-height:1.6}
 .consultations-filters{display:grid;grid-template-columns:minmax(180px,1fr) auto;gap:12px;align-items:end}
 .consultations-field label{display:block;margin-bottom:8px;font-weight:700}
@@ -1170,7 +1170,7 @@
 .consultations-info,.consultations-error{margin-top:16px;padding:13px 14px;line-height:1.5;border-radius:8px}
 .consultations-info{color:#dcecff;border:1px solid rgba(80,145,220,.6);background:rgba(25,65,110,.28)}
 .consultations-error{color:#ffdada;border:1px solid rgba(255,90,90,.58);background:rgba(110,20,20,.3)}
-@media(max-width:760px){.consultations-panel{padding:18px}.consultations-filters{grid-template-columns:1fr}.consultations-filter-actions{flex-direction:column}.consultations-filter-actions button{width:100%}}
+@media(max-width:760px){.consultations-panel,.session-security-panel{padding:18px}.consultations-filters{grid-template-columns:1fr}.consultations-filter-actions{flex-direction:column}.consultations-filter-actions button{width:100%}}
 
 
   /* ==========================================================
@@ -2662,6 +2662,59 @@
     </table>
   </div>
   <div id="consultationsMessage"></div>
+</section>
+
+<section
+  id="sessionSecurityPanel"
+  class="session-security-panel"
+>
+  <div class="panel-heading">
+    <span class="small-label">Sécurité des connexions</span>
+    <h2>Connexions sur un second appareil</h2>
+  </div>
+
+  <p class="consultations-description">
+    Chaque nouvelle connexion d’un élève remplace sa session précédente.
+    Ce journal recense uniquement les connexions effectuées depuis un autre
+    appareil ou un autre navigateur.
+  </p>
+
+  <div class="consultations-filter-actions">
+    <button
+      id="refreshSessionSecurityButton"
+      class="primary-button"
+      type="button"
+    >
+      Actualiser le journal
+    </button>
+  </div>
+
+  <div class="consultations-summary">
+    <strong id="sessionSecurityCount">Journal non chargé</strong>
+    <span>100 événements maximum</span>
+  </div>
+
+  <div class="consultations-table-wrapper">
+    <table class="consultations-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Élève</th>
+          <th>Ancienne session révoquée</th>
+          <th>Nouvelle session autorisée</th>
+        </tr>
+      </thead>
+      <tbody id="sessionSecurityTableBody">
+        <tr>
+          <td class="consultations-empty" colspan="4">
+            Chargement du journal…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="sessionSecurityMessage"></div>
 </section>
 
 <section class="collective-access-panel">
@@ -4846,6 +4899,121 @@ exportConsultationsButton.addEventListener("click",async()=>{
 });
 consultationsUsername.focus();
 
+const refreshSessionSecurityButton =
+  document.getElementById("refreshSessionSecurityButton");
+const sessionSecurityCount =
+  document.getElementById("sessionSecurityCount");
+const sessionSecurityTableBody =
+  document.getElementById("sessionSecurityTableBody");
+const sessionSecurityMessage =
+  document.getElementById("sessionSecurityMessage");
+
+function formatSessionSecurityDate(value) {
+  return formatConsultationDate(value);
+}
+
+function renderSessionSecurityEvents(events) {
+  sessionSecurityCount.textContent =
+    `${events.length} événement${events.length > 1 ? "s" : ""}`;
+
+  if (!events.length) {
+    sessionSecurityTableBody.innerHTML = `
+      <tr>
+        <td class="consultations-empty" colspan="4">
+          Aucune connexion simultanée n’a été détectée.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  sessionSecurityTableBody.innerHTML = events.map(event => `
+    <tr>
+      <td>${adminEscape(formatSessionSecurityDate(event.occurredAt))}</td>
+      <td>
+        <strong>${adminEscape(event.username)}</strong><br>
+        ${adminEscape(event.displayName || "—")}
+        ${event.peloton
+          ? `<br><span class="consultations-muted">Peloton ${adminEscape(event.peloton)}</span>`
+          : ""}
+      </td>
+      <td>
+        <strong>${adminEscape(event.previousDeviceType)}</strong><br>
+        ${adminEscape(event.previousBrowser)}
+        <br><span class="consultations-muted">
+          Dernière activité : ${adminEscape(formatSessionSecurityDate(event.previousLastSeenAt))}
+        </span>
+      </td>
+      <td>
+        <strong>${adminEscape(event.newDeviceType)}</strong><br>
+        ${adminEscape(event.newBrowser)}
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function loadSessionSecurityEvents() {
+  refreshSessionSecurityButton.disabled = true;
+  sessionSecurityMessage.className = "consultations-info";
+  sessionSecurityMessage.textContent = "Chargement du journal…";
+
+  try {
+    const response = await fetch("/admin/session-security", {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      credentials: "same-origin"
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        "Impossible de charger le journal."
+      );
+    }
+
+    renderSessionSecurityEvents(
+      Array.isArray(data.events) ? data.events : []
+    );
+    sessionSecurityMessage.className = "";
+    sessionSecurityMessage.textContent = "";
+  } catch (error) {
+    sessionSecurityCount.textContent = "Journal indisponible";
+    sessionSecurityTableBody.innerHTML = `
+      <tr>
+        <td class="consultations-empty" colspan="4">
+          Le journal n’a pas pu être chargé.
+        </td>
+      </tr>
+    `;
+    sessionSecurityMessage.className = "consultations-error";
+    sessionSecurityMessage.textContent = error.message;
+  } finally {
+    refreshSessionSecurityButton.disabled = false;
+  }
+}
+
+refreshSessionSecurityButton.addEventListener(
+  "click",
+  loadSessionSecurityEvents
+);
+
+administrationModePromise.then(isVisitor => {
+  if (!isVisitor) {
+    loadSessionSecurityEvents();
+  } else {
+    sessionSecurityCount.textContent = "Aperçu administrateur";
+    sessionSecurityTableBody.innerHTML = `
+      <tr>
+        <td class="consultations-empty" colspan="4">
+          Journal masqué en mode visiteur.
+        </td>
+      </tr>
+    `;
+  }
+});
+
 
 
 const homepageTilesList=document.getElementById("homepageTilesList");
@@ -6098,6 +6266,7 @@ restoreDatabaseButton?.addEventListener(
     ["homepage-tiles-panel", ["Page d’accueil", "Affichage des domaines et rubriques"]],
     ["backup-panel", ["Sécurité", "Sauvegarde et restauration"]],
     ["consultations-panel", ["Traçabilité", "Suivi des consultations"]],
+    ["session-security-panel", ["Sécurité", "Connexions sur un second appareil"]],
     ["collective-access-panel", ["Connexion", "Accès collectif"]],
     ["training-close-panel", ["Fin de promotion", "Clôture de la formation"]]
   ]);

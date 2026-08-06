@@ -3,6 +3,7 @@ import { sendWebPush } from "./web-push.js";
 function audienceClause(audience) {
   if (audience === "eleves") return { sql: "role = 'eleve'", values: [] };
   if (audience === "cadres") return { sql: "role IN ('cadre','admin')", values: [] };
+  if (audience === "admins") return { sql: "role = 'admin'", values: [] };
   return { sql: "role IN ('eleve','cadre','admin')", values: [] };
 }
 

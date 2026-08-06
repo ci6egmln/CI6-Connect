@@ -1,7 +1,201 @@
+import { sendPushNotifications } from "./_shared/push.js";
+
 const COOKIE_NAME = "ci6_session";
+const DEVICE_COOKIE_NAME = "ci6_device";
 const SESSION_DURATION = 7 * 24 * 60 * 60;
+const DEVICE_COOKIE_DURATION = 365 * 24 * 60 * 60;
 const PBKDF2_ITERATIONS = 100000;
 const encoder = new TextEncoder();
+
+/* ---------- Session unique des comptes élèves ---------- */
+
+function randomIdentifier() {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return bytesToBase64Url(
+    crypto.getRandomValues(new Uint8Array(24))
+  );
+}
+
+async function sha256Hex(value) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(String(value || ""))
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function deviceInformation(request) {
+  const userAgent =
+    String(request.headers.get("User-Agent") || "")
+      .slice(0, 500);
+
+  let deviceType = "Appareil non identifié";
+
+  if (/iPhone|iPod/i.test(userAgent)) {
+    deviceType = "iPhone";
+  } else if (/iPad/i.test(userAgent)) {
+    deviceType = "iPad";
+  } else if (/Android/i.test(userAgent)) {
+    deviceType = /Mobile/i.test(userAgent)
+      ? "Téléphone Android"
+      : "Tablette Android";
+  } else if (/Windows/i.test(userAgent)) {
+    deviceType = "PC Windows";
+  } else if (/CrOS/i.test(userAgent)) {
+    deviceType = "Chromebook";
+  } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
+    deviceType = "Mac";
+  } else if (/Linux/i.test(userAgent)) {
+    deviceType = "PC Linux";
+  }
+
+  let browser = "Navigateur non identifié";
+
+  if (/EdgA?\//i.test(userAgent)) {
+    browser = "Microsoft Edge";
+  } else if (/OPR\/|Opera/i.test(userAgent)) {
+    browser = "Opera";
+  } else if (/FxiOS\/|Firefox\//i.test(userAgent)) {
+    browser = "Firefox";
+  } else if (/CriOS\/|Chrome\//i.test(userAgent)) {
+    browser = "Chrome";
+  } else if (/Safari\//i.test(userAgent)) {
+    browser = "Safari";
+  }
+
+  return {
+    deviceType,
+    browser,
+    userAgent
+  };
+}
+
+async function ensureSessionSecurityTables(database) {
+  await database.prepare(`
+    CREATE TABLE IF NOT EXISTS active_user_sessions (
+      username TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      session_version INTEGER NOT NULL,
+      device_hash TEXT NOT NULL,
+      device_type TEXT NOT NULL,
+      browser TEXT NOT NULL,
+      user_agent TEXT,
+      started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      expires_at INTEGER NOT NULL
+    )
+  `).run();
+
+  await database.prepare(`
+    CREATE INDEX IF NOT EXISTS idx_active_user_sessions_expires
+    ON active_user_sessions(expires_at)
+  `).run();
+
+  await database.prepare(`
+    CREATE TABLE IF NOT EXISTS administration_audit_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      action TEXT NOT NULL,
+      actor_username TEXT NOT NULL,
+      details TEXT,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
+}
+
+async function activeStudentSession(database, username) {
+  try {
+    return await database.prepare(`
+      SELECT
+        username,
+        session_id,
+        session_version,
+        device_hash,
+        device_type,
+        browser,
+        started_at,
+        last_seen_at,
+        expires_at
+      FROM active_user_sessions
+      WHERE username = ?
+      LIMIT 1
+    `).bind(username).first();
+  } catch (error) {
+    if (/no such table/i.test(String(error?.message || error))) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function recordSimultaneousLogin(
+  database,
+  username,
+  previousSession,
+  newDevice
+) {
+  await database.prepare(`
+    INSERT INTO administration_audit_log (
+      action,
+      actor_username,
+      details
+    ) VALUES ('simultaneous_login', ?, ?)
+  `).bind(
+    username,
+    JSON.stringify({
+      username,
+      previousDeviceType: previousSession.device_type,
+      previousBrowser: previousSession.browser,
+      previousStartedAt: previousSession.started_at,
+      previousLastSeenAt: previousSession.last_seen_at,
+      newDeviceType: newDevice.deviceType,
+      newBrowser: newDevice.browser
+    })
+  ).run();
+}
+
+function notifyAdministratorsOfSimultaneousLogin(
+  context,
+  user,
+  previousSession,
+  newDevice
+) {
+  const displayName =
+    String(user.nom || "").trim();
+
+  const identity = displayName
+    ? `${user.username} – ${displayName}`
+    : user.username;
+
+  const notificationPromise = sendPushNotifications(
+    context.env,
+    {
+      audience: "admins",
+      notification: {
+        title: "Connexion sur un second appareil",
+        body:
+          `${identity} : ${newDevice.deviceType} / ${newDevice.browser}. ` +
+          `Ancienne session révoquée (${previousSession.device_type} / ${previousSession.browser}).`,
+        url: "/administration#sessionSecurityPanel",
+        tag: `session-security-${user.username}`,
+        renotify: true,
+        urgent: true
+      }
+    }
+  ).catch(error => {
+    console.error("Alerte de session simultanée :", error);
+  });
+
+  if (typeof context.waitUntil === "function") {
+    context.waitUntil(notificationPromise);
+  }
+}
 
 /* ---------- Encodage ---------- */
 
@@ -318,11 +512,59 @@ async function readValidSession(request, environment) {
       return null;
     }
 
+    if (user.role === "eleve") {
+      /*
+       * Les cookies créés avant l’activation de la session unique
+       * ne comportent pas d’identifiant de session. Les élèves sont
+       * donc invités une seule fois à se reconnecter après le déploiement.
+       */
+      if (!session.sid) {
+        return null;
+      }
+
+      const activeSession =
+        await activeStudentSession(
+          environment.DB,
+          user.username
+        );
+
+      if (
+        !activeSession ||
+        (
+          activeSession.session_id !== session.sid ||
+          Number(activeSession.session_version) !==
+            Number(session.session_version) ||
+          Number(activeSession.expires_at) <=
+            Math.floor(Date.now() / 1000)
+        )
+      ) {
+        return null;
+      }
+
+      const lastSeen = Date.parse(
+        `${String(activeSession.last_seen_at)
+          .replace(" ", "T")}Z`
+      );
+
+      if (
+        !Number.isFinite(lastSeen) ||
+        Date.now() - lastSeen > 5 * 60 * 1000
+      ) {
+        await environment.DB.prepare(`
+          UPDATE active_user_sessions
+          SET last_seen_at = CURRENT_TIMESTAMP
+          WHERE username = ?
+            AND session_id = ?
+        `).bind(user.username, session.sid).run();
+      }
+    }
+
     return {
       type: "user",
       username: user.username,
       role: user.role,
       sessionVersion: Number(user.session_version),
+      sessionId: session.sid || null,
       mustChangePassword:
         Number(user.must_change_password) === 1
     };
@@ -480,12 +722,18 @@ export async function onRequest(context) {
     );
 
     let sessionData = null;
+    let authenticatedUser = null;
+    let previousConflictingSession = null;
+    let currentDevice = null;
+    let deviceCookieValue =
+      readCookie(request, DEVICE_COOKIE_NAME) || "";
 
     if (individualUsername) {
       const user = await context.env.DB
         .prepare(`
           SELECT
             username,
+            nom,
             password_hash,
             password_salt,
             active,
@@ -504,13 +752,136 @@ export async function onRequest(context) {
         Number(user.active) === 1 &&
         await verifyPassword(password, user)
       ) {
-        sessionData = {
-          type: "user",
-          username: user.username,
-          role: user.role,
-          session_version:
-            Number(user.session_version)
-        };
+        authenticatedUser = user;
+
+        if (user.role === "eleve") {
+          await ensureSessionSecurityTables(
+            context.env.DB
+          );
+
+          const currentTimestamp =
+            Math.floor(Date.now() / 1000);
+
+          await context.env.DB.prepare(`
+            DELETE FROM active_user_sessions
+            WHERE expires_at <= ?
+          `).bind(currentTimestamp).run();
+
+          if (!deviceCookieValue) {
+            deviceCookieValue = randomIdentifier();
+          }
+
+          currentDevice = deviceInformation(request);
+
+          const deviceHash =
+            await sha256Hex(deviceCookieValue);
+
+          const previousSession =
+            await activeStudentSession(
+              context.env.DB,
+              user.username
+            );
+
+          if (
+            previousSession &&
+            Number(previousSession.expires_at) >
+              currentTimestamp &&
+            Number(previousSession.session_version) ===
+              Number(user.session_version) &&
+            previousSession.device_hash !== deviceHash
+          ) {
+            previousConflictingSession = previousSession;
+          }
+
+          const sessionId = randomIdentifier();
+
+          await context.env.DB.prepare(`
+            UPDATE users
+            SET
+              session_version = session_version + 1,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE username = ?
+              AND active = 1
+          `).bind(user.username).run();
+
+          const updatedUser = await context.env.DB
+            .prepare(`
+              SELECT session_version
+              FROM users
+              WHERE username = ?
+                AND active = 1
+              LIMIT 1
+            `)
+            .bind(user.username)
+            .first();
+
+          if (!updatedUser) {
+            throw new Error(
+              "Le compte n’a pas pu être associé à la nouvelle session."
+            );
+          }
+
+          await context.env.DB.prepare(`
+            INSERT INTO active_user_sessions (
+              username,
+              session_id,
+              session_version,
+              device_hash,
+              device_type,
+              browser,
+              user_agent,
+              started_at,
+              last_seen_at,
+              expires_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
+            ON CONFLICT(username)
+            DO UPDATE SET
+              session_id = excluded.session_id,
+              session_version = excluded.session_version,
+              device_hash = excluded.device_hash,
+              device_type = excluded.device_type,
+              browser = excluded.browser,
+              user_agent = excluded.user_agent,
+              started_at = CURRENT_TIMESTAMP,
+              last_seen_at = CURRENT_TIMESTAMP,
+              expires_at = excluded.expires_at
+          `).bind(
+            user.username,
+            sessionId,
+            Number(updatedUser.session_version),
+            deviceHash,
+            currentDevice.deviceType,
+            currentDevice.browser,
+            currentDevice.userAgent,
+            currentTimestamp + SESSION_DURATION
+          ).run();
+
+          sessionData = {
+            type: "user",
+            username: user.username,
+            role: user.role,
+            session_version:
+              Number(updatedUser.session_version),
+            sid: sessionId
+          };
+
+          if (previousConflictingSession) {
+            await recordSimultaneousLogin(
+              context.env.DB,
+              user.username,
+              previousConflictingSession,
+              currentDevice
+            );
+          }
+        } else {
+          sessionData = {
+            type: "user",
+            username: user.username,
+            role: user.role,
+            session_version:
+              Number(user.session_version)
+          };
+        }
       }
     }
 
@@ -569,7 +940,20 @@ export async function onRequest(context) {
       sessionData
     );
 
-    return redirectResponse(
+    if (
+      previousConflictingSession &&
+      authenticatedUser &&
+      currentDevice
+    ) {
+      notifyAdministratorsOfSimultaneousLogin(
+        context,
+        authenticatedUser,
+        previousConflictingSession,
+        currentDevice
+      );
+    }
+
+    const loginResponse = redirectResponse(
       request,
       destination,
       303,
@@ -581,6 +965,22 @@ export async function onRequest(context) {
           "HttpOnly; Secure; SameSite=Lax"
       }
     );
+
+    if (
+      sessionData.type === "user" &&
+      sessionData.role === "eleve" &&
+      deviceCookieValue
+    ) {
+      loginResponse.headers.append(
+        "Set-Cookie",
+        `${DEVICE_COOKIE_NAME}=${deviceCookieValue}; ` +
+          `Path=/; ` +
+          `Max-Age=${DEVICE_COOKIE_DURATION}; ` +
+          "HttpOnly; Secure; SameSite=Lax"
+      );
+    }
+
+    return loginResponse;
   }
 
   if (
@@ -719,6 +1119,27 @@ export async function onRequest(context) {
         );
       }
 
+      if (
+        updatedUser.role === "eleve" &&
+        session.sessionId
+      ) {
+        await context.env.DB.prepare(`
+          UPDATE active_user_sessions
+          SET
+            session_version = ?,
+            last_seen_at = CURRENT_TIMESTAMP,
+            expires_at = ?
+          WHERE username = ?
+            AND session_id = ?
+        `).bind(
+          Number(updatedUser.session_version),
+          Math.floor(Date.now() / 1000) +
+            SESSION_DURATION,
+          updatedUser.username,
+          session.sessionId
+        ).run();
+      }
+
       const token = await createSessionToken(
         context.env,
         {
@@ -726,7 +1147,10 @@ export async function onRequest(context) {
           username: updatedUser.username,
           role: updatedUser.role,
           session_version:
-            Number(updatedUser.session_version)
+            Number(updatedUser.session_version),
+          ...(session.sessionId
+            ? { sid: session.sessionId }
+            : {})
         }
       );
 
@@ -751,6 +1175,32 @@ export async function onRequest(context) {
   }
 
   if (path === "/logout") {
+    const session = await readValidSession(
+      request,
+      context.env
+    );
+
+    if (
+      session?.role === "eleve" &&
+      session.sessionId
+    ) {
+      try {
+        await context.env.DB.prepare(`
+          DELETE FROM active_user_sessions
+          WHERE username = ?
+            AND session_id = ?
+        `).bind(
+          session.username,
+          session.sessionId
+        ).run();
+      } catch (error) {
+        console.error(
+          "Fermeture de la session élève :",
+          error
+        );
+      }
+    }
+
     return redirectResponse(
       request,
       "/login",
@@ -770,6 +1220,9 @@ export async function onRequest(context) {
   );
 
   if (!session) {
+    const hadSessionCookie =
+      Boolean(readCookie(request, COOKIE_NAME));
+
     const destination = safeDestination(
       `${url.pathname}${url.search}`
     );
@@ -784,11 +1237,29 @@ export async function onRequest(context) {
       destination
     );
 
-    return redirectResponse(
+    if (hadSessionCookie) {
+      loginUrl.searchParams.set(
+        "error",
+        "session"
+      );
+    }
+
+    const invalidSessionResponse = redirectResponse(
       request,
       `${loginUrl.pathname}${loginUrl.search}`,
       302
     );
+
+    if (hadSessionCookie) {
+      invalidSessionResponse.headers.append(
+        "Set-Cookie",
+        `${COOKIE_NAME}=; ` +
+          "Path=/; Max-Age=0; " +
+          "HttpOnly; Secure; SameSite=Lax"
+      );
+    }
+
+    return invalidSessionResponse;
   }
 
   /*
