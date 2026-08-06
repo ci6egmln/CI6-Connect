@@ -93,13 +93,57 @@ const MISSION_ADAPTATION_PHRASES=[
   "{P} s’accommode aisément des conditions exigeantes, tire efficacement parti des moyens disponibles et préserve la qualité d’exécution de la mission.",
   "Quelles que soient les conditions et les moyens disponibles, {p} fait preuve d’ingéniosité et d’adaptation. {P} accomplit la mission avec une efficacité exemplaire."
 ];
-const RESPONSIBILITY_PHRASES=[
-  (female,pronoun)=>`${pronoun} s’est montré${female?'e':''} insuffisamment impliqué${female?'e':''} et n’a pas répondu aux attentes liées à cette fonction.`,
-  (female,pronoun)=>`${pronoun} a fait preuve d’une implication encore limitée et irrégulière, qui doit être renforcée.`,
-  (female,pronoun)=>`${pronoun} a fait preuve d’une implication satisfaisante et a correctement rempli les missions confiées.`,
-  (female,pronoun)=>`${pronoun} a fait preuve d’une implication très soutenue, avec sérieux, disponibilité et sens du service.`,
-  (female,pronoun)=>`${pronoun} a fait preuve d’une implication exemplaire et a été un appui particulièrement fiable pour le collectif.`
-];
+const RESPONSIBILITY_PHRASES={
+  tam:[
+    "{P} a exercé sa fonction de TAM sans l’application ni le sérieux attendus.",
+    "{P} a exercé sa fonction de TAM avec une application et un sérieux encore irréguliers.",
+    "{P} a exercé sa fonction de TAM avec l’application et le sérieux attendus.",
+    "{P} a exercé sa fonction de TAM avec beaucoup d’application et de sérieux.",
+    "{P} a exercé sa fonction de TAM avec une application et un sérieux exemplaires."
+  ],
+  popotier:[
+    "{P} a exercé sa fonction de {role} sans contribuer suffisamment à la cohésion du collectif.",
+    "{P} a exercé sa fonction de {role} en contribuant encore irrégulièrement à la cohésion du collectif.",
+    "{P} a exercé sa fonction de {role} en participant de manière satisfaisante à la cohésion du collectif.",
+    "{P} a exercé sa fonction de {role} en contribuant activement à la cohésion et à la vie du collectif.",
+    "{P} a exercé sa fonction de {role} avec un engagement exemplaire et a constitué un véritable moteur de cohésion."
+  ],
+  president:[
+    "{P} a exercé sa fonction de {role} sans manifester suffisamment de disponibilité au service des autres.",
+    "{P} a exercé sa fonction de {role} avec une disponibilité encore limitée au service des autres.",
+    "{P} a exercé sa fonction de {role} avec la disponibilité attendue au service des autres.",
+    "{P} a exercé sa fonction de {role} avec un grand sens du service et une réelle disponibilité pour les autres.",
+    "{P} a exercé sa fonction de {role} avec un engagement exemplaire, constamment tourné vers le service des autres."
+  ],
+  magasinier:[
+    "{P} a exercé sa fonction de {role} sans la méthode ni le sens des responsabilités attendus.",
+    "{P} a exercé sa fonction de {role} avec une méthode et un sens des responsabilités encore irréguliers.",
+    "{P} a exercé sa fonction de {role} avec la méthode et le sens des responsabilités attendus.",
+    "{P} a exercé sa fonction de {role} avec beaucoup de méthode, de fiabilité et de sens des responsabilités.",
+    "{P} a exercé sa fonction de {role} avec une méthode, une fiabilité et un sens des responsabilités exemplaires."
+  ],
+  tresorier:[
+    "{P} a exercé sa fonction de {role} sans la rigueur ni la fiabilité attendues.",
+    "{P} a exercé sa fonction de {role} avec une rigueur et une fiabilité encore irrégulières.",
+    "{P} a exercé sa fonction de {role} avec la rigueur et la fiabilité attendues.",
+    "{P} a exercé sa fonction de {role} avec beaucoup de rigueur, de fiabilité et de sérieux.",
+    "{P} a exercé sa fonction de {role} avec une rigueur, une fiabilité et un sérieux exemplaires."
+  ],
+  secretaire:[
+    "{P} a exercé sa fonction de secrétaire sans l’organisation ni la précision attendues.",
+    "{P} a exercé sa fonction de secrétaire avec une organisation et une précision encore irrégulières.",
+    "{P} a exercé sa fonction de secrétaire avec l’organisation et la précision attendues.",
+    "{P} a exercé sa fonction de secrétaire avec beaucoup d’organisation, de précision et de disponibilité.",
+    "{P} a exercé sa fonction de secrétaire avec une organisation, une précision et une disponibilité exemplaires."
+  ],
+  other:[
+    "Dans sa fonction de {role}, {p} n’a pas fait preuve de l’implication attendue.",
+    "Dans sa fonction de {role}, {p} a fait preuve d’une implication encore limitée et irrégulière.",
+    "Dans sa fonction de {role}, {p} a fait preuve de l’implication et du sérieux attendus.",
+    "Dans sa fonction de {role}, {p} a fait preuve d’une implication très soutenue et d’un grand sérieux.",
+    "Dans sa fonction de {role}, {p} a fait preuve d’une implication et d’un sérieux exemplaires."
+  ]
+};
 const THEMES=[
   {id:"integration",title:"Intégration à l’unité et valeurs militaires",help:"Vie collective, discipline, hiérarchie et appropriation des valeurs.",phrases:[
     "très difficilement intégré{e} au sein de l’unité. {P} peine à trouver sa place et à adopter les comportements attendus. Discipline, respect de la hiérarchie et adhésion aux valeurs militaires doivent être renforcés.",
@@ -157,7 +201,7 @@ function physicalEvolutionLiteral(level){const preparation=PHYSICAL_PREPARATIONS
 function setbackRecoveryLiteral(level){return genderPhrase(SETBACK_RECOVERY_PHRASES[level-1])}
 function missionAdaptationLiteral(level){return genderPhrase(MISSION_ADAPTATION_PHRASES[level-1])}
 function themeLiteral(theme,level){const female=selected?.sexe==='F';let phrase=genderPhrase(theme.phrases[level-1]);if(theme.id==='integration')return `L’élève-gendarme ${selected.nom.toLocaleUpperCase('fr-FR')} ${selected.prenom}, affecté${female?'e':''} à la 6ème compagnie le ${formatIncorporationDate(bootstrap.incorporationDate)} s’est ${phrase}`;if(theme.id==='robustness')return `${physicalEvolutionLiteral(level)} ${setbackRecoveryLiteral(Number(record.setback_recovery_level||3))} ${missionAdaptationLiteral(Number(record.mission_adaptation_level||3))}`;if(theme.id==='results'){const pronoun=female?'elle':'il';phrase=`${phrase} Avec une moyenne générale de ${formatNumber(selected.moyenne)}/20, ${pronoun} se classe ${formatRank(selected.classement,selected.sexe)} sur ${bootstrap.totalEg} élèves gendarmes au sein de la ${selected.promotion}.`}return phrase}
-function responsibilityLiteral(){const responsibility=RESPONSIBILITIES.find(item=>item.id===String(record.responsibility||''));if(!responsibility?.id)return'';const female=selected?.sexe==='F';const pronoun=female?'elle':'il';const roleLabel=female?responsibility.female:responsibility.label;const customLabel=String(record.responsibility_label||'').trim();const role=responsibility.id==='tam'?'TAM':responsibility.id==='other'?customLabel:roleLabel.toLocaleLowerCase('fr-FR');if(!role)return'';const introductions={tam:'Sa fonction de TAM exige rigueur et sérieux ;',popotier:`Sa fonction de ${role} contribue à la cohésion ;`,president:`Sa fonction de ${role} est exercée au service des autres ;`,magasinier:`Sa fonction de ${role} exige méthode et responsabilité ;`};const introduction=introductions[responsibility.id]||`Comme ${role},`;const level=Math.min(5,Math.max(1,Number(record.responsibility_level||3)));return `${introduction} ${RESPONSIBILITY_PHRASES[level-1](female,pronoun)}`}
+function responsibilityLiteral(){const responsibility=RESPONSIBILITIES.find(item=>item.id===String(record.responsibility||''));if(!responsibility?.id)return'';const female=selected?.sexe==='F';const roleLabel=female?responsibility.female:responsibility.label;const customLabel=String(record.responsibility_label||'').trim();const role=responsibility.id==='tam'?'TAM':responsibility.id==='other'?customLabel:roleLabel.toLocaleLowerCase('fr-FR');if(!role)return'';const level=Math.min(5,Math.max(1,Number(record.responsibility_level||3)));const phrases=RESPONSIBILITY_PHRASES[responsibility.id]||RESPONSIBILITY_PHRASES.other;return genderPhrase(phrases[level-1].replaceAll('{role}',role))}
 function markSelectionChanged(){message('Réglage modifié. Cliquez sur « Générer le littéral » lorsque les six blocs vous conviennent.','info')}
 function renderCriteria(){
   const locked=!bootstrap.permission.isAdmin&&!['todo','draft'].includes(record.status);
