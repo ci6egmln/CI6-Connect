@@ -3097,6 +3097,35 @@ function injectFicheEditorStyles() {
       gap: 9px;
     }
 
+    #chooseEditorDocumentImageButton,
+    #applyEditorDocumentImagePathButton {
+      color: #ffffff !important;
+      border-color: #c79add !important;
+      background:
+        linear-gradient(
+          135deg,
+          #8b5a99,
+          #583661
+        ) !important;
+      box-shadow: 0 8px 20px rgba(88,54,97,.28);
+    }
+
+    #chooseEditorDocumentImageButton:hover,
+    #chooseEditorDocumentImageButton:focus-visible,
+    #applyEditorDocumentImagePathButton:hover,
+    #applyEditorDocumentImagePathButton:focus-visible {
+      color: #ffffff !important;
+      border-color: #ddb6ee !important;
+      background:
+        linear-gradient(
+          135deg,
+          #a36db3,
+          #70467b
+        ) !important;
+      outline: 3px solid rgba(199,154,221,.24);
+      outline-offset: 2px;
+    }
+
     .fiche-editor-empty {
       padding: 28px 18px;
       text-align: center;
@@ -4622,6 +4651,23 @@ function openFicheEditor() {
                   hidden
                 >
 
+                <div class="fiche-editor-field">
+                  <label for="editorDocumentImagePath">
+                    Ou utiliser une image déjà présente sur le dépôt
+                  </label>
+                  <input
+                    id="editorDocumentImagePath"
+                    type="text"
+                    placeholder="assets/photos/nom-de-image.webp"
+                    autocomplete="off"
+                    spellcheck="false"
+                  >
+                  <small class="fiche-editor-field-help">
+                    Indiquez son chemin depuis la racine du site, par exemple
+                    <code>assets/photos/guide.webp</code>.
+                  </small>
+                </div>
+
                 <div class="fiche-editor-document-image-actions">
                   <button
                     type="button"
@@ -4630,6 +4676,15 @@ function openFicheEditor() {
                     ${isVisitorMode() ? "disabled" : ""}
                   >
                     Joindre une image au document
+                  </button>
+
+                  <button
+                    type="button"
+                    id="applyEditorDocumentImagePathButton"
+                    class="fiche-editor-button secondary"
+                    ${isVisitorMode() ? "disabled" : ""}
+                  >
+                    Utiliser cette image
                   </button>
 
                   <button
@@ -4911,8 +4966,14 @@ function openFicheEditor() {
   const documentImageFileInput =
     overlay.querySelector("#editorDocumentImageFile");
 
+  const documentImagePathInput =
+    overlay.querySelector("#editorDocumentImagePath");
+
   const chooseDocumentImageButton =
     overlay.querySelector("#chooseEditorDocumentImageButton");
+
+  const applyDocumentImagePathButton =
+    overlay.querySelector("#applyEditorDocumentImagePathButton");
 
   const removeDocumentImageButton =
     overlay.querySelector("#removeEditorDocumentImageButton");
@@ -5413,6 +5474,7 @@ function openFicheEditor() {
       documentImagePreview.hidden = true;
       documentImagePreview.removeAttribute("src");
       removeDocumentImageButton.hidden = true;
+      documentImagePathInput.value = "";
       return;
     }
 
@@ -5428,6 +5490,10 @@ function openFicheEditor() {
       documentImagePreview.src = imagePath;
     } else {
       documentImagePreview.removeAttribute("src");
+    }
+
+    if (document.activeElement !== documentImagePathInput) {
+      documentImagePathInput.value = imagePath;
     }
   }
 
@@ -5625,6 +5691,7 @@ function openFicheEditor() {
     documentSelectedFile.textContent = "";
     documentUploadStatus.textContent = "";
     documentImageFileInput.value = "";
+    documentImagePathInput.value = "";
     documentImageStatus.textContent = "";
     documentImageStatus.className =
       "fiche-editor-upload-status";
@@ -6036,6 +6103,67 @@ function openFicheEditor() {
       }
 
       documentImageFileInput.click();
+    }
+  );
+
+  function applyDocumentImagePath() {
+    if (isVisitorMode()) {
+      return;
+    }
+
+    if (blockDocuments.length === 0) {
+      documentImageStatus.textContent =
+        "Ajoutez d’abord le document à ouvrir.";
+      documentImageStatus.className =
+        "fiche-editor-upload-status error";
+      return;
+    }
+
+    const imagePath =
+      documentImagePathInput.value.trim();
+
+    if (!imagePath) {
+      documentImageStatus.textContent =
+        "Indiquez le chemin de l’image présente sur le dépôt.";
+      documentImageStatus.className =
+        "fiche-editor-upload-status error";
+      documentImagePathInput.focus();
+      return;
+    }
+
+    if (!/\.(?:jpe?g|png|webp)(?:[?#].*)?$/i.test(imagePath)) {
+      documentImageStatus.textContent =
+        "Le chemin doit désigner une image JPEG, PNG ou WebP.";
+      documentImageStatus.className =
+        "fiche-editor-upload-status error";
+      documentImagePathInput.focus();
+      return;
+    }
+
+    mediaUrl.value = imagePath;
+    mediaCaption.value = "";
+    refreshExistingImage();
+
+    documentImageStatus.textContent =
+      "Image associée : elle ouvrira le document lorsque l’utilisateur cliquera dessus.";
+    documentImageStatus.className =
+      "fiche-editor-upload-status success";
+  }
+
+  applyDocumentImagePathButton.addEventListener(
+    "click",
+    applyDocumentImagePath
+  );
+
+  documentImagePathInput.addEventListener(
+    "keydown",
+    event => {
+      if (event.key !== "Enter") {
+        return;
+      }
+
+      event.preventDefault();
+      applyDocumentImagePath();
     }
   );
 
