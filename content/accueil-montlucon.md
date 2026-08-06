@@ -4,7 +4,7 @@ icon: "assets/cards/accueil-montlucon.png"
 cover: "assets/photos/accueil-montlucon-couverture-3.webp"
 quote: "Entre patrimoine, commerces et services, Montluçon vous accompagne tout au long de votre formation."
 ---
-:::bloc bleu | Présentation de Montluçon | ℹ️
+:::bloc bleu | Présentation de Montluçon | ℹ️ | fixe
 Montluçon est une ville moyenne du département de l'Allier. Sous-préfecture de **33.000 habitants** elle est la plus grande ville du département devant Vichy et Moulins, la préfecture. 
 Elle est aujourd'hui le centre d'une aire urbaine de près de 80 000 habitants.
 
@@ -14,7 +14,7 @@ Située dans l'ouest de la province du Bourbonnais, elle fut longtemps rivale de
 Elle connut un essor à partir de la seconde moitié du XIXe siècle, l'activité industrielle s'y développa grâce au canal de Berry et à la présence de houille dans la région. Des firmes, comme Dunlop, s'y installèrent et firent la renommée de cette cité mais le déclin industriel et démographique vint après les Trente Glorieuses. C'est également la ville où a grandi Audrey Tautou.
 :::
 
-:::galerie Quelques vue de la ville
+:::galerie Quelques vue de la ville | ferme
 assets/photos/accueil-montlucon-mupop.webp | musée de la musique populaire
 assets/photos/accueil-montlucon-centre-ancien.webp
 assets/photos/accueil-montlucon-vue-du-ciel.webp
@@ -25,14 +25,14 @@ assets/photos/accueil-montlucon-jules-guesde.webp | Buste de Jules Guesde - Mus�
 assets/photos/accueil-montlucon-chateau-ducs-bourbon.webp | Château des ducs de Bourbon
 :::
 
-:::video-lien La ville en vidéo
-https://www.youtube.com/watch?v=__ro2npvtQ4 | Montluçon Ville et ses plus beaux endroits
-:::
-
-:::image-texte jaune | Le guide de Montluçon - culture, visites, activités, loisirs, sports, nature et points de vente | 💡
+:::image-texte jaune | Le guide de Montluçon - culture, visites, activités, loisirs, sports, nature et points de vente | 💡 | ferme
 assets/photos/accueil-montlucon-page-guide.webp
 
 Consultez ou télécharger le guide joint. Vous y trouverez une mine d'informations sur Montluçon et les activités que cette ville vous offre.
 **Documents à télécharger**
 - [guide de montlucon](assets/documents/accueil-montlucon-guide-de-montlucon.pdf)
+:::
+
+:::video-lien La ville en vidéo | fixe
+https://www.youtube.com/watch?v=__ro2npvtQ4 | Montluçon Ville et ses plus beaux endroits
 :::
