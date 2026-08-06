@@ -251,24 +251,31 @@ export async function onRequestPost(context) {
     }
 
     if (action === "recovery-movement") {
-      const personId = Number(body.person_id);
+      const personIds = [...new Set((Array.isArray(body.person_ids) ? body.person_ids : [body.person_id]).map(Number).filter(Number.isInteger))];
       const movementType = ["credit", "debit", "adjustment"].includes(body.movement_type) ? body.movement_type : "";
       const rawAmount = Math.abs(Number(body.amount));
       const date = String(body.movement_date || "");
       const reason = cleanText(body.reason, 250);
-      if (!Number.isInteger(personId) || !movementType || !validDate(date) || !reason || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
+      if (!personIds.length || personIds.length > 200 || !movementType || !validDate(date) || !reason || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
         return serviceJson({ error: "Mouvement de repos incomplet ou invalide." }, 400);
       }
-      const person = await db.prepare(`SELECT id FROM service_people WHERE id=? AND active=1`).bind(personId).first();
-      if (!person) return serviceJson({ error: "Cadre introuvable." }, 404);
       const amount = movementType === "debit" ? -rawAmount : rawAmount;
-      const result = await db.prepare(`
-        INSERT INTO service_recovery_ledger
-          (person_id, movement_date, amount, movement_type, reason, created_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).bind(personId, date, amount, movementType, reason, permission.username).run();
-      await auditService(db, "recovery-movement", null, permission.username, null, { id: result.meta?.last_row_id, personId, date, amount, movementType, reason });
-      return serviceJson({ success: true, id: result.meta?.last_row_id });
+      const ids = [];
+      for (const personId of personIds) {
+        const person = await db.prepare(`SELECT id FROM service_people WHERE id=? AND active=1`).bind(personId).first();
+        if (!person) return serviceJson({ error: "Un des cadres sélectionnés est introuvable." }, 404);
+      }
+      for (const personId of personIds) {
+        const result = await db.prepare(`
+          INSERT INTO service_recovery_ledger
+            (person_id, movement_date, amount, movement_type, reason, created_by)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(personId, date, amount, movementType, reason, permission.username).run();
+        const id = result.meta?.last_row_id;
+        ids.push(id);
+        await auditService(db, "recovery-movement", null, permission.username, null, { id, personId, date, amount, movementType, reason });
+      }
+      return serviceJson({ success: true, created: ids.length, ids });
     }
 
     if (action === "save-people") {

@@ -89,9 +89,9 @@
   </section>
 
   <section id="recoveryTab" class="tab-panel" hidden>
-    <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div><button id="newMovement" class="button" type="button">Ajouter un mouvement</button></div>
+    <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div></div>
     <div id="recoveryCards" class="recovery-cards"></div>
-    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Motif</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Montant</th><th>Motif</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>
@@ -99,7 +99,7 @@
 <dialog id="movementDialog" class="service-dialog">
   <form id="movementForm" method="dialog">
     <div class="dialog-head"><div><div class="eyebrow">REPOS RÉCUPÉRATEURS</div><h2>Ajouter un mouvement</h2></div><button id="closeMovementDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
-    <label>Cadre<select id="movementPerson" required></select></label>
+    <fieldset class="movement-people-field"><legend>Cadres concernés</legend><p>Le cadre consulté est sélectionné par défaut. Cochez les autres cadres bénéficiant du même mouvement.</p><div id="movementPeople" class="movement-people"></div></fieldset>
     <div class="form-grid"><label>Type<select id="movementType"><option value="credit">Crédit acquis</option><option value="debit">Repos pris</option><option value="adjustment">Ajustement positif</option></select></label><label>Nombre de jours<input id="movementAmount" type="number" min="0.5" max="100" step="0.5" value="0.5" required></label></div>
     <label>Date<input id="movementDate" type="date" required></label>
     <label>Motif<input id="movementReason" maxlength="250" placeholder="Ex. samedi travaillé, permanence, repos pris…" required></label>

@@ -116,12 +116,15 @@ async function loadPlanning({ preserveScroll = false } = {}) {
     const data = await api(`/cadres/service?action=bootstrap&start=${iso(period.start)}&end=${iso(period.end)}`);
     state.data = data;
     state.entries = new Map(data.entries.map(entry => [entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry]));
-    $("managePeople").hidden = !data.permission.isAdmin;
+    const managePeopleButton = $("managePeople");
+    if (managePeopleButton) {
+      if (data.permission.isAdmin) managePeopleButton.hidden = false;
+      else managePeopleButton.remove();
+    }
     renderPalette();
     renderPlanning();
     renderSop();
     renderRecovery();
-    populatePeopleSelect();
     updatePeriodLabel();
     if (scroll) { viewport.scrollLeft = scroll.left; viewport.scrollTop = scroll.top; }
     message("planningMessage", "", "info");
@@ -383,16 +386,27 @@ async function loadRecoveryDetail(personId) {
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
 
-function populatePeopleSelect() { $("movementPerson").innerHTML = state.data.people.map(person => `<option value="${person.id}">${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</option>`).join(""); }
+function populateMovementPeople(selectedIds = []) {
+  const selected = new Set(selectedIds.map(Number));
+  $("movementPeople").innerHTML = state.data.people.map(person => `<label class="movement-person"><input type="checkbox" value="${person.id}"${selected.has(Number(person.id)) ? " checked" : ""}><span>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</span></label>`).join("");
+}
+
+function openMovementDialog() {
+  if (!state.activeRecoveryPerson) return;
+  populateMovementPeople([state.activeRecoveryPerson]);
+  $("movementDialog").showModal();
+}
 
 async function saveMovement(event) {
   event.preventDefault();
+  const personIds = [...$("movementPeople").querySelectorAll('input[type="checkbox"]:checked')].map(input => Number(input.value));
+  if (!personIds.length) return message("recoveryMessage", "Sélectionnez au moins un cadre.", "error");
   try {
-    await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_id: Number($("movementPerson").value), movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, reason: $("movementReason").value }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_ids: personIds, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, reason: $("movementReason").value }) });
     $("movementDialog").close(); $("movementReason").value = "";
     await refreshCounters();
     if (state.activeRecoveryPerson) await loadRecoveryDetail(state.activeRecoveryPerson);
-    message("recoveryMessage", "Mouvement enregistré.", "ok");
+    message("recoveryMessage", `Mouvement enregistré pour ${data.created} cadre${data.created > 1 ? "s" : ""}.`, "ok");
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
 
@@ -469,7 +483,7 @@ $("addActivity").onclick = () => {
 };
 $("exportPlanning").onclick = exportPlanning;
 $("movementDate").value = iso(utcDate());
-$("newMovement").onclick = () => $("movementDialog").showModal();
+$("newMovement").onclick = openMovementDialog;
 $("movementForm").addEventListener("submit", saveMovement);
 $("cancelMovement").onclick = () => $("movementDialog").close();
 $("closeMovementDialog").onclick = () => $("movementDialog").close();

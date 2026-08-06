@@ -227,6 +227,74 @@
   font-size: 12px;
 }
 
+.recovery-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.movement-people-field {
+  margin: 0 0 12px;
+  padding: 10px;
+  border: 1px solid #596168;
+  border-radius: 9px;
+}
+
+.movement-people-field legend {
+  padding: 0 5px;
+  color: var(--gold-light);
+  font-weight: 800;
+}
+
+.movement-people-field p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.movement-people {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-height: 230px;
+  overflow: auto;
+}
+
+.movement-person {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 7px !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 7px 8px;
+  border: 1px solid #414950;
+  border-radius: 7px;
+  background: #0d1114;
+  cursor: pointer;
+}
+
+.movement-person:has(input:checked) {
+  border-color: #67b7eb;
+  background: rgba(31, 116, 173, .2);
+}
+
+.movement-person input {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0;
+  accent-color: var(--blue-light);
+}
+
+.movement-person span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
 .slot-cell .slot-code {
   font-size: 8px;
 }
@@ -314,6 +382,10 @@
   .activity-colors em,
   .activity-action span {
     display: none;
+  }
+
+  .movement-people {
+    grid-template-columns: 1fr;
   }
 
   .row-name.vacation,
