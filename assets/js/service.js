@@ -1279,8 +1279,6 @@ document.querySelectorAll(".range-button").forEach(button => button.onclick = ()
 $("previousPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks -= 1; loadPlanning(); };
 $("nextPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks += 1; loadPlanning(); };
 $("today").onclick = () => { state.mode = "default"; state.offsetWeeks = 0; loadPlanning(); };
-$("refreshPlanning").onclick = () => loadPlanning({ preserveScroll: true });
-$("clearSelection").onclick = clearSelection;
 $("deleteSelection").onclick = deleteSelection;
 $("saveEntryDetails").onclick = saveEntryDetails;
 $("addActivity").onclick = () => {
@@ -1293,9 +1291,7 @@ $("addActivity").onclick = () => {
   const color = document.querySelector('input[name="activityColor"]:checked')?.value || "";
   applyService("D", { merge: true, customColor: color, activity: true });
 };
-$("exportPlanning").onclick = exportPlanning;
 $("studentService").onclick = openStudentService;
-$("printPlanning4Weeks").onclick = openPlanningPrint;
 $("previewPlanningPrint").onclick = refreshPlanningPrint;
 $("planningPrintStart").onchange = refreshPlanningPrint;
 $("launchPlanningPrint").onclick = printPlanning4Weeks;

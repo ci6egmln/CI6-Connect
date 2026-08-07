@@ -346,6 +346,48 @@
       #servicePalette .compact-detail-note { flex: 1 1 130px; }
     }
 
+    /* Barre de période : compacte sur une seule ligne sur ordinateur. */
+    .planning-controls-row .planning-toolbar {
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      padding: 7px 9px !important;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+    .planning-controls-row .planning-toolbar .period-controls,
+    .planning-controls-row .planning-toolbar .range-shortcuts,
+    .planning-controls-row .planning-toolbar .toolbar-actions {
+      flex-wrap: nowrap !important;
+      gap: 5px !important;
+      margin: 0 !important;
+      flex: 0 0 auto;
+    }
+    .planning-controls-row .planning-toolbar .range-button,
+    .planning-controls-row .planning-toolbar .button.compact {
+      white-space: nowrap;
+    }
+    .planning-controls-row .planning-toolbar .period-label {
+      white-space: nowrap;
+      font-size: 12px;
+    }
+    .planning-controls-row .selection-bar {
+      padding: 7px 9px !important;
+    }
+    @media (max-width: 850px) {
+      .planning-controls-row .planning-toolbar {
+        display: flex !important;
+        align-items: center !important;
+        overflow-x: auto;
+      }
+      .planning-controls-row .planning-toolbar .period-controls,
+      .planning-controls-row .planning-toolbar .range-shortcuts,
+      .planning-controls-row .planning-toolbar .toolbar-actions {
+        display: flex !important;
+        margin-top: 0 !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -383,11 +425,8 @@
         <button class="range-button" data-months="18" type="button">18 mois</button>
       </div>
       <div class="toolbar-actions">
-        <button id="refreshPlanning" class="button secondary compact" type="button">Actualiser</button>
-        <button id="exportPlanning" class="button secondary compact" type="button">Exporter CSV</button>
-        <button id="studentService" class="button compact" type="button">Service élèves</button>
-        <button id="printPlanning4Weeks" class="button secondary compact" type="button">Imprimer 4 semaines</button>
-        <button id="saveMonthImage" class="button secondary compact" type="button">Sauvegarder un mois</button>
+        <button id="studentService" class="button compact" type="button">Imprimer permanences</button>
+        <button id="saveMonthImage" class="button compact" type="button">Sauvegarder un mois</button>
         <button id="purgePlanning" class="button danger compact" type="button" hidden>Purger une période</button>
         <div id="permanenceCounterStartControl" class="counter-start-control" hidden>
           <label for="permanenceCounterStart">Compteur P depuis</label>
@@ -399,7 +438,7 @@
 
     <div class="selection-bar panel-soft">
       <div><strong id="selectionCount">Aucune case sélectionnée</strong><span id="selectionHelp"> Clic : nouvelle sélection · Cliquer-glisser : sélectionner une plage, y compris sur plusieurs lignes · Ctrl + clic : ajouter ou retirer · Maj + clic : étendre la sélection.</span></div>
-      <div class="selection-actions"><button id="clearSelection" class="button secondary compact" type="button">Effacer</button><button id="deleteSelection" class="button danger compact" type="button" disabled>Supprimer</button></div>
+      <div class="selection-actions"><button id="deleteSelection" class="button danger compact" type="button" disabled>Supprimer</button></div>
     </div>
     </div>
 
