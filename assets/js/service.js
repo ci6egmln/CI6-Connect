@@ -13,7 +13,9 @@ const state = {
   entries: new Map(),
   activeRecoveryPerson: null,
   studentExport: null,
-  planningPrintExport: null
+  planningPrintExport: null,
+  dragSelection: null,
+  suppressNextClick: false
 };
 
 function utcDate(value = new Date()) {
@@ -249,7 +251,7 @@ function renderPlanning() {
       const groupId = item.entry?.group_id || "";
       let span = 1;
       if (groupId) while (slotIndex + span < slots.length && slots[slotIndex + span].entry?.group_id === groupId) span += 1;
-      const grouped = span > 1 || Boolean(groupId);
+      const grouped = span > 1;
       const groupedItems = slots.slice(slotIndex, slotIndex + span);
       const entry = item.entry;
       const type = entry ? typeFor(entry.service_code) : null;
@@ -267,11 +269,126 @@ function renderPlanning() {
   });
   html += "</div>";
   $("planningViewport").innerHTML = html;
-  $("planningViewport").querySelectorAll(".slot-cell").forEach(cell => cell.onclick = event => selectCells(
-    cell.dataset.keys.split(","),
-    { extend: event.shiftKey, additive: event.ctrlKey || event.metaKey }
-  ));
+  bindPlanningSelection();
 }
+
+function atomicKeyAtPointer(cell, clientX) {
+  const keys = cell.dataset.keys.split(",").filter(Boolean);
+  if (keys.length <= 1) return keys[0] || "";
+  const rect = cell.getBoundingClientRect();
+  const ratio = rect.width > 0 ? Math.max(0, Math.min(0.999999, (clientX - rect.left) / rect.width)) : 0;
+  return keys[Math.floor(ratio * keys.length)] || keys[0];
+}
+
+function planningRowOrder() {
+  const rows = [];
+  const seen = new Set();
+  document.querySelectorAll("#planningViewport .slot-cell[data-keys]").forEach(cell => {
+    const key = cell.dataset.keys.split(",")[0];
+    if (!key) return;
+    const parsed = parseKey(key);
+    const signature = `${parsed.target_type}|${parsed.target_key}`;
+    if (!seen.has(signature)) {
+      seen.add(signature);
+      rows.push({ signature, target_type: parsed.target_type, target_key: parsed.target_key });
+    }
+  });
+  return rows;
+}
+
+function planningColumnIndex(key) {
+  const parsed = parseKey(key);
+  const start = utcDate(state.start);
+  const current = utcDate(parsed.service_date);
+  const dayIndex = Math.round((current - start) / DAY_MS);
+  return dayIndex * 2 + (parsed.slot === "N" ? 1 : 0);
+}
+
+function rectangleKeys(anchorKey, currentKey) {
+  const rows = planningRowOrder();
+  const anchor = parseKey(anchorKey);
+  const current = parseKey(currentKey);
+  const aRow = rows.findIndex(row => row.signature === `${anchor.target_type}|${anchor.target_key}`);
+  const bRow = rows.findIndex(row => row.signature === `${current.target_type}|${current.target_key}`);
+  const aCol = planningColumnIndex(anchorKey);
+  const bCol = planningColumnIndex(currentKey);
+  if (aRow < 0 || bRow < 0 || aCol < 0 || bCol < 0) return [];
+
+  const minRow = Math.min(aRow, bRow);
+  const maxRow = Math.max(aRow, bRow);
+  const minCol = Math.min(aCol, bCol);
+  const maxCol = Math.max(aCol, bCol);
+  const days = daysBetween(state.start, state.end);
+  const result = [];
+  for (let rowIndex = minRow; rowIndex <= maxRow; rowIndex += 1) {
+    const row = rows[rowIndex];
+    for (let column = minCol; column <= maxCol; column += 1) {
+      const day = days[Math.floor(column / 2)];
+      if (!day) continue;
+      const slot = column % 2 ? "N" : "M";
+      result.push(entryKey(row.target_type, row.target_key, iso(day), slot));
+    }
+  }
+  return result;
+}
+
+function bindPlanningSelection() {
+  const viewport = $("planningViewport");
+  const cells = [...viewport.querySelectorAll(".slot-cell[data-keys]")];
+
+  cells.forEach(cell => {
+    cell.onclick = event => {
+      if (state.suppressNextClick) {
+        state.suppressNextClick = false;
+        return;
+      }
+      selectCells(cell.dataset.keys.split(","), {
+        extend: event.shiftKey,
+        additive: event.ctrlKey || event.metaKey
+      });
+    };
+
+    cell.onpointerdown = event => {
+      if (event.button !== 0 || !["mouse", "pen"].includes(event.pointerType)) return;
+      const anchorKey = atomicKeyAtPointer(cell, event.clientX);
+      if (!anchorKey) return;
+      state.dragSelection = {
+        anchorKey,
+        currentKey: anchorKey,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        additive: event.ctrlKey || event.metaKey,
+        base: new Set(event.ctrlKey || event.metaKey ? state.selected : [])
+      };
+    };
+  });
+}
+
+document.addEventListener("pointermove", event => {
+  const drag = state.dragSelection;
+  if (!drag || !["mouse", "pen"].includes(event.pointerType)) return;
+  if (!drag.moved && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 4) return;
+  drag.moved = true;
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.("#planningViewport .slot-cell[data-keys]");
+  if (!target) return;
+  const currentKey = atomicKeyAtPointer(target, event.clientX);
+  if (!currentKey) return;
+  drag.currentKey = currentKey;
+  state.selected = new Set(drag.base);
+  rectangleKeys(drag.anchorKey, currentKey).forEach(key => state.selected.add(key));
+  state.lastSelected = currentKey;
+  refreshSelectionClasses();
+  updateSelectionBar();
+  event.preventDefault();
+}, { passive: false });
+
+document.addEventListener("pointerup", event => {
+  const drag = state.dragSelection;
+  if (!drag || !["mouse", "pen"].includes(event.pointerType)) return;
+  if (drag.moved) state.suppressNextClick = true;
+  state.dragSelection = null;
+});
 
 function selectCells(keys, { extend = false, additive = false } = {}) {
   const key = keys.at(-1);

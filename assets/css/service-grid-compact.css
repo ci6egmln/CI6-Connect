@@ -808,3 +808,21 @@
 
 .planning-print-week { page: planningPage; }
 .student-print-sheet { page: studentPage; }
+
+/* Sélection PC : empêche la sélection de texte pendant un cliquer-glisser. */
+#planningViewport .slot-cell {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Une activité issue d'une multi-sélection mais isolée sur une seule case
+   reste une cellule normale : pas de relief/bordure qui écrase le libellé. */
+.slot-cell.has-entry:not(.merged-activity) .slot-code {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.05;
+}
