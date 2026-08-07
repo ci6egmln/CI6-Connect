@@ -655,14 +655,10 @@ function sopDatesByMonth(items = []) {
     if (!byDate.has(date)) byDate.set(date, new Set());
     if (slot) byDate.get(date).add(slot);
   });
-  [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, slots]) => {
+  [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([date]) => {
     const month = date.slice(0, 7);
-    let period = "";
-    if (slots.has("M") && slots.has("N")) period = "Journée";
-    else if (slots.has("M")) period = "M";
-    else if (slots.has("N")) period = "N";
     if (!result.has(month)) result.set(month, []);
-    result.get(month).push({ date, period });
+    result.get(month).push({ date });
   });
   return result;
 }
@@ -736,14 +732,14 @@ function renderSop() {
       const cells = yearMonths.map(month => {
         const monthDates = dates.get(month.key) || [];
         const content = monthDates.length
-          ? `<div class="sop-month-dates">${monthDates.map(item => `<span class="sop-month-date">${esc(frDate(item.date, { day: "2-digit" }))}${item.period ? ` <small>${esc(item.period)}</small>` : ""}</span>`).join("")}</div>`
+          ? `<div class="sop-month-dates">${monthDates.map(item => `<span class="sop-month-date">${esc(frDate(item.date, { day: "2-digit", month: "2-digit" }))}</span>`).join("")}</div>`
           : "";
         return `<td class="sop-month-cell${month.current ? " sop-current-month" : ""}">${content}</td>`;
       }).join("");
       const personCell = yearIndex === 0
         ? `<td class="sop-person-cell" rowspan="${years.length}"><strong>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</strong></td>`
         : "";
-      rows.push(`<tr class="sop-year-row${yearIndex === 0 ? " sop-person-start" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value">${year}</td>${cells}</tr>`);
+      rows.push(`<tr class="sop-year-row sop-year-tone-${yearIndex % 4}${yearIndex === 0 ? " sop-person-start" : ""}${yearIndex === years.length - 1 ? " sop-person-end" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value">${year}</td>${cells}</tr>`);
     });
   });
   $("sopBody").innerHTML = rows.join("") || `<tr><td colspan="14" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>`;
