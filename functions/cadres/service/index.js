@@ -21,6 +21,90 @@ function cleanText(value, max) {
   return String(value || "").trim().slice(0, max);
 }
 
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addIsoDays(value, amount) {
+  const date = new Date(`${value}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
+}
+
+async function linkedLedger(db, entryId) {
+  return db.prepare(`
+    SELECT id, person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group
+    FROM service_recovery_ledger
+    WHERE entry_id=?
+    LIMIT 1
+  `).bind(entryId).first();
+}
+
+async function reverseLinkedMovement(db, entry, permission, comment = "") {
+  const linked = await linkedLedger(db, entry.id);
+  if (!linked || Number(linked.amount) === 0) return false;
+  const amount = -Number(linked.amount);
+  const movementType = amount > 0 ? "credit" : "debit";
+  const label = entry.service_code === "RR" ? "repos récupérateur"
+    : entry.service_code === "RPC" ? "RPC"
+    : entry.service_code === "P" ? "permanence"
+    : "mouvement";
+  await db.prepare(`
+    INSERT INTO service_recovery_ledger
+      (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, reversal_of, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    Number(linked.person_id), todayIso(), todayIso(), amount, movementType,
+    `Annulation ${label}`, cleanText(comment, 500), crypto.randomUUID(), linked.id, permission.username
+  ).run();
+  // Détache l'ancien mouvement de la case : si la même case reçoit plus tard
+  // un nouveau RR/P, elle pourra créer un nouveau mouvement lié sans heurter l'index UNIQUE.
+  await db.prepare(`UPDATE service_recovery_ledger SET entry_id=NULL WHERE id=?`).bind(linked.id).run();
+  return true;
+}
+
+async function permanenceCreditCandidate(db, entry) {
+  if (!entry || entry.target_type !== "person" || entry.service_code !== "P") return false;
+  const existing = await linkedLedger(db, entry.id);
+  if (existing) return false;
+  if (entry.slot === "M") {
+    const rpj = await db.prepare(`
+      SELECT id FROM service_entries
+      WHERE target_type='person' AND target_key=? AND service_date=? AND slot='N' AND service_code='RPJ'
+      LIMIT 1
+    `).bind(entry.target_key, entry.service_date).first();
+    return !rpj;
+  }
+  const nextDate = addIsoDays(entry.service_date, 1);
+  const rpj = await db.prepare(`
+    SELECT id FROM service_entries
+    WHERE target_type='person' AND target_key=? AND service_date=? AND slot='M' AND service_code='RPJ'
+    LIMIT 1
+  `).bind(entry.target_key, nextDate).first();
+  return !rpj;
+}
+
+async function affectedPermanenceForRpj(db, entry) {
+  if (!entry || entry.target_type !== "person" || entry.service_code !== "RPJ") return [];
+  const result = [];
+  if (entry.slot === "N") {
+    const sameDayMorning = await db.prepare(`
+      SELECT * FROM service_entries
+      WHERE target_type='person' AND target_key=? AND service_date=? AND slot='M' AND service_code='P' LIMIT 1
+    `).bind(entry.target_key, entry.service_date).first();
+    if (sameDayMorning) result.push(sameDayMorning);
+  }
+  if (entry.slot === "M") {
+    const previousDate = addIsoDays(entry.service_date, -1);
+    const previousNight = await db.prepare(`
+      SELECT * FROM service_entries
+      WHERE target_type='person' AND target_key=? AND service_date=? AND slot='N' AND service_code='P' LIMIT 1
+    `).bind(entry.target_key, previousDate).first();
+    if (previousNight) result.push(previousNight);
+  }
+  return result;
+}
+
 async function bootstrap(db, permission, start, end) {
   const peopleResult = await db.prepare(`
     SELECT id, username, grade, display_name, peloton, sort_order, active, sop_eligible
@@ -144,7 +228,7 @@ export async function onRequestGet(context) {
       const person = await db.prepare(`SELECT id, grade, display_name FROM service_people WHERE id=? AND active=1`).bind(personId).first();
       if (!person) return serviceJson({ error: "Cadre introuvable." }, 404);
       const result = await db.prepare(`
-        SELECT id, movement_date, amount, movement_type, reason, entry_id, created_by, created_at
+        SELECT id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, reversal_of, entry_id, created_by, created_at
         FROM service_recovery_ledger
         WHERE person_id=?
         ORDER BY movement_date DESC, id DESC
@@ -187,7 +271,9 @@ export async function onRequestPost(context) {
       if (customActivity && !customLabel) return serviceJson({ error: "Le libellé de l’activité est obligatoire." }, 400);
       if (customActivity && !customColor) return serviceJson({ error: "Choisissez une couleur pour l’activité." }, 400);
       const groupId = merge ? crypto.randomUUID() : "";
+      const removalReason = cleanText(body.removal_reason, 500);
       const saved = [];
+      const permanenceCreditCandidates = [];
 
       for (const raw of items) {
         const targetType = raw.target_type === "peloton" ? "peloton" : "person";
@@ -211,6 +297,16 @@ export async function onRequestPost(context) {
           return serviceJson({ error: `La case du ${date} a été modifiée par un autre cadre. Le planning va être actualisé.` }, 409);
         }
 
+        if (previous && previous.service_code !== code) {
+          if (previous.service_code === "RR" && previous.service_date < todayIso() && !permission.isAdmin) {
+            return serviceJson({ error: "Un RR d’un jour passé ne peut être retiré que par un administrateur." }, 403);
+          }
+          if (["RR", "RPC"].includes(previous.service_code) && !removalReason) {
+            return serviceJson({ error: "Indiquez le motif du retrait du repos avant de remplacer cette case." }, 400);
+          }
+          await reverseLinkedMovement(db, previous, permission, removalReason);
+        }
+
         const result = await db.prepare(`
           INSERT INTO service_entries
             (target_type, target_key, service_date, slot, service_code, custom_label, custom_color, group_id, notes, created_by, updated_by)
@@ -231,14 +327,26 @@ export async function onRequestPost(context) {
         `).bind(targetType, targetKey, date, slot).first();
         await auditService(db, previous ? "update" : "create", current?.id || result.meta?.last_row_id, permission.username, previous, current);
         saved.push(current);
+
+        if (current?.service_code === "RPJ") {
+          const permanences = await affectedPermanenceForRpj(db, current);
+          for (const permanence of permanences) {
+            const linked = await linkedLedger(db, permanence.id);
+            if (linked && Number(linked.amount) > 0) {
+              await reverseLinkedMovement(db, permanence, permission, "RPJ accordé après la permanence");
+            }
+          }
+        }
+        if (await permanenceCreditCandidate(db, current)) permanenceCreditCandidates.push(current);
       }
-      return serviceJson({ success: true, entries: saved });
+      return serviceJson({ success: true, entries: saved, permanence_credit_candidates: permanenceCreditCandidates });
     }
 
     if (action === "recovery-from-entries") {
       const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).map(Number).filter(Number.isInteger))];
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Cases de repos invalides." }, 400);
       let created = 0;
+      const entries = [];
       for (const id of ids) {
         const entry = await db.prepare(`
           SELECT id, target_key, service_date, slot, service_code
@@ -246,15 +354,44 @@ export async function onRequestPost(context) {
           WHERE id=? AND target_type='person' AND service_code IN ('RR','RPC')
           LIMIT 1
         `).bind(id).first();
-        if (!entry) continue;
-        const existing = await db.prepare(`SELECT id FROM service_recovery_ledger WHERE entry_id=? LIMIT 1`).bind(id).first();
+        if (entry) entries.push(entry);
+      }
+      entries.sort((a, b) => Number(a.target_key) - Number(b.target_key) || a.service_date.localeCompare(b.service_date) || a.slot.localeCompare(b.slot));
+      const runState = new Map();
+      const ordinal = entry => Math.floor(new Date(`${entry.service_date}T12:00:00Z`).getTime() / 86400000) * 2 + (entry.slot === "N" ? 1 : 0);
+      for (const entry of entries) {
+        const existing = await db.prepare(`SELECT id FROM service_recovery_ledger WHERE entry_id=? LIMIT 1`).bind(entry.id).first();
         if (existing) continue;
-        const type = entry.service_code === "RR" ? "Repos récupérateur" : "Repos post-cérémonie";
+        const runKey = `${entry.target_key}|${entry.service_code}`;
+        const currentOrdinal = ordinal(entry);
+        const previousRun = runState.get(runKey);
+        const movementGroup = previousRun && currentOrdinal === previousRun.ordinal + 1 ? previousRun.group : crypto.randomUUID();
+        runState.set(runKey, { ordinal: currentOrdinal, group: movementGroup });
+        const type = entry.service_code === "RR" ? "Repos récupérateur" : "RPC";
         await db.prepare(`
           INSERT INTO service_recovery_ledger
-            (person_id, movement_date, amount, movement_type, reason, entry_id, created_by)
-          VALUES (?, ?, -0.5, 'debit', ?, ?, ?)
-        `).bind(Number(entry.target_key), entry.service_date, `${type} — ${entry.slot === "M" ? "matin" : "nuit"}`, id, permission.username).run();
+            (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, entry_id, created_by)
+          VALUES (?, ?, ?, -0.5, 'debit', ?, '', ?, ?, ?)
+        `).bind(Number(entry.target_key), entry.service_date, entry.service_date, type, movementGroup, entry.id, permission.username).run();
+        created += 1;
+      }
+      return serviceJson({ success: true, created });
+    }
+
+    if (action === "recovery-from-permanence") {
+      const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).map(Number).filter(Number.isInteger))];
+      if (!ids.length || ids.length > 200) return serviceJson({ error: "Permanences invalides." }, 400);
+      let created = 0;
+      const movementGroup = crypto.randomUUID();
+      for (const id of ids) {
+        const entry = await db.prepare(`SELECT * FROM service_entries WHERE id=? AND target_type='person' AND service_code='P' LIMIT 1`).bind(id).first();
+        if (!entry || !(await permanenceCreditCandidate(db, entry))) continue;
+        const reason = entry.slot === "M" ? "Permanence matin sans récup" : "Permanence soir sans récup";
+        await db.prepare(`
+          INSERT INTO service_recovery_ledger
+            (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, entry_id, created_by)
+          VALUES (?, ?, ?, 0.5, 'credit', ?, '', ?, ?, ?)
+        `).bind(Number(entry.target_key), entry.service_date, entry.service_date, reason, movementGroup, id, permission.username).run();
         created += 1;
       }
       return serviceJson({ success: true, created });
@@ -262,27 +399,46 @@ export async function onRequestPost(context) {
 
     if (action === "delete-entries") {
       const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).map(Number).filter(Number.isInteger))];
+      const deletionReason = cleanText(body.deletion_reason, 500);
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection à supprimer invalide." }, 400);
+      const permanenceCreditCandidates = [];
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) continue;
+        if (previous.service_code === "RR" && previous.service_date < todayIso() && !permission.isAdmin) {
+          return serviceJson({ error: "Un RR d’un jour passé ne peut être retiré que par un administrateur." }, 403);
+        }
+        if (["RR", "RPC"].includes(previous.service_code) && !deletionReason) {
+          return serviceJson({ error: "Le motif du retrait du repos est obligatoire." }, 400);
+        }
+        const affectedPermanences = await affectedPermanenceForRpj(db, previous);
+        await reverseLinkedMovement(db, previous, permission, deletionReason);
         await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(id).run();
-        await auditService(db, "delete", id, permission.username, previous, null);
+        await auditService(db, "delete", id, permission.username, previous, { deletion_reason: deletionReason });
+        for (const permanence of affectedPermanences) {
+          if (await permanenceCreditCandidate(db, permanence)) permanenceCreditCandidates.push(permanence);
+        }
       }
-      return serviceJson({ success: true });
+      return serviceJson({ success: true, permanence_credit_candidates: permanenceCreditCandidates });
     }
 
     if (action === "recovery-movement") {
       const personIds = [...new Set((Array.isArray(body.person_ids) ? body.person_ids : [body.person_id]).map(Number).filter(Number.isInteger))];
-      const movementType = ["credit", "debit", "adjustment"].includes(body.movement_type) ? body.movement_type : "";
+      const movementType = ["credit", "debit"].includes(body.movement_type) ? body.movement_type : "";
       const rawAmount = Math.abs(Number(body.amount));
       const date = String(body.movement_date || "");
+      const periodEnd = String(body.period_end || date);
       const reason = cleanText(body.reason, 250);
-      if (!personIds.length || personIds.length > 200 || !movementType || !validDate(date) || !reason || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
+      const comment = cleanText(body.comment, 500);
+      const creditReasons = new Set(["Activité rupture de rythme", "Activité tradition", "Jour férié travaillé", "Samedi travaillé", "Dimanche travaillé", "Week-end travaillé", "Permanence soir sans récup", "Permanence matin sans récup"]);
+      const debitReasons = new Set(["RPC", "Repos récupérateur"]);
+      const reasonAllowed = movementType === "credit" ? creditReasons.has(reason) : debitReasons.has(reason);
+      if (!personIds.length || personIds.length > 200 || !movementType || !validDate(date) || !validDate(periodEnd) || periodEnd < date || !reasonAllowed || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
         return serviceJson({ error: "Mouvement de repos incomplet ou invalide." }, 400);
       }
       const amount = movementType === "debit" ? -rawAmount : rawAmount;
       const ids = [];
+      const movementGroup = crypto.randomUUID();
       for (const personId of personIds) {
         const person = await db.prepare(`SELECT id FROM service_people WHERE id=? AND active=1`).bind(personId).first();
         if (!person) return serviceJson({ error: "Un des cadres sélectionnés est introuvable." }, 404);
@@ -290,12 +446,12 @@ export async function onRequestPost(context) {
       for (const personId of personIds) {
         const result = await db.prepare(`
           INSERT INTO service_recovery_ledger
-            (person_id, movement_date, amount, movement_type, reason, created_by)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).bind(personId, date, amount, movementType, reason, permission.username).run();
+            (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, created_by)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(personId, date, periodEnd, amount, movementType, reason, comment, movementGroup, permission.username).run();
         const id = result.meta?.last_row_id;
         ids.push(id);
-        await auditService(db, "recovery-movement", null, permission.username, null, { id, personId, date, amount, movementType, reason });
+        await auditService(db, "recovery-movement", null, permission.username, null, { id, personId, date, periodEnd, amount, movementType, reason, comment });
       }
       return serviceJson({ success: true, created: ids.length, ids });
     }

@@ -826,3 +826,6 @@
   text-align: center;
   line-height: 1.05;
 }
+
+.palette-details-button { flex:0 0 auto; align-self:center; margin-left:2px; white-space:nowrap; }
+.service-dialog textarea { width:100%; border:1px solid #596168; border-radius:8px; padding:9px 10px; background:#090d0f; color:#fff; resize:vertical; font:inherit; }

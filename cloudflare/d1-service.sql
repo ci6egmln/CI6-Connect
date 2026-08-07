@@ -46,10 +46,15 @@ CREATE TABLE IF NOT EXISTS service_recovery_ledger (
   amount REAL NOT NULL,
   movement_type TEXT NOT NULL CHECK(movement_type IN ('credit','debit','adjustment')),
   reason TEXT NOT NULL,
+  comment TEXT NOT NULL DEFAULT '',
+  period_end TEXT,
+  movement_group TEXT NOT NULL DEFAULT '',
+  reversal_of INTEGER,
   entry_id INTEGER,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(person_id) REFERENCES service_people(id),
+  FOREIGN KEY(reversal_of) REFERENCES service_recovery_ledger(id) ON DELETE SET NULL,
   FOREIGN KEY(entry_id) REFERENCES service_entries(id) ON DELETE SET NULL
 );
 

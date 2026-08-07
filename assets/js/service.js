@@ -18,6 +18,20 @@ const state = {
   suppressNextClick: false
 };
 
+const RECOVERY_REASONS = {
+  credit: [
+    "Activité rupture de rythme",
+    "Activité tradition",
+    "Jour férié travaillé",
+    "Samedi travaillé",
+    "Dimanche travaillé",
+    "Week-end travaillé",
+    "Permanence soir sans récup",
+    "Permanence matin sans récup"
+  ],
+  debit: ["RPC", "Repos récupérateur"]
+};
+
 function utcDate(value = new Date()) {
   if (typeof value === "string") return new Date(`${value}T12:00:00Z`);
   return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate(), 12));
@@ -144,14 +158,21 @@ function updatePeriodLabel() {
 }
 
 function renderPalette() {
-  $("servicePalette").innerHTML = state.data.serviceTypes.map(type => `
-    <button class="palette-button" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
-      ${esc(type.code)}
-    </button>`).join("");
+  $("servicePalette").innerHTML = state.data.serviceTypes.map(type => {
+    const button = `
+      <button class="palette-button" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
+        ${esc(type.code)}
+      </button>`;
+    return type.code === "PERM_VALIDEE"
+      ? `${button}<button id="toggleDetails" class="button secondary compact palette-details-button" type="button">Ajouter un libellé ou une note</button>`
+      : button;
+  }).join("");
   $("servicePalette").querySelectorAll("[data-code]").forEach(button => button.onclick = () => applyService(
     button.dataset.code,
     { merge: state.selected.size > 1 }
   ));
+  const toggle = $("toggleDetails");
+  if (toggle) toggle.onclick = () => { $("entryDetails").hidden = !$("entryDetails").hidden; };
 }
 
 function planningRows() {
@@ -427,6 +448,12 @@ function clearSelection() { state.selected.clear(); state.lastSelected = ""; ref
 
 async function applyService(code, { merge = false, customColor = "", activity = false } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
+  const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
+  let removalReason = "";
+  if (replacedRest.length) {
+    removalReason = prompt("Motif du retrait du repos :", "Modification du planning") || "";
+    if (!removalReason.trim()) return message("planningMessage", "Le motif du retrait est obligatoire.", "error");
+  }
   const items = [...state.selected].map(key => ({
     ...parseKey(key),
     expected_empty: !state.entries.has(key),
@@ -434,13 +461,17 @@ async function applyService(code, { merge = false, customColor = "", activity = 
   }));
   message("planningMessage", "Enregistrement en cours…", "info");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity, removal_reason: removalReason }) });
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     if (["RR", "RPC"].includes(code)) {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
       if (personEntries.length && confirm(`Déduire automatiquement ${number(personEntries.length * 0.5)} jour(s) des compteurs de repos concernés ?`)) {
         await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
       }
+    }
+    const permanenceCandidates = data.permanence_credit_candidates || [];
+    if (permanenceCandidates.length && confirm(`Une ou plusieurs permanences ne sont pas suivies d’un RPJ. Créditer +0,5 jour par permanence concernée (${number(permanenceCandidates.length * 0.5)} jour(s) au total) ?`)) {
+      await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-permanence", ids: permanenceCandidates.map(entry => entry.id) }) });
     }
     if (activity) {
       $("entryDetails").hidden = true;
@@ -454,14 +485,24 @@ async function applyService(code, { merge = false, customColor = "", activity = 
 }
 
 async function deleteSelection() {
-  const ids = [...new Set([...state.selected].map(key => state.entries.get(key)?.id).filter(Boolean))];
+  const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
+  const ids = [...new Set(selectedEntries.map(entry => entry.id).filter(Boolean))];
   if (!ids.length) return;
   if (!confirm(`Supprimer le contenu de ${ids.length} case${ids.length > 1 ? "s" : ""} ?`)) return;
+  let deletionReason = "";
+  if (selectedEntries.some(entry => ["RR", "RPC"].includes(entry.service_code))) {
+    deletionReason = prompt("Motif du retrait du repos :", "Modification du planning") || "";
+    if (!deletionReason.trim()) return message("planningMessage", "Le motif du retrait est obligatoire.", "error");
+  }
   try {
-    await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete-entries", ids }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete-entries", ids, deletion_reason: deletionReason }) });
     [...state.selected].forEach(key => state.entries.delete(key));
+    const permanenceCandidates = data.permanence_credit_candidates || [];
+    if (permanenceCandidates.length && confirm(`Le retrait du RPJ rend ${permanenceCandidates.length} permanence${permanenceCandidates.length > 1 ? "s" : ""} éligible${permanenceCandidates.length > 1 ? "s" : ""} à récupération. Créditer +0,5 jour par permanence ?`)) {
+      await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-permanence", ids: permanenceCandidates.map(entry => entry.id) }) });
+    }
     renderPlanning(); clearSelection(); await refreshCounters();
-    message("planningMessage", "Contenu supprimé.", "ok");
+    message("planningMessage", "Contenu supprimé et compteur régularisé si nécessaire.", "ok");
   } catch (error) { message("planningMessage", error.message, "error"); }
 }
 
@@ -513,7 +554,21 @@ async function loadRecoveryDetail(personId) {
     const totals = state.data.recovery.find(item => Number(item.person_id) === personId) || {};
     $("recoveryPerson").textContent = [data.person.grade, data.person.display_name].filter(Boolean).join(" ");
     $("recoveryBalance").textContent = `Solde actuel : ${number(totals.balance)} jour(s)`;
-    $("recoveryBody").innerHTML = data.movements.map(movement => `<tr><td>${frDate(movement.movement_date)}</td><td>${movement.movement_type === "credit" ? "Crédit" : movement.movement_type === "debit" ? "Repos pris" : "Ajustement"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(movement.reason)}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="5" class="empty-state">Aucun mouvement enregistré.</td></tr>';
+    const grouped = [];
+    const byGroup = new Map();
+    for (const movement of data.movements) {
+      const key = movement.movement_group || `single-${movement.id}`;
+      if (!byGroup.has(key)) {
+        const row = { ...movement, amount: 0, start_date: movement.movement_date, end_date: movement.period_end || movement.movement_date };
+        byGroup.set(key, row); grouped.push(row);
+      }
+      const row = byGroup.get(key);
+      row.amount += Number(movement.amount || 0);
+      if (movement.movement_date < row.start_date) row.start_date = movement.movement_date;
+      const movementEnd = movement.period_end || movement.movement_date;
+      if (movementEnd > row.end_date) row.end_date = movementEnd;
+    }
+    $("recoveryBody").innerHTML = grouped.map(movement => `<tr><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(movement.reason)}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="7" class="empty-state">Aucun mouvement enregistré.</td></tr>';
     $("recoveryDetail").hidden = false; $("recoveryDetail").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
@@ -523,9 +578,18 @@ function populateMovementPeople(selectedIds = []) {
   $("movementPeople").innerHTML = state.data.people.map(person => `<label class="movement-person"><input type="checkbox" value="${person.id}"${selected.has(Number(person.id)) ? " checked" : ""}><span>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</span></label>`).join("");
 }
 
+function updateMovementReasons() {
+  const type = $("movementType").value;
+  $("movementReason").innerHTML = (RECOVERY_REASONS[type] || []).map(reason => `<option value="${esc(reason)}">${esc(reason)}</option>`).join("");
+}
+
 function openMovementDialog() {
   if (!state.activeRecoveryPerson) return;
   populateMovementPeople([state.activeRecoveryPerson]);
+  $("movementDate").value = iso(utcDate());
+  $("movementEndDate").value = $("movementDate").value;
+  $("movementComment").value = "";
+  updateMovementReasons();
   $("movementDialog").showModal();
 }
 
@@ -534,8 +598,8 @@ async function saveMovement(event) {
   const personIds = [...$("movementPeople").querySelectorAll('input[type="checkbox"]:checked')].map(input => Number(input.value));
   if (!personIds.length) return message("recoveryMessage", "Sélectionnez au moins un cadre.", "error");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_ids: personIds, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, reason: $("movementReason").value }) });
-    $("movementDialog").close(); $("movementReason").value = "";
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_ids: personIds, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, period_end: $("movementEndDate").value, reason: $("movementReason").value, comment: $("movementComment").value }) });
+    $("movementDialog").close(); $("movementComment").value = "";
     await refreshCounters();
     if (state.activeRecoveryPerson) await loadRecoveryDetail(state.activeRecoveryPerson);
     message("recoveryMessage", `Mouvement enregistré pour ${data.created} cadre${data.created > 1 ? "s" : ""}.`, "ok");
@@ -800,7 +864,6 @@ $("today").onclick = () => { state.mode = "default"; state.offsetWeeks = 0; load
 $("refreshPlanning").onclick = () => loadPlanning({ preserveScroll: true });
 $("clearSelection").onclick = clearSelection;
 $("deleteSelection").onclick = deleteSelection;
-$("toggleDetails").onclick = () => { $("entryDetails").hidden = !$("entryDetails").hidden; };
 $("addActivity").onclick = () => {
   const label = $("customLabel").value.trim();
   if (!label) {
@@ -827,6 +890,10 @@ $("printStudentService").onclick = printStudentService;
 $("closeStudentService").onclick = () => $("studentServiceDialog").close();
 $("cancelStudentService").onclick = () => $("studentServiceDialog").close();
 $("movementDate").value = iso(utcDate());
+$("movementEndDate").value = $("movementDate").value;
+$("movementType").onchange = updateMovementReasons;
+$("movementDate").onchange = () => { if (!$("movementEndDate").value || $("movementEndDate").value < $("movementDate").value) $("movementEndDate").value = $("movementDate").value; };
+updateMovementReasons();
 $("newMovement").onclick = openMovementDialog;
 $("movementForm").addEventListener("submit", saveMovement);
 $("cancelMovement").onclick = () => $("movementDialog").close();

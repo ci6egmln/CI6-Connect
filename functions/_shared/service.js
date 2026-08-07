@@ -79,11 +79,16 @@ export async function ensureServiceSchema(db) {
       amount REAL NOT NULL,
       movement_type TEXT NOT NULL CHECK(movement_type IN ('credit','debit','adjustment')),
       reason TEXT NOT NULL,
+      comment TEXT NOT NULL DEFAULT '',
+      period_end TEXT,
+      movement_group TEXT NOT NULL DEFAULT '',
+      reversal_of INTEGER,
       entry_id INTEGER,
       created_by TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(person_id) REFERENCES service_people(id),
-      FOREIGN KEY(entry_id) REFERENCES service_entries(id) ON DELETE SET NULL
+      FOREIGN KEY(entry_id) REFERENCES service_entries(id) ON DELETE SET NULL,
+      FOREIGN KEY(reversal_of) REFERENCES service_recovery_ledger(id) ON DELETE SET NULL
     )`),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_service_recovery_person_date
       ON service_recovery_ledger(person_id, movement_date)`),
@@ -109,6 +114,22 @@ export async function ensureServiceSchema(db) {
     await db.prepare(`ALTER TABLE service_entries ADD COLUMN group_id TEXT NOT NULL DEFAULT ''`).run();
   }
   await db.prepare(`CREATE INDEX IF NOT EXISTS idx_service_entries_group ON service_entries(group_id)`).run();
+
+  const ledgerColumns = await db.prepare(`PRAGMA table_info(service_recovery_ledger)`).all();
+  const ledgerColumnNames = new Set((ledgerColumns.results || []).map(column => column.name));
+  if (!ledgerColumnNames.has("comment")) {
+    await db.prepare(`ALTER TABLE service_recovery_ledger ADD COLUMN comment TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!ledgerColumnNames.has("period_end")) {
+    await db.prepare(`ALTER TABLE service_recovery_ledger ADD COLUMN period_end TEXT`).run();
+  }
+  if (!ledgerColumnNames.has("movement_group")) {
+    await db.prepare(`ALTER TABLE service_recovery_ledger ADD COLUMN movement_group TEXT NOT NULL DEFAULT ''`).run();
+  }
+  if (!ledgerColumnNames.has("reversal_of")) {
+    await db.prepare(`ALTER TABLE service_recovery_ledger ADD COLUMN reversal_of INTEGER`).run();
+  }
+  await db.prepare(`CREATE INDEX IF NOT EXISTS idx_service_recovery_group ON service_recovery_ledger(movement_group)`).run();
 
   await db.prepare(`
     INSERT OR IGNORE INTO service_people (username, display_name, sort_order, active, sop_eligible)
