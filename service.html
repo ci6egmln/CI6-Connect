@@ -83,6 +83,29 @@
       line-height: 1.05;
     }
 
+    /* Sélection du planning : visible même sur un service déjà coloré.
+       Bleu = sélection normale ; rouge = service existant sélectionné pour modification.
+       Le contour est intérieur et ne modifie donc pas les dimensions de la grille. */
+    #planningViewport .slot-cell.selected {
+      outline: 3px solid #168cff !important;
+      outline-offset: -3px !important;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.72) !important;
+      position: relative;
+      z-index: 8 !important;
+    }
+    #planningViewport .slot-cell.selected.has-entry {
+      outline-color: #e12b3d !important;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.82) !important;
+    }
+    /* Une activité fusionnée reste plate : la sélection ajoute uniquement le contour. */
+    #planningViewport .slot-cell.merged-activity.selected,
+    #planningViewport .slot-cell.merged-activity.selected.has-entry {
+      outline-offset: -3px !important;
+      border-radius: 0 !important;
+      filter: none !important;
+      transform: none !important;
+    }
+
     .planning-screen-print {
       display: none;
     }
