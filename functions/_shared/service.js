@@ -8,11 +8,11 @@ export const SERVICE_TYPES = [
   { code: "PTPH", label: "Permanence téléphonique", color: "#7bc989", textColor: "#0b2812", countsPermanence: true },
   { code: "RPJ", label: "Repos post-journée", color: "#02913d", textColor: "#ffcc6a" },
   { code: "RPC", label: "Repos post-cérémonie", color: "#02913d", textColor: "#ffd533", recoveryDebit: 0.5 },
-  { code: "M", label: "Maladie", color: "#7d2637", textColor: "#ffffff" },
+  { code: "M", label: "Maladie", color: "#3b171d", textColor: "#ffffff" },
   { code: "D", label: "Détachement / divers", color: "#ffffff", textColor: "#111111" },
-  { code: "OCCUPE", label: "Occupé", color: "#ffffff", textColor: "#d10000" },
-  { code: "PREV", label: "Prévision", color: "#bca3a4", textColor: "#211819" },
-  { code: "PERM_POSEE", label: "Permission posée", color: "#8b2635", textColor: "#ffffff" },
+  { code: "OCCUPE", label: "Occupé", color: "#586b79", textColor: "#ffffff" },
+  { code: "PREV", label: "Prévision", color: "#9eabb4", textColor: "#172027" },
+  { code: "PERM_POSEE", label: "Permission posée Agorha", color: "#812a39", textColor: "#ffffff" },
   { code: "PERM_VALIDEE", label: "Permission validée", color: "#00561b", textColor: "#ffffff" },
 ];
 

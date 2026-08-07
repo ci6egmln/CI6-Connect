@@ -188,6 +188,37 @@
     .counter-start-control { display:inline-flex; align-items:center; gap:5px; padding-left:4px; font-size:.72rem; white-space:nowrap; }
     .counter-start-control[hidden] { display:none !important; }
     .counter-start-control input { width:132px; min-height:30px; padding:3px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.16); background:#11171b; color:#f3f5f6; }
+
+    /* Palette et permissions : lisibles, compactes et sans débordement. */
+    .palette-button-permission {
+      width: auto !important;
+      min-width: 118px;
+      padding-inline: 10px !important;
+      white-space: nowrap;
+      font-size: 10px !important;
+    }
+    #planningViewport .slot-cell.permission-entry,
+    .planning-screen-print .slot-cell.permission-entry {
+      overflow: hidden !important;
+      padding: 1px 2px !important;
+    }
+    #planningViewport .slot-cell.permission-entry .slot-code,
+    .planning-screen-print .slot-cell.permission-entry .slot-code {
+      display: -webkit-box;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: clip;
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      text-align: center;
+      font-size: 7px !important;
+      line-height: .95 !important;
+      font-weight: 800;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
 </style>
 </head>
 <body>

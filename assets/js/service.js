@@ -194,11 +194,25 @@ function updatePeriodLabel() {
   document.querySelectorAll(".range-button").forEach(button => button.classList.toggle("active", state.mode === "future" && Number(button.dataset.months) === state.months));
 }
 
+function paletteButtonText(type) {
+  if (type.code === "PERM_POSEE") return "Permission posée Agorha";
+  if (type.code === "PERM_VALIDEE") return "Permission validée";
+  return type.code;
+}
+
+function entryDisplayLabel(entry) {
+  if (!entry) return "";
+  if (entry.custom_label) return entry.custom_label;
+  if (entry.service_code === "PERM_POSEE") return "Permission posée Agorha";
+  if (entry.service_code === "PERM_VALIDEE") return "Permission validée";
+  return entry.service_code || "";
+}
+
 function renderPalette() {
   $("servicePalette").innerHTML = state.data.serviceTypes.map(type => {
     const button = `
-      <button class="palette-button" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
-        ${esc(type.code)}
+      <button class="palette-button${type.code.startsWith("PERM_") ? " palette-button-permission" : ""}" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
+        ${esc(paletteButtonText(type))}
       </button>`;
     return type.code === "PERM_VALIDEE"
       ? `${button}<button id="toggleDetails" class="button secondary compact palette-details-button" type="button">Ajouter un libellé ou une note</button>`
@@ -321,7 +335,7 @@ function renderPlanning() {
       const groupedItems = slots.slice(slotIndex, slotIndex + span);
       const entry = item.entry;
       const type = entry ? typeFor(entry.service_code) : null;
-      const label = entry?.custom_label || entry?.service_code || "";
+      const label = entryDisplayLabel(entry);
       const title = entry ? `${type?.label || entry.service_code}${entry.custom_label ? ` — ${entry.custom_label}` : ""}${entry.notes ? `\n${entry.notes}` : ""}\nModifié par ${entry.updated_by}` : `${row.name} — ${frDate(item.date)} ${item.slot === "M" ? "matin" : "nuit"}`;
       const nonWorkingDay = [0, 6].includes(item.day.getUTCDay()) || Boolean(holidayFor(item.day));
       const keys = groupedItems.map(slot => slot.key).join(",");
@@ -329,7 +343,7 @@ function renderPlanning() {
       const textColor = entry?.custom_color ? contrastText(entry.custom_color) : type?.textColor || "#111";
       const startsDay = item.slot === "M";
       const endsDay = groupedItems.at(-1)?.slot === "N";
-      html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${startsDay ? " day-start" : ""}${endsDay ? " day-end" : ""}${entry ? " has-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
+      html += `<button class="slot-cell${row.peloton ? " peloton" : ""}${nonWorkingDay ? " weekend" : ""}${startsDay ? " day-start" : ""}${endsDay ? " day-end" : ""}${entry ? " has-entry" : ""}${entry?.service_code?.startsWith("PERM_") ? " permission-entry" : ""}${grouped ? " merged-activity" : ""}" data-keys="${keys}" type="button" style="grid-column:${slotIndex + 4}/span ${span};grid-row:${gridRow}${entry ? `;--entry-color:${color};--entry-text:${textColor}` : ""}" title="${esc(title)}"><span class="slot-code">${esc(label)}</span></button>`;
       slotIndex += span;
     }
   });
@@ -901,7 +915,7 @@ async function saveMonthAsImage() {
           ctx.strokeStyle = "#39464d"; ctx.strokeRect(xx, y, cellW, rowH);
           if (entry) {
             const type = types.get(entry.service_code);
-            const label = entry.custom_label || entry.service_code;
+            const label = entryDisplayLabel(entry);
             ctx.fillStyle = type?.textColor || contrastText(entry.custom_color || type?.color || "#48545b");
             ctx.font = "700 8px Arial, sans-serif"; ctx.textAlign = "center";
             ctx.fillText(fitCanvasText(ctx, label, cellW - 4), xx + cellW / 2, y + rowH / 2);
@@ -1119,7 +1133,7 @@ function planningPrintWeek(data, start, weekIndex) {
     const cells = days.flatMap(day => ["M", "N"].map(slot => {
       const entry = entries.get(entryKey(row.targetType, row.targetKey, iso(day), slot));
       const type = entry ? data.serviceTypes.find(item => item.code === entry.service_code) : null;
-      const label = entry?.custom_label || entry?.service_code || "";
+      const label = entryDisplayLabel(entry);
       const color = entry?.custom_color || type?.color || "";
       const text = entry?.custom_color ? contrastText(entry.custom_color) : type?.textColor || "#111";
       return `<td class="print-slot${entry ? " has-entry" : ""}"${entry ? ` style="background:${esc(color)};color:${esc(text)}"` : ""}>${esc(label)}</td>`;
