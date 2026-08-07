@@ -139,6 +139,11 @@ async function loadPlanning({ preserveScroll = false } = {}) {
       if (data.permission.isAdmin) managePeopleButton.hidden = false;
       else managePeopleButton.remove();
     }
+    const purgeButton = $("purgePlanning");
+    if (purgeButton) {
+      if (data.permission.isAdmin) purgeButton.hidden = false;
+      else purgeButton.remove();
+    }
     renderPalette();
     renderPlanning();
     renderSop();
@@ -658,6 +663,148 @@ function exportPlanning() {
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" })); link.download = `planning-service-${iso(state.start)}-${iso(state.end)}.csv`; link.click(); URL.revokeObjectURL(link.href);
 }
 
+
+function monthBounds(value) {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(value || ""));
+  if (!match) throw new Error("Choisissez un mois valide.");
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const start = new Date(Date.UTC(year, month, 1, 12));
+  const end = new Date(Date.UTC(year, month + 1, 0, 12));
+  return { start, end };
+}
+
+function monthlyImageRows(data) {
+  const pelotons = data.pelotons.map(key => ({ targetType: "peloton", targetKey: key, label: key }));
+  const people = data.people.map(person => ({ targetType: "person", targetKey: String(person.id), label: [person.grade, planningSurname(person)].filter(Boolean).join(" ") }));
+  return [...pelotons, ...people];
+}
+
+function fitCanvasText(ctx, text, maxWidth) {
+  const value = String(text || "");
+  if (ctx.measureText(value).width <= maxWidth) return value;
+  let short = value;
+  while (short.length > 1 && ctx.measureText(short + "…").width > maxWidth) short = short.slice(0, -1);
+  return short + "…";
+}
+
+async function saveMonthAsImage() {
+  let bounds;
+  try { bounds = monthBounds($("monthImageMonth").value); }
+  catch (error) { message("monthImageMessage", error.message, "error"); return; }
+  message("monthImageMessage", "Génération de l’image du mois…", "info");
+  try {
+    const data = await api(`/cadres/service?action=bootstrap&start=${iso(bounds.start)}&end=${iso(bounds.end)}`);
+    const rows = monthlyImageRows(data);
+    const days = daysBetween(bounds.start, bounds.end);
+    const cellW = 40, rowH = 30, labelW = 205, titleH = 54, dayH = 30, slotH = 22;
+    const logicalW = labelW + days.length * cellW * 2;
+    const logicalH = titleH + dayH + slotH + rows.length * rowH + 18;
+    const scale = 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = logicalW * scale; canvas.height = logicalH * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.fillStyle = "#11171b"; ctx.fillRect(0, 0, logicalW, logicalH);
+    ctx.fillStyle = "#eef4f6"; ctx.font = "700 20px Arial, sans-serif";
+    ctx.fillText(`CI6 CONNECT — TABLEAU DE SERVICE — ${bounds.start.toLocaleDateString("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" }).toUpperCase()}`, 14, 32);
+    ctx.font = "600 11px Arial, sans-serif";
+    ctx.fillStyle = "#c7d0d5"; ctx.fillText("6e compagnie d’instruction", 14, 48);
+
+    const entries = new Map(data.entries.map(entry => [entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry]));
+    const types = new Map(data.serviceTypes.map(type => [type.code, type]));
+    let x = labelW;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (const day of days) {
+      const weekend = [0, 6].includes(day.getUTCDay()) || !!holidayFor(day);
+      ctx.fillStyle = weekend ? "#222a2f" : "#182026";
+      ctx.fillRect(x, titleH, cellW * 2, dayH + slotH);
+      ctx.strokeStyle = "#526068"; ctx.strokeRect(x, titleH, cellW * 2, dayH + slotH);
+      ctx.fillStyle = "#f4f7f8"; ctx.font = "700 10px Arial, sans-serif";
+      ctx.fillText(day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", timeZone: "UTC" }), x + cellW, titleH + 14);
+      ctx.font = "600 9px Arial, sans-serif"; ctx.fillStyle = "#aeb9bf";
+      ctx.fillText("M", x + cellW / 2, titleH + dayH + slotH / 2);
+      ctx.fillText("N", x + cellW + cellW / 2, titleH + dayH + slotH / 2);
+      x += cellW * 2;
+    }
+    ctx.textAlign = "left";
+    rows.forEach((row, rowIndex) => {
+      const y = titleH + dayH + slotH + rowIndex * rowH;
+      ctx.fillStyle = row.targetType === "peloton" ? "#252f35" : "#171e22";
+      ctx.fillRect(0, y, labelW, rowH);
+      ctx.strokeStyle = "#445159"; ctx.strokeRect(0, y, labelW, rowH);
+      ctx.fillStyle = "#f2f5f6"; ctx.font = row.targetType === "peloton" ? "700 11px Arial, sans-serif" : "600 10px Arial, sans-serif";
+      ctx.textBaseline = "middle"; ctx.fillText(fitCanvasText(ctx, row.label, labelW - 16), 8, y + rowH / 2);
+      days.forEach((day, dayIndex) => {
+        ["M", "N"].forEach((slot, slotIndex) => {
+          const xx = labelW + dayIndex * cellW * 2 + slotIndex * cellW;
+          const entry = entries.get(entryKey(row.targetType, row.targetKey, iso(day), slot));
+          const weekend = [0, 6].includes(day.getUTCDay()) || !!holidayFor(day);
+          ctx.fillStyle = weekend ? "#1d252a" : "#141b1f";
+          if (entry) {
+            const type = types.get(entry.service_code);
+            ctx.fillStyle = entry.custom_color || type?.color || "#48545b";
+          }
+          ctx.fillRect(xx, y, cellW, rowH);
+          ctx.strokeStyle = "#39464d"; ctx.strokeRect(xx, y, cellW, rowH);
+          if (entry) {
+            const type = types.get(entry.service_code);
+            const label = entry.custom_label || entry.service_code;
+            ctx.fillStyle = type?.textColor || contrastText(entry.custom_color || type?.color || "#48545b");
+            ctx.font = "700 8px Arial, sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(fitCanvasText(ctx, label, cellW - 4), xx + cellW / 2, y + rowH / 2);
+            ctx.textAlign = "left";
+          }
+        });
+      });
+    });
+    canvas.toBlob(blob => {
+      if (!blob) { message("monthImageMessage", "Impossible de créer l’image.", "error"); return; }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a"); link.href = url;
+      link.download = `tableau-service-${iso(bounds.start).slice(0, 7)}.png`;
+      link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      message("monthImageMessage", "Image PNG enregistrée sur le PC.", "ok");
+    }, "image/png");
+  } catch (error) { message("monthImageMessage", error.message, "error"); }
+}
+
+function openMonthImageDialog() {
+  const now = utcDate();
+  $("monthImageMonth").value = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+  message("monthImageMessage", "", "info");
+  $("monthImageDialog").showModal();
+}
+
+function openPurgeDialog() {
+  if (!state.data?.permission?.isAdmin) return;
+  $("purgeStart").value = iso(monday(utcDate()));
+  $("purgeEnd").value = iso(endOfWeek(utcDate()));
+  $("purgeConfirmText").value = "";
+  $("purgeReason").value = "Reprise totale du service";
+  message("purgeMessage", "", "info");
+  $("purgeDialog").showModal();
+}
+
+async function purgePlanningPeriod(event) {
+  event.preventDefault();
+  const start = $("purgeStart").value, end = $("purgeEnd").value;
+  const reason = $("purgeReason").value.trim();
+  if (!start || !end || start > end) return message("purgeMessage", "Période invalide.", "error");
+  if (!reason) return message("purgeMessage", "Indiquez le motif de la purge.", "error");
+  if ($("purgeConfirmText").value.trim().toUpperCase() !== "PURGER") return message("purgeMessage", "Saisissez PURGER pour confirmer.", "error");
+  if (!confirm(`Supprimer définitivement toutes les cases de service du ${frDate(start)} au ${frDate(end)} ?\n\nLes mouvements de repos liés seront contrepassés pour conserver des compteurs exacts.`)) return;
+  $("executePurge").disabled = true;
+  message("purgeMessage", "Purge en cours…", "info");
+  try {
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "purge-period", start, end, reason }) });
+    $("purgeDialog").close();
+    await loadPlanning({ preserveScroll: false });
+    message("planningMessage", `${data.deleted} case${data.deleted > 1 ? "s" : ""} supprimée${data.deleted > 1 ? "s" : ""}. ${data.reversed || 0} mouvement${data.reversed === 1 ? "" : "s"} de repos contrepassé${data.reversed === 1 ? "" : "s"}.`, "ok");
+  } catch (error) { message("purgeMessage", error.message, "error"); }
+  finally { $("executePurge").disabled = false; }
+}
+
 function studentPersonName(person) {
   if (!person) return "";
   const surname = planningSurname(person);
@@ -905,5 +1052,13 @@ $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.ac
 $("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };
 $("addPerson").onclick = addPersonEditorRow;
 $("saveAllPeople").onclick = saveAllPeople;
+$("saveMonthImage").onclick = openMonthImageDialog;
+$("generateMonthImage").onclick = saveMonthAsImage;
+$("closeMonthImage").onclick = () => $("monthImageDialog").close();
+$("cancelMonthImage").onclick = () => $("monthImageDialog").close();
+$("purgePlanning").onclick = openPurgeDialog;
+$("purgeForm").addEventListener("submit", purgePlanningPeriod);
+$("closePurgeDialog").onclick = () => $("purgeDialog").close();
+$("cancelPurge").onclick = () => $("purgeDialog").close();
 
 loadPlanning();

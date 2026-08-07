@@ -49,6 +49,8 @@
         <button id="exportPlanning" class="button secondary compact" type="button">Exporter CSV</button>
         <button id="studentService" class="button compact" type="button">Service élèves</button>
         <button id="printPlanning4Weeks" class="button secondary compact" type="button">Imprimer 4 semaines</button>
+        <button id="saveMonthImage" class="button secondary compact" type="button">Sauvegarder un mois</button>
+        <button id="purgePlanning" class="button danger compact" type="button" hidden>Purger une période</button>
       </div>
     </div>
 
@@ -148,6 +150,28 @@
     <div id="planningPrintMessage" class="message" aria-live="polite"></div>
     <div id="planningPrintPreview" class="planning-print-preview"><div class="loading">Préparation de l’aperçu…</div></div>
     <div class="dialog-actions"><button id="launchPlanningPrint" class="button" type="button">Imprimer / PDF</button><button id="cancelPlanningPrint" class="button secondary" type="button">Fermer</button></div>
+  </form>
+</dialog>
+
+<dialog id="monthImageDialog" class="service-dialog">
+  <form method="dialog">
+    <div class="dialog-head"><div><div class="eyebrow">SAUVEGARDE LOCALE</div><h2>Enregistrer un mois en image</h2></div><button id="closeMonthImage" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <p class="hint">Le mois complet est généré en PNG haute définition, indépendamment de la taille de la fenêtre.</p>
+    <label>Mois à sauvegarder<input id="monthImageMonth" type="month" required></label>
+    <div id="monthImageMessage" class="message" aria-live="polite"></div>
+    <div class="dialog-actions"><button id="cancelMonthImage" class="button secondary" type="button">Annuler</button><button id="generateMonthImage" class="button" type="button">Enregistrer le PNG</button></div>
+  </form>
+</dialog>
+
+<dialog id="purgeDialog" class="service-dialog">
+  <form id="purgeForm" method="dialog">
+    <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Purger une période du service</h2></div><button id="closePurgeDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <p class="hint"><strong>Cette opération supprime toutes les cases du planning sur la période.</strong> Les mouvements RR/RPC/permanence liés sont contrepassés afin de conserver des compteurs justes.</p>
+    <div class="form-grid"><label>Date début<input id="purgeStart" type="date" required></label><label>Date fin<input id="purgeEnd" type="date" required></label></div>
+    <label>Motif<input id="purgeReason" maxlength="200" value="Reprise totale du service" required></label>
+    <label>Confirmation<input id="purgeConfirmText" autocomplete="off" placeholder="Saisir PURGER" required></label>
+    <div id="purgeMessage" class="message" aria-live="polite"></div>
+    <div class="dialog-actions"><button id="cancelPurge" class="button secondary" type="button">Annuler</button><button id="executePurge" class="button danger" type="submit">Purger la période</button></div>
   </form>
 </dialog>
 

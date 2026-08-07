@@ -65,6 +65,18 @@ async function reverseLinkedMovement(db, entry, permission, comment = "", revers
 
 async function permanenceCreditCandidate(db, entry) {
   if (!entry || entry.target_type !== "person" || entry.service_code !== "P") return false;
+
+  // Une permanence couvrant matin + nuit le même jour est une permanence « journée ».
+  // Elle n'ouvre droit à aucun crédit de repos : à ce stade de la formation,
+  // le cadre n'est plus maintenu sur place à la compagnie pendant toute la journée.
+  const oppositeSlot = entry.slot === "M" ? "N" : "M";
+  const fullDayPermanence = await db.prepare(`
+    SELECT id FROM service_entries
+    WHERE target_type='person' AND target_key=? AND service_date=? AND slot=? AND service_code='P'
+    LIMIT 1
+  `).bind(entry.target_key, entry.service_date, oppositeSlot).first();
+  if (fullDayPermanence) return false;
+
   const existing = await linkedLedger(db, entry.id);
   if (existing) return false;
   if (entry.slot === "M") {
@@ -346,9 +358,37 @@ export async function onRequestPost(context) {
             }
           }
         }
+
+        // Si l'ajout de ce P transforme une demi-journée en permanence journée,
+        // annuler tout +0,5 qui aurait été accordé auparavant à l'une des deux cases.
+        if (current?.target_type === "person" && current?.service_code === "P") {
+          const oppositeSlot = current.slot === "M" ? "N" : "M";
+          const oppositeP = await db.prepare(`
+            SELECT * FROM service_entries
+            WHERE target_type='person' AND target_key=? AND service_date=? AND slot=? AND service_code='P'
+            LIMIT 1
+          `).bind(current.target_key, current.service_date, oppositeSlot).first();
+          if (oppositeP) {
+            for (const permanence of [current, oppositeP]) {
+              const linked = await linkedLedger(db, permanence.id);
+              if (linked && Number(linked.amount) > 0) {
+                await reverseLinkedMovement(db, permanence, permission, "Permanence journée : aucun repos à créditer");
+              }
+            }
+          }
+        }
+
         if (await permanenceCreditCandidate(db, current)) permanenceCreditCandidates.push(current);
       }
-      return serviceJson({ success: true, entries: saved, permanence_credit_candidates: permanenceCreditCandidates });
+
+      // Revalider après toutes les écritures : lorsqu'un P matin et un P nuit sont
+      // posés ensemble, la première case ne doit pas rester proposée comme +0,5.
+      const validatedCandidates = [];
+      for (const candidate of permanenceCreditCandidates) {
+        const fresh = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(candidate.id).first();
+        if (fresh && await permanenceCreditCandidate(db, fresh)) validatedCandidates.push(fresh);
+      }
+      return serviceJson({ success: true, entries: saved, permanence_credit_candidates: validatedCandidates });
     }
 
     if (action === "recovery-from-entries") {
@@ -464,6 +504,38 @@ export async function onRequestPost(context) {
         await auditService(db, "recovery-movement", null, permission.username, null, { id, personId, date, periodEnd, amount, movementType, reason, comment });
       }
       return serviceJson({ success: true, created: ids.length, ids });
+    }
+
+
+    if (action === "purge-period") {
+      if (!permission.isAdmin) return serviceJson({ error: "La purge du service est réservée aux administrateurs." }, 403);
+      const start = String(body.start || "");
+      const end = String(body.end || "");
+      const reason = cleanText(body.reason, 200);
+      if (!validDate(start) || !validDate(end) || start > end) return serviceJson({ error: "Période de purge invalide." }, 400);
+      if (!reason) return serviceJson({ error: "Le motif de la purge est obligatoire." }, 400);
+      const days = Math.round((new Date(`${end}T12:00:00Z`) - new Date(`${start}T12:00:00Z`)) / 86400000) + 1;
+      if (days > 366) return serviceJson({ error: "Une purge ne peut pas dépasser 366 jours en une seule opération." }, 400);
+      const result = await db.prepare(`
+        SELECT * FROM service_entries
+        WHERE service_date BETWEEN ? AND ?
+        ORDER BY service_date, target_type, target_key, slot
+      `).bind(start, end).all();
+      const entries = result.results || [];
+      if (entries.length > 5000) return serviceJson({ error: "La période contient trop de cases pour une purge unique." }, 400);
+      let reversed = 0;
+      const reversalGroup = crypto.randomUUID();
+      for (const entry of entries) {
+        if (entry.target_type === "person" && ["RR", "RPC", "P"].includes(entry.service_code)) {
+          if (await reverseLinkedMovement(db, entry, permission, `Purge du service : ${reason}`, reversalGroup)) reversed += 1;
+        }
+      }
+      for (const entry of entries) {
+        await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(entry.id).run();
+        await auditService(db, "purge-delete", entry.id, permission.username, entry, { start, end, reason });
+      }
+      await auditService(db, "purge-period", null, permission.username, null, { start, end, reason, deleted: entries.length, reversed });
+      return serviceJson({ success: true, deleted: entries.length, reversed });
     }
 
     if (action === "save-people") {
