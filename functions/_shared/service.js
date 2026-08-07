@@ -12,7 +12,7 @@ export const SERVICE_TYPES = [
   { code: "D", label: "Détachement / divers", color: "#ffffff", textColor: "#111111" },
   { code: "OCCUPE", label: "Occupé", color: "#ffffff", textColor: "#d10000" },
   { code: "PREV", label: "Prévision", color: "#bca3a4", textColor: "#211819" },
-  { code: "PERM_POSEE", label: "Permission posée", color: "#ad10d7", textColor: "#ffffff" },
+  { code: "PERM_POSEE", label: "Permission posée", color: "#8b2635", textColor: "#ffffff" },
   { code: "PERM_VALIDEE", label: "Permission validée", color: "#00561b", textColor: "#ffffff" },
 ];
 

@@ -184,7 +184,11 @@
     .sop-year-chip button { border:0; background:transparent; color:inherit; cursor:pointer; padding:0 2px; font-size:.85rem; line-height:1; }
 
 
-  </style>
+  
+    .counter-start-control { display:inline-flex; align-items:center; gap:5px; padding-left:4px; font-size:.72rem; white-space:nowrap; }
+    .counter-start-control[hidden] { display:none !important; }
+    .counter-start-control input { width:132px; min-height:30px; padding:3px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.16); background:#11171b; color:#f3f5f6; }
+</style>
 </head>
 <body>
 <main class="service-app">
@@ -195,7 +199,6 @@
     </div>
     <div class="top-actions">
       <button id="managePeople" class="button secondary" type="button" hidden>Gérer les cadres</button>
-      <button id="importLegacyPlanning" class="button secondary" type="button" hidden>Importer ancien planning</button>
       <a class="button secondary" href="/#espace-cadres">Retour à l’espace cadres</a>
     </div>
   </header>
@@ -228,6 +231,11 @@
         <button id="printPlanning4Weeks" class="button secondary compact" type="button">Imprimer 4 semaines</button>
         <button id="saveMonthImage" class="button secondary compact" type="button">Sauvegarder un mois</button>
         <button id="purgePlanning" class="button danger compact" type="button" hidden>Purger une période</button>
+        <div id="permanenceCounterStartControl" class="counter-start-control" hidden>
+          <label for="permanenceCounterStart">Compteur P depuis</label>
+          <input id="permanenceCounterStart" type="date" aria-label="Date de début du compteur P">
+          <button id="savePermanenceCounterStart" class="button secondary compact" type="button">Enregistrer</button>
+        </div>
       </div>
     </div>
 
@@ -288,21 +296,6 @@
   </section>
 </main>
 
-<dialog id="legacyImportDialog" class="service-dialog wide-dialog">
-  <form id="legacyImportForm" method="dialog">
-    <div class="dialog-head"><div><div class="eyebrow">MIGRATION INITIALE</div><h2>Importer l’ancien planning ODS</h2></div><button id="closeLegacyImport" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
-    <p class="hint"><strong>Réservé aux administrateurs.</strong> Cet import est préparé à partir du fichier planning transmis le 07/08/2026. Il reprend le service à compter du <strong>1er juillet 2026</strong>, toutes les SOP historiques présentes et le suivi courant des repos récupérateurs.</p>
-    <div id="legacyImportPreview" class="panel-soft"><div class="loading">Lecture de l’aperçu…</div></div>
-    <div class="purge-scope" style="display:grid;gap:8px;margin:12px 0">
-      <label class="check-line"><input id="legacyReplaceService" type="checkbox"> Remplacer les cases de service déjà présentes</label>
-      <label class="check-line"><input id="legacyReplaceRecovery" type="checkbox"> Remplacer les mouvements de repos déjà présents</label>
-    </div>
-    <p class="hint">Si tu as déjà créé des données de test dans CI6 Connect, coche les remplacements correspondants. Les soldes importés sont contrôlés cadre par cadre avant de confirmer le résultat.</p>
-    <label>Confirmation<input id="legacyImportConfirm" autocomplete="off" placeholder="Saisir IMPORTER"></label>
-    <div id="legacyImportMessage" class="message" aria-live="polite"></div>
-    <div class="dialog-actions"><button id="cancelLegacyImport" class="button secondary" type="button">Annuler</button><button id="executeLegacyImport" class="button" type="submit">Importer les données</button></div>
-  </form>
-</dialog>
 
 <dialog id="movementDialog" class="service-dialog">
   <form id="movementForm" method="dialog">
