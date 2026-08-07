@@ -11,7 +11,8 @@ const state = {
   selected: new Set(),
   lastSelected: "",
   entries: new Map(),
-  activeRecoveryPerson: null
+  activeRecoveryPerson: null,
+  studentExport: null
 };
 
 function utcDate(value = new Date()) {
@@ -463,6 +464,121 @@ function exportPlanning() {
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" })); link.download = `planning-service-${iso(state.start)}-${iso(state.end)}.csv`; link.click(); URL.revokeObjectURL(link.href);
 }
 
+function studentPersonName(person) {
+  if (!person) return "";
+  const surname = planningSurname(person);
+  return [String(person.grade || "").trim(), surname].filter(Boolean).join(" ");
+}
+
+function studentServiceSettings() {
+  const rawStart = $("studentServiceStart").value;
+  const weeks = Number($("studentServiceWeeks").value);
+  if (!rawStart || !Number.isInteger(weeks) || weeks < 1 || weeks > 8) throw new Error("Choisissez une période valide.");
+  const start = monday(utcDate(rawStart));
+  const end = addDays(start, weeks * 7 - 1);
+  $("studentServiceStart").value = iso(start);
+  return { start, end, weeks };
+}
+
+function studentServiceRows(data, start, end) {
+  const people = new Map(data.people.map(person => [String(person.id), person]));
+  const order = new Map(data.people.map((person, index) => [String(person.id), index]));
+  const entries = data.entries.filter(entry => entry.target_type === "person" && entry.service_code === "P");
+  const namesFor = (date, slot) => entries
+    .filter(entry => entry.service_date === date && entry.slot === slot)
+    .sort((a, b) => (order.get(a.target_key) ?? 9999) - (order.get(b.target_key) ?? 9999))
+    .map(entry => studentPersonName(people.get(entry.target_key)))
+    .filter(Boolean)
+    .filter((name, index, names) => names.indexOf(name) === index);
+  return daysBetween(start, end).map(day => {
+    const date = iso(day);
+    const morning = namesFor(date, "M");
+    const night = namesFor(date, "N");
+    const fullDay = morning.length > 0 && morning.length === night.length && morning.every((name, index) => name === night[index]);
+    return { date, day, morning, night, fullDay };
+  });
+}
+
+function studentServiceTable(exportData, { print = false } = {}) {
+  const rows = exportData.rows.map((row, index) => {
+    const weekend = [0, 6].includes(row.day.getUTCDay()) || Boolean(holidayFor(row.day));
+    const classes = [index % 7 === 0 ? "week-start" : "", weekend ? "non-working" : ""].filter(Boolean).join(" ");
+    const dateLabel = row.day.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" });
+    const morning = row.morning.join(" / ") || "À désigner";
+    const night = row.night.join(" / ") || "À désigner";
+    return row.fullDay
+      ? `<tr class="${classes}"><th scope="row">${esc(dateLabel)}</th><td class="full-day" colspan="2"><span>Journée</span>${esc(morning)}</td></tr>`
+      : `<tr class="${classes}"><th scope="row">${esc(dateLabel)}</th><td class="${row.morning.length ? "" : "missing"}">${esc(morning)}</td><td class="${row.night.length ? "" : "missing"}">${esc(night)}</td></tr>`;
+  }).join("");
+  const title = `Service des cadres de permanence — ${frDate(exportData.start)} au ${frDate(exportData.end)}`;
+  return `${print ? `<header><h1>6<sup>e</sup> compagnie d’instruction</h1><p>${esc(title)}</p></header>` : `<h3>${esc(title)}</h3>`}<table class="student-duty-table"><thead><tr><th>Date</th><th>Matin</th><th>Nuit</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function refreshStudentService() {
+  let settings;
+  try { settings = studentServiceSettings(); }
+  catch (error) { message("studentServiceMessage", error.message, "error"); return null; }
+  $("studentServicePreview").innerHTML = '<div class="loading">Préparation de l’aperçu…</div>';
+  message("studentServiceMessage", "", "info");
+  try {
+    const data = await api(`/cadres/service?action=bootstrap&start=${iso(settings.start)}&end=${iso(settings.end)}`);
+    state.studentExport = { ...settings, rows: studentServiceRows(data, settings.start, settings.end) };
+    $("studentServicePreview").innerHTML = studentServiceTable(state.studentExport);
+    return state.studentExport;
+  } catch (error) {
+    state.studentExport = null;
+    $("studentServicePreview").innerHTML = "";
+    message("studentServiceMessage", error.message, "error");
+    return null;
+  }
+}
+
+async function openStudentService() {
+  $("studentServiceStart").value = iso(monday(utcDate()));
+  $("studentServiceWeeks").value = "4";
+  $("studentServiceDialog").showModal();
+  await refreshStudentService();
+}
+
+async function ensureStudentServiceCurrent() {
+  const settings = studentServiceSettings();
+  if (!state.studentExport || iso(state.studentExport.start) !== iso(settings.start) || state.studentExport.weeks !== settings.weeks) return refreshStudentService();
+  return state.studentExport;
+}
+
+async function exportStudentService() {
+  const exportData = await ensureStudentServiceCurrent();
+  if (!exportData) return;
+  const csvRows = [["date", "jour", "creneau", "cadre_de_permanence"]];
+  exportData.rows.forEach(row => {
+    const dayLabel = row.day.toLocaleDateString("fr-FR", { weekday: "long", timeZone: "UTC" });
+    if (row.fullDay) csvRows.push([row.date, dayLabel, "Journée", row.morning.join(" / ")]);
+    else {
+      csvRows.push([row.date, dayLabel, "Matin", row.morning.join(" / ")]);
+      csvRows.push([row.date, dayLabel, "Nuit", row.night.join(" / ")]);
+    }
+  });
+  const csv = csvRows.map(columns => columns.map(value => {
+    const text = String(value ?? "");
+    return /[;"\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  }).join(";")).join("\r\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" }));
+  link.download = `service-eleves-${iso(exportData.start)}-${iso(exportData.end)}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+async function printStudentService() {
+  const exportData = await ensureStudentServiceCurrent();
+  if (!exportData) return;
+  const sheet = $("studentPrintSheet");
+  sheet.innerHTML = studentServiceTable(exportData, { print: true });
+  document.body.classList.add("printing-student-service");
+  window.print();
+  setTimeout(() => document.body.classList.remove("printing-student-service"), 500);
+}
+
 document.querySelectorAll(".module-tab").forEach(button => button.onclick = () => {
   document.querySelectorAll(".module-tab").forEach(tab => tab.classList.toggle("active", tab === button));
   ["planning", "sop", "recovery"].forEach(tab => $(`${tab}Tab`).hidden = button.dataset.tab !== tab);
@@ -486,6 +602,14 @@ $("addActivity").onclick = () => {
   applyService("D", { merge: true, customColor: color, activity: true });
 };
 $("exportPlanning").onclick = exportPlanning;
+$("studentService").onclick = openStudentService;
+$("previewStudentService").onclick = refreshStudentService;
+$("studentServiceStart").onchange = refreshStudentService;
+$("studentServiceWeeks").onchange = refreshStudentService;
+$("exportStudentService").onclick = exportStudentService;
+$("printStudentService").onclick = printStudentService;
+$("closeStudentService").onclick = () => $("studentServiceDialog").close();
+$("cancelStudentService").onclick = () => $("studentServiceDialog").close();
 $("movementDate").value = iso(utcDate());
 $("newMovement").onclick = openMovementDialog;
 $("movementForm").addEventListener("submit", saveMovement);

@@ -46,6 +46,7 @@
       <div class="toolbar-actions">
         <button id="refreshPlanning" class="button secondary compact" type="button">Actualiser</button>
         <button id="exportPlanning" class="button secondary compact" type="button">Exporter CSV</button>
+        <button id="studentService" class="button compact" type="button">Service élèves</button>
       </div>
     </div>
 
@@ -116,6 +117,23 @@
     <div class="dialog-actions"><button id="addPerson" class="button secondary" type="button">Ajouter un cadre</button><button id="saveAllPeople" class="button" type="button">Enregistrer toutes les modifications</button><button class="button secondary" value="cancel">Fermer</button></div>
   </form>
 </dialog>
+
+<dialog id="studentServiceDialog" class="service-dialog student-service-dialog">
+  <form method="dialog">
+    <div class="dialog-head"><div><div class="eyebrow">DOCUMENT À DIFFUSER</div><h2>Service destiné aux élèves</h2></div><button id="closeStudentService" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <p class="hint">Ce document affiche uniquement les cadres désignés en permanence (P), sans note interne ni compteur.</p>
+    <div class="student-export-settings">
+      <label>Première semaine<input id="studentServiceStart" type="date" required></label>
+      <label>Durée<select id="studentServiceWeeks"><option value="1">1 semaine</option><option value="2">2 semaines</option><option value="4" selected>4 semaines</option><option value="6">6 semaines</option><option value="8">8 semaines</option></select></label>
+      <button id="previewStudentService" class="button secondary compact" type="button">Actualiser l’aperçu</button>
+    </div>
+    <div id="studentServiceMessage" class="message" aria-live="polite"></div>
+    <div id="studentServicePreview" class="student-service-preview"><div class="loading">Préparation de l’aperçu…</div></div>
+    <div class="dialog-actions"><button id="exportStudentService" class="button secondary" type="button">Exporter CSV</button><button id="printStudentService" class="button" type="button">Imprimer / PDF</button><button id="cancelStudentService" class="button secondary" type="button">Fermer</button></div>
+  </form>
+</dialog>
+
+<section id="studentPrintSheet" class="student-print-sheet" aria-hidden="true"></section>
 
 <script src="/assets/js/service.js" defer></script>
 </body>

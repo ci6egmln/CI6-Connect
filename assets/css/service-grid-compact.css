@@ -352,6 +352,105 @@
   box-shadow: inset 0 0 0 1px #ffd573;
 }
 
+.student-service-dialog {
+  width: min(920px, calc(100% - 24px));
+}
+
+.student-export-settings {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, .6fr) auto;
+  align-items: end;
+  gap: 9px;
+}
+
+.student-export-settings label {
+  margin: 0;
+}
+
+.student-service-preview {
+  max-height: 54vh;
+  overflow: auto;
+  border: 1px solid #4b5359;
+  border-radius: 9px;
+  background: #f5f5f3;
+  color: #111;
+}
+
+.student-service-preview h3 {
+  margin: 0;
+  padding: 10px 12px;
+  background: #183e61;
+  color: #fff;
+  font: 800 15px/1.25 Arial, sans-serif;
+}
+
+.student-duty-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #111;
+  font-family: Arial, sans-serif;
+}
+
+.student-duty-table th,
+.student-duty-table td {
+  padding: 5px 7px;
+  border: 1px solid #899197;
+  text-align: left;
+  line-height: 1.2;
+}
+
+.student-duty-table thead th {
+  background: #d9e8f3;
+  color: #102536;
+  text-align: center;
+}
+
+.student-duty-table thead th:first-child,
+.student-duty-table tbody th {
+  width: 31%;
+}
+
+.student-duty-table tbody th {
+  background: #eef2f4;
+  text-transform: capitalize;
+}
+
+.student-duty-table tr.non-working th,
+.student-duty-table tr.non-working td {
+  background: #d7dade;
+}
+
+.student-duty-table tr.week-start th,
+.student-duty-table tr.week-start td {
+  border-top: 2px solid #152838;
+}
+
+.student-duty-table td.full-day {
+  text-align: center;
+  font-weight: 800;
+}
+
+.student-duty-table td.full-day span {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f2ad2f;
+  color: #241707;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.student-duty-table td.missing {
+  color: #8c3037;
+  font-style: italic;
+}
+
+.student-print-sheet {
+  display: none;
+}
+
 @media (max-width: 850px) {
   :root {
     --p-counter-width: 29px;
@@ -410,5 +509,74 @@
   .vacation-day {
     min-height: 12px;
     height: 12px;
+  }
+
+  .student-export-settings {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .student-export-settings .button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  body.printing-student-service {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  body.printing-student-service::before,
+  body.printing-student-service .service-app,
+  body.printing-student-service dialog {
+    display: none !important;
+  }
+
+  body.printing-student-service .student-print-sheet {
+    display: block !important;
+    color: #000;
+  }
+
+  .student-print-sheet header {
+    margin: 0 0 5mm;
+    text-align: center;
+  }
+
+  .student-print-sheet header h1 {
+    margin: 0 0 1mm;
+    color: #000;
+    font: 800 15pt/1.1 Arial, sans-serif;
+  }
+
+  .student-print-sheet header p {
+    margin: 0;
+    font: 700 10pt/1.2 Arial, sans-serif;
+  }
+
+  .student-print-sheet .student-duty-table {
+    font-size: 8.5pt;
+  }
+
+  .student-print-sheet .student-duty-table th,
+  .student-print-sheet .student-duty-table td {
+    padding: 1.25mm 2mm;
+    border-color: #555;
+  }
+
+  .student-print-sheet .student-duty-table thead {
+    display: table-header-group;
+  }
+
+  .student-print-sheet .student-duty-table tr {
+    break-inside: avoid;
+  }
+
+  .student-print-sheet .student-duty-table td.missing {
+    color: #555;
   }
 }
