@@ -228,14 +228,25 @@ function renderPalette() {
   if (toggle) toggle.onclick = () => {
     const willOpen = $("entryDetails").hidden;
     $("entryDetails").hidden = !willOpen;
-    if (willOpen) {
-      const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
-      if (selectedEntries.length === 1) {
-        $("customLabel").value = selectedEntries[0].custom_label || "";
-        $("entryNotes").value = selectedEntries[0].notes || "";
-      }
-    }
+    if (willOpen) syncEntryDetailsFromSelection();
   };
+}
+
+function syncEntryDetailsFromSelection() {
+  const customLabelInput = $("customLabel");
+  const notesInput = $("entryNotes");
+  if (!customLabelInput || !notesInput) return;
+
+  const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
+  if (!selectedEntries.length || selectedEntries.length !== state.selected.size) return;
+
+  const labels = [...new Set(selectedEntries.map(entry => String(entry.custom_label || "")))];
+  const notes = [...new Set(selectedEntries.map(entry => String(entry.notes || "")))];
+
+  // Une activité fusionnée est stockée sur plusieurs cases : si toutes les cases
+  // portent le même texte, on le préremplit une seule fois pour permettre sa modification.
+  customLabelInput.value = labels.length === 1 ? labels[0] : "";
+  notesInput.value = notes.length === 1 ? notes[0] : "";
 }
 
 function planningRows() {
@@ -533,6 +544,7 @@ function updateSelectionBar() {
   const count = state.selected.size;
   $("selectionCount").textContent = count ? `${count} case${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}` : "Aucune case sélectionnée";
   $("deleteSelection").disabled = ![...state.selected].some(key => state.entries.has(key));
+  if (count) syncEntryDetailsFromSelection();
 }
 
 function clearSelection() { state.selected.clear(); state.lastSelected = ""; refreshSelectionClasses(); updateSelectionBar(); }
