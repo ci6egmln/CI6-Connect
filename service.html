@@ -11,6 +11,28 @@
   <link rel="stylesheet" href="/assets/css/service-grid-compact.css">
   <style>
 
+    /* Numéros de semaines ISO entre le mois et les dates. */
+    .week-head {
+      position: sticky;
+      top: 28px;
+      z-index: 9;
+      height: 22px;
+      padding: 2px 4px;
+      background: #1b2227;
+      color: #cfd9df;
+      border-right: 1px solid #4a5156;
+      border-bottom: 1px solid #555;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 18px;
+      white-space: nowrap;
+    }
+    .day-head {
+      top: 50px !important;
+    }
+
+
     /* Bandeau des opérations : reste proche des en-têtes du planning sur PC. */
     @media (min-width: 900px) {
       .palette-panel {
@@ -312,6 +334,7 @@
             <label title="Marron"><input type="radio" name="activityColor" value="#8a5a32"><span style="--activity-color:#8a5a32"></span><em>Marron</em></label>
             <label title="Rouge"><input type="radio" name="activityColor" value="#c63f4d"><span style="--activity-color:#c63f4d"></span><em>Rouge</em></label>
             <label title="Vert"><input type="radio" name="activityColor" value="#36a45c"><span style="--activity-color:#36a45c"></span><em>Vert</em></label>
+            <label title="Blanc"><input type="radio" name="activityColor" value="#ffffff"><span style="--activity-color:#ffffff;border:1px solid #9aa4aa"></span><em>Blanc</em></label>
           </div>
         </fieldset>
         <div class="activity-action"><button id="saveEntryDetails" class="button secondary compact" type="button">Enregistrer libellé / note</button><button id="addActivity" class="button compact" type="button">Ajouter l’activité</button><span>« Enregistrer libellé / note » conserve le type de service déjà posé (ex. D ou PREV). « Ajouter l’activité » crée une activité D personnalisée.</span></div>

@@ -291,22 +291,52 @@ function nameColumnWidth(rows) {
   return Math.ceil(Math.max(72, longest + 16));
 }
 
+
+function isoWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function weekGroups(days) {
+  const groups = [];
+  days.forEach(day => {
+    const week = isoWeekNumber(day);
+    const year = (() => {
+      const d = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
+      const dow = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dow);
+      return d.getUTCFullYear();
+    })();
+    const key = `${year}-${week}`;
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.count += 1;
+    else groups.push({ key, week, count: 1 });
+  });
+  return groups;
+}
+
 function renderPlanning() {
   const days = daysBetween(state.start, state.end);
   const rows = planningRows();
   const today = iso(utcDate());
   const groups = monthGroups(days);
+  const weeks = weekGroups(days);
   const nameWidth = nameColumnWidth(rows);
   let html = `<div class="planning-grid" style="--slots:${days.length * 2};--name-width:${nameWidth}px">`;
-  html += '<div class="grid-corner" style="grid-column:1;grid-row:1/3">Cadres</div><div class="counter-head permanence" style="grid-column:2;grid-row:1/3" title="Permanences">P</div><div class="counter-head recovery" style="grid-column:3;grid-row:1/3" title="Solde de repos récupérateurs">RR</div>';
+  html += '<div class="grid-corner" style="grid-column:1;grid-row:1/4">Cadres</div><div class="counter-head permanence" style="grid-column:2;grid-row:1/4" title="Permanences">P</div><div class="counter-head recovery" style="grid-column:3;grid-row:1/4" title="Solde de repos récupérateurs">RR</div>';
   let monthColumn = 4;
   groups.forEach((group, index) => { html += `<div class="month-head${index % 2 ? " alt" : ""}" style="grid-column:${monthColumn}/span ${group.count * 2};grid-row:1">${esc(group.label)}</div>`; monthColumn += group.count * 2; });
+  let weekColumn = 4;
+  weeks.forEach(group => { html += `<div class="week-head" style="grid-column:${weekColumn}/span ${group.count * 2};grid-row:2">Semaine ${group.week}</div>`; weekColumn += group.count * 2; });
   days.forEach((day, index) => {
     const date = iso(day); const holiday = holidayFor(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holiday);
-    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br><span class="day-date-frame">${String(day.getUTCDate()).padStart(2, "0")}</span><div>M&nbsp;&nbsp;N</div></div>`;
+    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:3"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br><span class="day-date-frame">${String(day.getUTCDate()).padStart(2, "0")}</span><div>M&nbsp;&nbsp;N</div></div>`;
   });
   rows.forEach((row, rowIndex) => {
-    const gridRow = rowIndex + 3;
+    const gridRow = rowIndex + 4;
     const identity = row.vacation
       ? esc(row.name)
       : row.person
