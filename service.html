@@ -9,6 +9,40 @@
   <link rel="stylesheet" href="/assets/css/service-admin.css">
   <link rel="stylesheet" href="/assets/css/service-palette-compact.css">
   <link rel="stylesheet" href="/assets/css/service-grid-compact.css">
+  <style>
+    .day-head.today {
+      box-shadow: none !important;
+      outline: 0 !important;
+      border-left-color: inherit !important;
+      border-right-color: inherit !important;
+    }
+    .day-head .day-date-frame {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 20px;
+      margin: 2px auto 0;
+      padding: 0 5px;
+      border-radius: 4px;
+    }
+    .day-head.today .day-date-frame {
+      border: 2px solid #2f9fe5;
+      background: rgba(47, 159, 229, .12);
+      color: #fff;
+      font-weight: 900;
+    }
+    .today-column-marker {
+      display: none !important;
+    }
+    .day-cell.today,
+    .vacation-day.today {
+      box-shadow: none !important;
+      outline: 0 !important;
+      border-left: 0 !important;
+      border-right: 0 !important;
+    }
+  </style>
 </head>
 <body>
 <main class="service-app">
@@ -75,7 +109,7 @@
             <label title="Vert"><input type="radio" name="activityColor" value="#36a45c"><span style="--activity-color:#36a45c"></span><em>Vert</em></label>
           </div>
         </fieldset>
-        <div class="activity-action"><button id="addActivity" class="button compact" type="button">Ajouter l’activité</button><span>Les cases voisines seront réunies en un seul bandeau par ligne.</span></div>
+        <div class="activity-action"><button id="saveEntryDetails" class="button secondary compact" type="button">Enregistrer libellé / note</button><button id="addActivity" class="button compact" type="button">Ajouter l’activité</button><span>« Enregistrer libellé / note » conserve le type de service déjà posé (ex. D ou PREV). « Ajouter l’activité » crée une activité D personnalisée.</span></div>
       </div>
       <div id="servicePalette" class="service-palette"></div>
     </section>
@@ -165,9 +199,14 @@
 
 <dialog id="purgeDialog" class="service-dialog">
   <form id="purgeForm" method="dialog">
-    <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Purger une période du service</h2></div><button id="closePurgeDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
-    <p class="hint"><strong>Cette opération supprime toutes les cases du planning sur la période.</strong> Les mouvements RR/RPC/permanence liés sont contrepassés afin de conserver des compteurs justes.</p>
+    <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Purger une période</h2></div><button id="closePurgeDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <p class="hint"><strong>Fonction réservée aux administrateurs.</strong> Choisissez précisément ce qui doit être supprimé sur la période.</p>
     <div class="form-grid"><label>Date début<input id="purgeStart" type="date" required></label><label>Date fin<input id="purgeEnd" type="date" required></label></div>
+    <div class="purge-scope" style="display:grid;gap:8px;margin:10px 0 12px">
+      <label class="check-line"><input id="purgeServiceEntries" type="checkbox" checked> Purger les cases du tableau de service</label>
+      <label class="check-line"><input id="purgeRecoveryLedger" type="checkbox"> Purger les mouvements de repos récupérateurs / compteurs sur cette période</label>
+    </div>
+    <p class="hint">Si vous purgez uniquement le service, les mouvements de repos liés sont contrepassés pour garder les compteurs justes. Si vous purgez aussi les mouvements de repos, ceux-ci sont supprimés de l’historique sur la période.</p>
     <label>Motif<input id="purgeReason" maxlength="200" value="Reprise totale du service" required></label>
     <label>Confirmation<input id="purgeConfirmText" autocomplete="off" placeholder="Saisir PURGER" required></label>
     <div id="purgeMessage" class="message" aria-live="polite"></div>

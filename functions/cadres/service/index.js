@@ -276,6 +276,27 @@ export async function onRequestPost(context) {
   const action = String(body.action || "");
 
   try {
+    if (action === "update-entry-details") {
+      const ids = Array.isArray(body.ids) ? [...new Set(body.ids.map(Number).filter(Number.isInteger))] : [];
+      if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
+      const customLabel = cleanText(body.custom_label, 80);
+      const notes = cleanText(body.notes, 500);
+      const saved = [];
+      for (const id of ids) {
+        const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
+        if (!previous) return serviceJson({ error: "Une case sélectionnée est introuvable." }, 404);
+        await db.prepare(`
+          UPDATE service_entries
+          SET custom_label=?, notes=?, updated_by=?, updated_at=CURRENT_TIMESTAMP
+          WHERE id=?
+        `).bind(customLabel, notes, permission.username, id).run();
+        const current = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
+        await auditService(db, "update-details", id, permission.username, previous, current);
+        saved.push(current);
+      }
+      return serviceJson({ success: true, entries: saved });
+    }
+
     if (action === "set-entries") {
       const items = Array.isArray(body.items) ? body.items : [];
       if (!items.length || items.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
@@ -508,34 +529,64 @@ export async function onRequestPost(context) {
 
 
     if (action === "purge-period") {
-      if (!permission.isAdmin) return serviceJson({ error: "La purge du service est réservée aux administrateurs." }, 403);
+      if (!permission.isAdmin) return serviceJson({ error: "La purge du service et des repos est réservée aux administrateurs." }, 403);
       const start = String(body.start || "");
       const end = String(body.end || "");
       const reason = cleanText(body.reason, 200);
+      const purgeService = body.purge_service !== false;
+      const purgeRecovery = body.purge_recovery === true;
       if (!validDate(start) || !validDate(end) || start > end) return serviceJson({ error: "Période de purge invalide." }, 400);
+      if (!purgeService && !purgeRecovery) return serviceJson({ error: "Aucun élément à purger n’a été sélectionné." }, 400);
       if (!reason) return serviceJson({ error: "Le motif de la purge est obligatoire." }, 400);
       const days = Math.round((new Date(`${end}T12:00:00Z`) - new Date(`${start}T12:00:00Z`)) / 86400000) + 1;
       if (days > 366) return serviceJson({ error: "Une purge ne peut pas dépasser 366 jours en une seule opération." }, 400);
-      const result = await db.prepare(`
-        SELECT * FROM service_entries
-        WHERE service_date BETWEEN ? AND ?
-        ORDER BY service_date, target_type, target_key, slot
-      `).bind(start, end).all();
-      const entries = result.results || [];
-      if (entries.length > 5000) return serviceJson({ error: "La période contient trop de cases pour une purge unique." }, 400);
+
+      let deleted = 0;
       let reversed = 0;
-      const reversalGroup = crypto.randomUUID();
-      for (const entry of entries) {
-        if (entry.target_type === "person" && ["RR", "RPC", "P"].includes(entry.service_code)) {
-          if (await reverseLinkedMovement(db, entry, permission, `Purge du service : ${reason}`, reversalGroup)) reversed += 1;
+      let recoveryDeleted = 0;
+
+      if (purgeService) {
+        const result = await db.prepare(`
+          SELECT * FROM service_entries
+          WHERE service_date BETWEEN ? AND ?
+          ORDER BY service_date, target_type, target_key, slot
+        `).bind(start, end).all();
+        const entries = result.results || [];
+        if (entries.length > 5000) return serviceJson({ error: "La période contient trop de cases pour une purge unique." }, 400);
+        const reversalGroup = crypto.randomUUID();
+        for (const entry of entries) {
+          if (!purgeRecovery && entry.target_type === "person" && ["RR", "RPC", "P"].includes(entry.service_code)) {
+            if (await reverseLinkedMovement(db, entry, permission, `Purge du service : ${reason}`, reversalGroup)) reversed += 1;
+          }
         }
+        for (const entry of entries) {
+          await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(entry.id).run();
+          await auditService(db, "purge-delete", entry.id, permission.username, entry, { start, end, reason });
+        }
+        deleted = entries.length;
       }
-      for (const entry of entries) {
-        await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(entry.id).run();
-        await auditService(db, "purge-delete", entry.id, permission.username, entry, { start, end, reason });
+
+      if (purgeRecovery) {
+        const ledgerResult = await db.prepare(`
+          SELECT id FROM service_recovery_ledger
+          WHERE movement_date <= ?
+            AND COALESCE(NULLIF(period_end, ''), movement_date) >= ?
+          ORDER BY id
+        `).bind(end, start).all();
+        const ledgerIds = (ledgerResult.results || []).map(row => Number(row.id)).filter(Number.isInteger);
+        if (ledgerIds.length > 5000) return serviceJson({ error: "La période contient trop de mouvements de repos pour une purge unique." }, 400);
+        for (const id of ledgerIds) {
+          // Évite de laisser un lien d'annulation vers un mouvement supprimé.
+          await db.prepare(`UPDATE service_recovery_ledger SET reversal_of=NULL WHERE reversal_of=?`).bind(id).run();
+          await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(id).run();
+        }
+        recoveryDeleted = ledgerIds.length;
       }
-      await auditService(db, "purge-period", null, permission.username, null, { start, end, reason, deleted: entries.length, reversed });
-      return serviceJson({ success: true, deleted: entries.length, reversed });
+
+      await auditService(db, "purge-period", null, permission.username, null, {
+        start, end, reason, purgeService, purgeRecovery, deleted, reversed, recoveryDeleted
+      });
+      return serviceJson({ success: true, deleted, reversed, recovery_deleted: recoveryDeleted });
     }
 
     if (action === "save-people") {

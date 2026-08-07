@@ -177,7 +177,17 @@ function renderPalette() {
     { merge: state.selected.size > 1 }
   ));
   const toggle = $("toggleDetails");
-  if (toggle) toggle.onclick = () => { $("entryDetails").hidden = !$("entryDetails").hidden; };
+  if (toggle) toggle.onclick = () => {
+    const willOpen = $("entryDetails").hidden;
+    $("entryDetails").hidden = !willOpen;
+    if (willOpen) {
+      const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
+      if (selectedEntries.length === 1) {
+        $("customLabel").value = selectedEntries[0].custom_label || "";
+        $("entryNotes").value = selectedEntries[0].notes || "";
+      }
+    }
+  };
 }
 
 function planningRows() {
@@ -245,10 +255,8 @@ function renderPlanning() {
   groups.forEach((group, index) => { html += `<div class="month-head${index % 2 ? " alt" : ""}" style="grid-column:${monthColumn}/span ${group.count * 2};grid-row:1">${esc(group.label)}</div>`; monthColumn += group.count * 2; });
   days.forEach((day, index) => {
     const date = iso(day); const holiday = holidayFor(day); const nonWorkingDay = [0, 6].includes(day.getUTCDay()) || Boolean(holiday);
-    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br>${String(day.getUTCDate()).padStart(2, "0")}<div>M&nbsp;&nbsp;N</div></div>`;
+    html += `<div class="day-head${nonWorkingDay ? " weekend" : ""}${date === today ? " today" : ""}" style="grid-column:${index * 2 + 4}/span 2;grid-row:2"${holiday ? ` title="${esc(holiday)}"` : ""}><strong>${day.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" })}</strong><br><span class="day-date-frame">${String(day.getUTCDate()).padStart(2, "0")}</span><div>M&nbsp;&nbsp;N</div></div>`;
   });
-  const todayIndex = days.findIndex(day => iso(day) === today);
-  if (todayIndex >= 0) html += `<div class="today-column-marker" style="grid-column:${todayIndex * 2 + 4}/span 2;grid-row:3/${rows.length + 3}" aria-hidden="true"></div>`;
   rows.forEach((row, rowIndex) => {
     const gridRow = rowIndex + 3;
     const identity = row.vacation
@@ -487,6 +495,31 @@ async function applyService(code, { merge = false, customColor = "", activity = 
     renderPlanning(); clearSelection();
     await refreshCounters();
   } catch (error) { message("planningMessage", error.message, "error"); if (/modifiée par un autre cadre/i.test(error.message)) await loadPlanning({ preserveScroll: true }); }
+}
+
+async function saveEntryDetails() {
+  if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases déjà renseignées.", "error");
+  const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
+  if (!selectedEntries.length) return message("planningMessage", "La sélection ne contient aucun service auquel ajouter une note.", "error");
+  if (selectedEntries.length !== state.selected.size) return message("planningMessage", "Pour ajouter une note, toutes les cases sélectionnées doivent déjà contenir un service.", "error");
+  const ids = [...new Set(selectedEntries.map(entry => Number(entry.id)).filter(Number.isInteger))];
+  if (!ids.length) return message("planningMessage", "Impossible d’identifier les cases sélectionnées.", "error");
+  const customLabel = $("customLabel").value.trim();
+  const notes = $("entryNotes").value.trim();
+  message("planningMessage", "Enregistrement du libellé / de la note…", "info");
+  try {
+    const data = await api("/cadres/service", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update-entry-details", ids, custom_label: customLabel, notes })
+    });
+    (data.entries || []).forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
+    message("planningMessage", `${ids.length} case${ids.length > 1 ? "s" : ""} mise${ids.length > 1 ? "s" : ""} à jour.`, "ok");
+    renderPlanning();
+    clearSelection();
+  } catch (error) {
+    message("planningMessage", error.message, "error");
+  }
 }
 
 async function deleteSelection() {
@@ -782,6 +815,8 @@ function openPurgeDialog() {
   $("purgeEnd").value = iso(endOfWeek(utcDate()));
   $("purgeConfirmText").value = "";
   $("purgeReason").value = "Reprise totale du service";
+  $("purgeServiceEntries").checked = true;
+  $("purgeRecoveryLedger").checked = false;
   message("purgeMessage", "", "info");
   $("purgeDialog").showModal();
 }
@@ -790,17 +825,21 @@ async function purgePlanningPeriod(event) {
   event.preventDefault();
   const start = $("purgeStart").value, end = $("purgeEnd").value;
   const reason = $("purgeReason").value.trim();
+  const purgeService = $("purgeServiceEntries").checked;
+  const purgeRecovery = $("purgeRecoveryLedger").checked;
   if (!start || !end || start > end) return message("purgeMessage", "Période invalide.", "error");
+  if (!purgeService && !purgeRecovery) return message("purgeMessage", "Choisissez au moins un élément à purger.", "error");
   if (!reason) return message("purgeMessage", "Indiquez le motif de la purge.", "error");
   if ($("purgeConfirmText").value.trim().toUpperCase() !== "PURGER") return message("purgeMessage", "Saisissez PURGER pour confirmer.", "error");
-  if (!confirm(`Supprimer définitivement toutes les cases de service du ${frDate(start)} au ${frDate(end)} ?\n\nLes mouvements de repos liés seront contrepassés pour conserver des compteurs exacts.`)) return;
+  const targets = [purgeService ? "les cases du service" : "", purgeRecovery ? "les mouvements de repos récupérateurs" : ""].filter(Boolean).join(" et ");
+  if (!confirm(`Supprimer définitivement ${targets} du ${frDate(start)} au ${frDate(end)} ?\n\nCette opération est réservée aux administrateurs et ne peut pas être annulée.`)) return;
   $("executePurge").disabled = true;
   message("purgeMessage", "Purge en cours…", "info");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "purge-period", start, end, reason }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "purge-period", start, end, reason, purge_service: purgeService, purge_recovery: purgeRecovery }) });
     $("purgeDialog").close();
     await loadPlanning({ preserveScroll: false });
-    message("planningMessage", `${data.deleted} case${data.deleted > 1 ? "s" : ""} supprimée${data.deleted > 1 ? "s" : ""}. ${data.reversed || 0} mouvement${data.reversed === 1 ? "" : "s"} de repos contrepassé${data.reversed === 1 ? "" : "s"}.`, "ok");
+    message("planningMessage", `${data.deleted || 0} case${data.deleted === 1 ? "" : "s"} supprimée${data.deleted === 1 ? "" : "s"}. ${data.recovery_deleted || 0} mouvement${data.recovery_deleted === 1 ? "" : "s"} de repos purgé${data.recovery_deleted === 1 ? "" : "s"}. ${data.reversed || 0} contrepassation${data.reversed === 1 ? "" : "s"}.`, "ok");
   } catch (error) { message("purgeMessage", error.message, "error"); }
   finally { $("executePurge").disabled = false; }
 }
@@ -1014,6 +1053,7 @@ $("today").onclick = () => { state.mode = "default"; state.offsetWeeks = 0; load
 $("refreshPlanning").onclick = () => loadPlanning({ preserveScroll: true });
 $("clearSelection").onclick = clearSelection;
 $("deleteSelection").onclick = deleteSelection;
+$("saveEntryDetails").onclick = saveEntryDetails;
 $("addActivity").onclick = () => {
   const label = $("customLabel").value.trim();
   if (!label) {
