@@ -264,7 +264,89 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
     }
-</style>
+
+    /* Libellé / note : panneau compact, directement à droite de son bouton. */
+    #servicePalette {
+      align-items: center;
+    }
+    #servicePalette .compact-entry-details {
+      flex: 1 1 430px;
+      min-width: 360px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 0 0 0 2px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    #servicePalette .compact-entry-details[hidden] { display: none !important; }
+    #servicePalette .compact-detail-input {
+      width: auto;
+      min-width: 0;
+      height: 30px;
+      margin: 0;
+      padding: 4px 7px;
+      border: 1px solid #596168;
+      border-radius: 6px;
+      background: #090d0f;
+      color: #fff;
+      font-size: 11px;
+    }
+    #servicePalette .compact-detail-label { flex: 0 1 155px; }
+    #servicePalette .compact-detail-note { flex: 0 1 175px; }
+    #servicePalette .compact-activity-colors {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      gap: 3px;
+      margin: 0;
+      padding: 0 2px;
+    }
+    #servicePalette .compact-activity-colors label {
+      display: block;
+      margin: 0;
+      padding: 0;
+      line-height: 1;
+      cursor: pointer;
+    }
+    #servicePalette .compact-activity-colors input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #servicePalette .compact-activity-colors span {
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,.42);
+      background: var(--activity-color);
+      box-shadow: none;
+    }
+    #servicePalette .compact-activity-colors input:checked + span {
+      outline: 2px solid #71c8ff;
+      outline-offset: 1px;
+      box-shadow: none;
+    }
+    #servicePalette .compact-detail-action {
+      flex: 0 0 auto;
+      min-height: 30px;
+      padding: 5px 7px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    @media (max-width: 1100px) {
+      #servicePalette .compact-entry-details {
+        flex-basis: 100%;
+        min-width: 0;
+        margin-top: 4px;
+      }
+      #servicePalette .compact-detail-label,
+      #servicePalette .compact-detail-note { flex: 1 1 130px; }
+    }
+
+  </style>
 </head>
 <body>
 <main class="service-app">
@@ -323,21 +405,21 @@
 
     <section class="palette-panel panel-soft" aria-labelledby="paletteTitle">
       <div class="palette-heading"><div><strong id="paletteTitle">Poser un service</strong><span> Sélectionnez une ou plusieurs cases, puis choisissez le service.</span></div></div>
-      <div id="entryDetails" class="entry-details" hidden>
-        <label>Libellé de l’activité<input id="customLabel" maxlength="80" placeholder="Ex. Exercice terrain"></label>
-        <label>Note interne<input id="entryNotes" maxlength="500" placeholder="Précision facultative"></label>
-        <fieldset class="activity-color-field">
-          <legend>Couleur vive du bandeau</legend>
-          <div class="activity-colors" aria-label="Couleur de l’activité">
-            <label title="Jaune"><input type="radio" name="activityColor" value="#f2c230" checked><span style="--activity-color:#f2c230"></span><em>Jaune</em></label>
-            <label title="Bleu"><input type="radio" name="activityColor" value="#2489c5"><span style="--activity-color:#2489c5"></span><em>Bleu</em></label>
-            <label title="Marron"><input type="radio" name="activityColor" value="#8a5a32"><span style="--activity-color:#8a5a32"></span><em>Marron</em></label>
-            <label title="Rouge"><input type="radio" name="activityColor" value="#c63f4d"><span style="--activity-color:#c63f4d"></span><em>Rouge</em></label>
-            <label title="Vert"><input type="radio" name="activityColor" value="#36a45c"><span style="--activity-color:#36a45c"></span><em>Vert</em></label>
-            <label title="Blanc"><input type="radio" name="activityColor" value="#ffffff"><span style="--activity-color:#ffffff;border:1px solid #9aa4aa"></span><em>Blanc</em></label>
-          </div>
-        </fieldset>
-        <div class="activity-action"><button id="saveEntryDetails" class="button secondary compact" type="button">Enregistrer libellé / note</button><button id="addActivity" class="button compact" type="button">Ajouter l’activité</button><span>« Enregistrer libellé / note » conserve le type de service déjà posé (ex. D ou PREV). « Ajouter l’activité » crée une activité D personnalisée.</span></div>
+      <div id="entryDetails" class="entry-details compact-entry-details" hidden>
+        <input id="customLabel" class="compact-detail-input compact-detail-label" maxlength="80" placeholder="Libellé" aria-label="Libellé de l’activité">
+        <input id="entryNotes" class="compact-detail-input compact-detail-note" maxlength="500" placeholder="Note interne" aria-label="Note interne">
+        <div class="activity-colors compact-activity-colors" aria-label="Couleur de l’activité">
+          <label title="Jaune"><input aria-label="Jaune" type="radio" name="activityColor" value="#f2c230" checked><span style="--activity-color:#f2c230"></span></label>
+          <label title="Bleu"><input aria-label="Bleu" type="radio" name="activityColor" value="#2489c5"><span style="--activity-color:#2489c5"></span></label>
+          <label title="Vert kaki"><input aria-label="Vert kaki" type="radio" name="activityColor" value="#78864b"><span style="--activity-color:#78864b"></span></label>
+          <label title="Rouge"><input aria-label="Rouge" type="radio" name="activityColor" value="#c63f4d"><span style="--activity-color:#c63f4d"></span></label>
+          <label title="Vert"><input aria-label="Vert" type="radio" name="activityColor" value="#36a45c"><span style="--activity-color:#36a45c"></span></label>
+          <label title="Blanc"><input aria-label="Blanc" type="radio" name="activityColor" value="#ffffff"><span style="--activity-color:#ffffff;border:1px solid #9aa4aa"></span></label>
+          <label title="Violet vif"><input aria-label="Violet vif" type="radio" name="activityColor" value="#a145e8"><span style="--activity-color:#a145e8"></span></label>
+          <label title="Orange vif"><input aria-label="Orange vif" type="radio" name="activityColor" value="#ff8a1f"><span style="--activity-color:#ff8a1f"></span></label>
+        </div>
+        <button id="saveEntryDetails" class="button secondary compact compact-detail-action" type="button">Enregistrer</button>
+        <button id="addActivity" class="button compact compact-detail-action" type="button">Créer activité</button>
       </div>
       <div id="servicePalette" class="service-palette"></div>
     </section>

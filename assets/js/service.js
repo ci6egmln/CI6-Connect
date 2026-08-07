@@ -211,6 +211,10 @@ function entryDisplayLabel(entry) {
 }
 
 function renderPalette() {
+  // entryDetails est déplacé dans la palette, immédiatement après le bouton
+  // « Ajouter un libellé ou une note », pour rester compact et sur la même ligne.
+  const detailsPanel = $("entryDetails");
+  if (detailsPanel) detailsPanel.remove();
   $("servicePalette").innerHTML = state.data.serviceTypes.map(type => {
     const button = `
       <button class="palette-button${type.code.startsWith("PERM_") ? " palette-button-permission" : ""}" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
@@ -225,6 +229,7 @@ function renderPalette() {
     { merge: state.selected.size > 1 }
   ));
   const toggle = $("toggleDetails");
+  if (toggle && detailsPanel) toggle.insertAdjacentElement("afterend", detailsPanel);
   if (toggle) toggle.onclick = () => {
     const willOpen = $("entryDetails").hidden;
     $("entryDetails").hidden = !willOpen;
