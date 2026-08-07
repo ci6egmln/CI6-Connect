@@ -219,6 +219,10 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
     }
+
+  .table-sort-button { all: unset; cursor: pointer; font: inherit; font-weight: 700; color: inherit; white-space: nowrap; }
+  .table-sort-button:hover { text-decoration: underline; }
+  .table-sort-button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -322,7 +326,7 @@
   <section id="recoveryTab" class="tab-panel" hidden>
     <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div></div>
     <div id="recoveryCards" class="recovery-cards"></div>
-    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date action</th><th>Date début</th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button" title="Trier par date de début">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>

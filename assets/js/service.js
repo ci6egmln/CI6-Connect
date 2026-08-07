@@ -12,6 +12,8 @@ const state = {
   lastSelected: "",
   entries: new Map(),
   activeRecoveryPerson: null,
+  recoverySortDirection: "desc",
+  recoveryGroupedRows: [],
   studentExport: null,
   planningPrintExport: null,
   dragSelection: null,
@@ -741,10 +743,27 @@ async function loadRecoveryDetail(personId) {
       if (effectiveEnd > row.end_date) row.end_date = effectiveEnd;
       if (movement.created_at && (!row.action_date || movement.created_at < row.action_date)) row.action_date = movement.created_at;
     }
-    const displayReason = value => String(value || "").replace(/^Annulation repos récupérateur$/i, "Annulation repos");
-    $("recoveryBody").innerHTML = grouped.map(movement => `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="8" class="empty-state">Aucun mouvement enregistré.</td></tr>';
+    state.recoveryGroupedRows = grouped;
+    renderRecoveryDetailRows();
     $("recoveryDetail").hidden = false; $("recoveryDetail").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) { message("recoveryMessage", error.message, "error"); }
+}
+
+
+function renderRecoveryDetailRows() {
+  const displayReason = value => String(value || "").replace(/^Annulation repos récupérateur$/i, "Annulation repos");
+  const direction = state.recoverySortDirection === "asc" ? 1 : -1;
+  const rows = [...(state.recoveryGroupedRows || [])].sort((a, b) => {
+    const startCompare = String(a.start_date || "").localeCompare(String(b.start_date || ""));
+    if (startCompare) return startCompare * direction;
+    return String(a.action_date || "").localeCompare(String(b.action_date || "")) * direction;
+  });
+  $("recoveryBody").innerHTML = rows.map(movement => `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="8" class="empty-state">Aucun mouvement enregistré.</td></tr>';
+  const button = $("sortRecoveryStart");
+  if (button) {
+    button.textContent = state.recoverySortDirection === "asc" ? "Date début ↑" : "Date début ↓";
+    button.title = state.recoverySortDirection === "asc" ? "Tri du plus ancien au plus récent. Cliquer pour inverser." : "Tri du plus récent au plus ancien. Cliquer pour inverser.";
+  }
 }
 
 function populateMovementPeople(selectedIds = []) {
@@ -1252,6 +1271,7 @@ $("movementForm").addEventListener("submit", saveMovement);
 $("cancelMovement").onclick = () => $("movementDialog").close();
 $("closeMovementDialog").onclick = () => $("movementDialog").close();
 $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
+$("sortRecoveryStart")?.addEventListener("click", () => { state.recoverySortDirection = state.recoverySortDirection === "asc" ? "desc" : "asc"; renderRecoveryDetailRows(); });
 $("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };
 $("addPerson").onclick = addPersonEditorRow;
 $("saveAllPeople").onclick = saveAllPeople;
