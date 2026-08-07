@@ -153,8 +153,28 @@ async function bootstrap(db, permission, start, end) {
     GROUP BY p.id
   `).all();
 
-  // Équité SOP : trois années calendaires complètes (A-1, A et A+1).
-  // Les SOP passées et déjà planifiées sont affichées afin d'anticiper les postes de l'année suivante.
+  // Équité SOP : les années visibles sont choisies manuellement par l'administrateur.
+  // À la première utilisation, on initialise simplement année précédente / année courante / année suivante.
+  const currentYear = new Date().getUTCFullYear();
+  const defaultSopYears = [currentYear - 1, currentYear, currentYear + 1];
+  const sopSetting = await db.prepare(`
+    SELECT setting_value FROM service_settings WHERE setting_key='sop_years' LIMIT 1
+  `).first();
+  let sopYears = defaultSopYears;
+  if (sopSetting?.setting_value) {
+    try {
+      const parsed = JSON.parse(sopSetting.setting_value);
+      if (Array.isArray(parsed)) {
+        const valid = [...new Set(parsed.map(Number).filter(year => Number.isInteger(year) && year >= 2000 && year <= 2100))].sort((a, b) => a - b);
+        if (valid.length) sopYears = valid.slice(0, 8);
+      }
+    } catch {}
+  } else {
+    await db.prepare(`
+      INSERT OR IGNORE INTO service_settings (setting_key, setting_value, updated_by) VALUES ('sop_years', ?, ?)
+    `).bind(JSON.stringify(defaultSopYears), permission.username).run();
+  }
+
   const sopResult = await db.prepare(`
     SELECT p.id AS person_id
     FROM service_people p
@@ -162,15 +182,16 @@ async function bootstrap(db, permission, start, end) {
     ORDER BY p.sort_order, p.display_name
   `).all();
 
+  const sopStart = `${Math.min(...sopYears)}-01-01`;
+  const sopEnd = `${Math.max(...sopYears)}-12-31`;
   const sopDatesResult = await db.prepare(`
     SELECT CAST(target_key AS INTEGER) AS person_id, service_date, slot
     FROM service_entries
     WHERE target_type='person'
       AND service_code='SOP'
-      AND service_date >= date('now','start of year','-1 year')
-      AND service_date < date('now','start of year','+2 years')
+      AND service_date BETWEEN ? AND ?
     ORDER BY service_date, slot
-  `).all();
+  `).bind(sopStart, sopEnd).all();
 
   const sopDatesByPerson = new Map();
   for (const item of sopDatesResult.results || []) {
@@ -205,6 +226,7 @@ async function bootstrap(db, permission, start, end) {
     entries: entriesResult.results || [],
     recovery: recoveryResult.results || [],
     sop: sopRows,
+    sopYears,
     permanence: permanenceResult.results || []
   });
 }
@@ -273,6 +295,24 @@ export async function onRequestPost(context) {
   const action = String(body.action || "");
 
   try {
+    if (action === "save-sop-years") {
+      if (!permission.isAdmin) return serviceJson({ error: "Seul un administrateur peut modifier les années de l'équité SOP." }, 403);
+      const years = [...new Set((Array.isArray(body.years) ? body.years : []).map(Number)
+        .filter(year => Number.isInteger(year) && year >= 2000 && year <= 2100))]
+        .sort((a, b) => a - b);
+      if (!years.length) return serviceJson({ error: "Conservez au moins une année." }, 400);
+      if (years.length > 8) return serviceJson({ error: "Huit années maximum peuvent être affichées." }, 400);
+      const previous = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='sop_years' LIMIT 1`).first();
+      await db.prepare(`
+        INSERT INTO service_settings (setting_key, setting_value, updated_by, updated_at)
+        VALUES ('sop_years', ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(setting_key) DO UPDATE SET
+          setting_value=excluded.setting_value, updated_by=excluded.updated_by, updated_at=CURRENT_TIMESTAMP
+      `).bind(JSON.stringify(years), permission.username).run();
+      await auditService(db, "sop-years", null, permission.username, previous ? { years: previous.setting_value } : null, { years });
+      return serviceJson({ success: true, years });
+    }
+
     if (action === "update-entry-details") {
       const ids = Array.isArray(body.ids) ? [...new Set(body.ids.map(Number).filter(Number.isInteger))] : [];
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);

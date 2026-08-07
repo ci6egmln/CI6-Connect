@@ -144,6 +144,8 @@ async function loadPlanning({ preserveScroll = false } = {}) {
       if (data.permission.isAdmin) purgeButton.hidden = false;
       else purgeButton.remove();
     }
+    const sopControls = $("sopYearControls");
+    if (sopControls) sopControls.hidden = !data.permission.isAdmin;
     renderPalette();
     renderPlanning();
     renderSop();
@@ -585,9 +587,55 @@ function sopDatesByMonth(items = []) {
   return result;
 }
 
+function renderSopYearControls() {
+  const controls = $("sopYearControls");
+  const chips = $("sopYearChips");
+  if (!controls || !chips || !state.data) return;
+  controls.hidden = !state.data.permission?.isAdmin;
+  const years = [...new Set((state.data.sopYears || []).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
+  chips.innerHTML = years.map(year => `
+    <span class="sop-year-chip"><strong>${year}</strong><button type="button" data-remove-sop-year="${year}" title="Retirer ${year}" aria-label="Retirer l’année ${year}">×</button></span>
+  `).join("");
+  chips.querySelectorAll("[data-remove-sop-year]").forEach(button => {
+    button.onclick = () => removeSopYear(Number(button.dataset.removeSopYear));
+  });
+}
+
+async function saveSopYears(years) {
+  try {
+    const data = await api("/cadres/service", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "save-sop-years", years })
+    });
+    state.data.sopYears = data.years || years;
+    await refreshCounters();
+    message("planningMessage", "Années de l’équité SOP mises à jour.", "ok");
+  } catch (error) { message("planningMessage", error.message, "error"); }
+}
+
+async function addSopYear() {
+  const input = $("sopYearInput");
+  const year = Number(input?.value);
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    message("planningMessage", "Saisissez une année valide.", "error");
+    input?.focus(); return;
+  }
+  const years = [...new Set([...(state.data?.sopYears || []), year])].map(Number).sort((a, b) => a - b);
+  if (years.length === (state.data?.sopYears || []).length) { input.value = ""; return; }
+  input.value = "";
+  await saveSopYears(years);
+}
+
+async function removeSopYear(year) {
+  const years = (state.data?.sopYears || []).map(Number).filter(value => value !== Number(year));
+  if (!years.length) { message("planningMessage", "Conservez au moins une année dans l’équité SOP.", "error"); return; }
+  if (!confirm(`Retirer ${year} de l’affichage Équité SOP ? Les données du planning ne seront pas supprimées.`)) return;
+  await saveSopYears(years);
+}
+
 function renderSop() {
   const currentYear = new Date().getFullYear();
-  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const years = [...new Set((state.data.sopYears || [currentYear - 1, currentYear, currentYear + 1]).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
   const months = sopCalendarMonths(currentYear, currentYear);
   const eligibleIds = new Set(state.data.people.filter(person => Number(person.sop_eligible) === 1).map(person => Number(person.id)));
   const sopByPerson = new Map((state.data.sop || []).map(item => [Number(item.person_id), item]));
@@ -595,10 +643,9 @@ function renderSop() {
     .filter(person => eligibleIds.has(Number(person.id)))
     .sort((a, b) => Number(a.sort_order || 100) - Number(b.sort_order || 100) || String(a.display_name || "").localeCompare(String(b.display_name || ""), "fr"));
 
+  renderSopYearControls();
   const head = $("sopHead");
-  if (head) {
-    head.innerHTML = `<th>Cadre</th><th class="sop-year-col">Année</th>${months.map(month => `<th class="sop-month">${esc(month.label)}</th>`).join("")}`;
-  }
+  if (head) head.innerHTML = `<th>Cadre</th><th class="sop-year-col">Année</th>${months.map(month => `<th class="sop-month">${esc(month.label)}</th>`).join("")}`;
 
   const rows = [];
   people.forEach(person => {
@@ -610,13 +657,13 @@ function renderSop() {
         const monthDates = dates.get(month.key) || [];
         const content = monthDates.length
           ? `<div class="sop-month-dates">${monthDates.map(item => `<span class="sop-month-date">${esc(frDate(item.date, { day: "2-digit" }))}${item.period ? ` <small>${esc(item.period)}</small>` : ""}</span>`).join("")}</div>`
-          : '<span class="sop-month-empty">—</span>';
+          : "";
         return `<td class="sop-month-cell${month.current ? " sop-current-month" : ""}">${content}</td>`;
       }).join("");
       const personCell = yearIndex === 0
-        ? `<td class="sop-person-cell" rowspan="3"><strong>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</strong></td>`
+        ? `<td class="sop-person-cell" rowspan="${years.length}"><strong>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</strong></td>`
         : "";
-      rows.push(`<tr class="sop-year-row${yearIndex === 0 ? " sop-person-start" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value"><strong>${year}</strong>${year === currentYear - 1 ? "<small>A-1</small>" : year === currentYear ? "<small>A</small>" : "<small>A+1</small>"}</td>${cells}</tr>`);
+      rows.push(`<tr class="sop-year-row${yearIndex === 0 ? " sop-person-start" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value">${year}</td>${cells}</tr>`);
     });
   });
   $("sopBody").innerHTML = rows.join("") || `<tr><td colspan="14" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>`;
@@ -1177,5 +1224,7 @@ $("purgeForm").addEventListener("submit", purgePlanningPeriod);
 $("purgeServiceEntries").addEventListener("change", syncPurgeScope);
 $("closePurgeDialog").onclick = () => $("purgeDialog").close();
 $("cancelPurge").onclick = () => $("purgeDialog").close();
+if ($("sopAddYear")) $("sopAddYear").onclick = addSopYear;
+if ($("sopYearInput")) $("sopYearInput").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); addSopYear(); } });
 
 loadPlanning();
