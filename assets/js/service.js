@@ -120,6 +120,81 @@ async function api(url, options = {}) {
   return data;
 }
 
+
+function legacyImportPreviewHtml(preview) {
+  const codes = Object.entries(preview.entry_counts || {}).sort((a, b) => a[0].localeCompare(b[0]));
+  const peopleRows = (preview.people || []).map(person => `
+    <tr><td>${esc(person.source_name)}</td><td>${esc(person.matched_name)}</td><td>${number(person.expected_balance)} j</td></tr>`).join("");
+  const missing = (preview.missing_people || []).length
+    ? `<p class="message error"><strong>Cadres non reconnus :</strong> ${(preview.missing_people || []).map(item => esc(item.source_name)).join(", ")}</p>`
+    : `<p class="message success">Les ${preview.people?.length || 0} cadres du tableau ont tous été reconnus.</p>`;
+  const counts = codes.map(([code, count]) => `<span class="sop-year-chip"><strong>${esc(code)}</strong> ${number(count)}</span>`).join(" ");
+  const imported = preview.already_imported ? `<p class="message warning"><strong>Un import a déjà été enregistré.</strong> Une nouvelle exécution remplacera les données seulement si les options de remplacement sont cochées.</p>` : "";
+  return `
+    ${missing}${imported}
+    <div class="legacy-import-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0">
+      <div><strong>Source</strong><br>${esc(preview.source?.file || "Planning ODS")}</div>
+      <div><strong>Service</strong><br>à partir du ${frDate(preview.source?.service_cutoff || "2026-07-01")}</div>
+      <div><strong>Cases à importer</strong><br>${number(preview.entries_total)}</div>
+      <div><strong>Mouvements de repos</strong><br>${number(preview.recovery_total)}</div>
+    </div>
+    <p><strong>Répartition des cases :</strong><br>${counts || "—"}</p>
+    <p><strong>Données déjà présentes dans CI6 Connect :</strong> ${number(preview.existing_service_entries)} case(s) de service · ${number(preview.existing_recovery_movements)} mouvement(s) de repos.</p>
+    <div class="table-panel"><table class="data-table"><thead><tr><th>Ancien tableau</th><th>Cadre reconnu</th><th>Solde attendu</th></tr></thead><tbody>${peopleRows}</tbody></table></div>`;
+}
+
+async function openLegacyImportDialog() {
+  $("legacyImportConfirm").value = "";
+  message("legacyImportMessage", "", "info");
+  $("legacyImportPreview").innerHTML = '<div class="loading">Lecture de l’aperçu…</div>';
+  $("legacyImportDialog").showModal();
+  try {
+    const data = await api("/cadres/service?action=legacy-import-preview");
+    const preview = data.preview || {};
+    $("legacyImportPreview").innerHTML = legacyImportPreviewHtml(preview);
+    $("legacyReplaceService").checked = Number(preview.existing_service_entries || 0) > 0;
+    $("legacyReplaceRecovery").checked = Number(preview.existing_recovery_movements || 0) > 0;
+    $("executeLegacyImport").disabled = (preview.missing_people || []).length > 0;
+  } catch (error) {
+    $("legacyImportPreview").innerHTML = "";
+    message("legacyImportMessage", error.message, "error");
+    $("executeLegacyImport").disabled = true;
+  }
+}
+
+async function executeLegacyImport(event) {
+  event.preventDefault();
+  if ($("legacyImportConfirm").value.trim().toUpperCase() !== "IMPORTER") {
+    return message("legacyImportMessage", "Saisissez IMPORTER pour confirmer.", "error");
+  }
+  const replaceService = $("legacyReplaceService").checked;
+  const replaceRecovery = $("legacyReplaceRecovery").checked;
+  if (!confirm("Importer maintenant l’ancien planning dans CI6 Connect ?\n\nLe service sera repris à partir du 1er juillet 2026, toutes les SOP présentes seront ajoutées et les repos récupérateurs seront repris.")) return;
+  message("legacyImportMessage", "Import en cours… Ne fermez pas cette fenêtre.", "info");
+  $("executeLegacyImport").disabled = true;
+  try {
+    const data = await api("/cadres/service", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "legacy-import",
+        confirmation: "IMPORTER",
+        replace_service: replaceService,
+        replace_recovery: replaceRecovery
+      })
+    });
+    const badBalances = (data.balance_checks || []).filter(item => !item.ok);
+    const text = `Import terminé : ${number(data.imported_entries)} case(s), ${number(data.imported_movements)} mouvement(s) de repos.${badBalances.length ? ` Attention : ${badBalances.length} solde(s) à vérifier.` : " Les soldes de repos correspondent au tableau d’origine."}`;
+    message("legacyImportMessage", text, badBalances.length ? "warning" : "success");
+    await loadPlanning();
+    setTimeout(() => { if ($("legacyImportDialog").open && !badBalances.length) $("legacyImportDialog").close(); }, 1200);
+  } catch (error) {
+    message("legacyImportMessage", error.message, "error");
+  } finally {
+    $("executeLegacyImport").disabled = false;
+  }
+}
+
 async function loadPlanning({ preserveScroll = false } = {}) {
   const viewport = $("planningViewport");
   const scroll = preserveScroll ? { left: viewport.scrollLeft, top: viewport.scrollTop } : null;
@@ -143,6 +218,11 @@ async function loadPlanning({ preserveScroll = false } = {}) {
     if (purgeButton) {
       if (data.permission.isAdmin) purgeButton.hidden = false;
       else purgeButton.remove();
+    }
+    const legacyImportButton = $("importLegacyPlanning");
+    if (legacyImportButton) {
+      if (data.permission.isAdmin) legacyImportButton.hidden = false;
+      else legacyImportButton.remove();
     }
     const sopControls = $("sopYearControls");
     if (sopControls) sopControls.hidden = !data.permission.isAdmin;
@@ -1213,6 +1293,10 @@ $("cancelMovement").onclick = () => $("movementDialog").close();
 $("closeMovementDialog").onclick = () => $("movementDialog").close();
 $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
 $("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };
+$("importLegacyPlanning").onclick = openLegacyImportDialog;
+$("legacyImportForm").addEventListener("submit", executeLegacyImport);
+$("closeLegacyImport").onclick = () => $("legacyImportDialog").close();
+$("cancelLegacyImport").onclick = () => $("legacyImportDialog").close();
 $("addPerson").onclick = addPersonEditorRow;
 $("saveAllPeople").onclick = saveAllPeople;
 $("saveMonthImage").onclick = openMonthImageDialog;
