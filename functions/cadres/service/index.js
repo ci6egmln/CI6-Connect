@@ -40,12 +40,12 @@ async function linkedLedger(db, entryId) {
   `).bind(entryId).first();
 }
 
-async function reverseLinkedMovement(db, entry, permission, comment = "") {
+async function reverseLinkedMovement(db, entry, permission, comment = "", reversalGroup = crypto.randomUUID()) {
   const linked = await linkedLedger(db, entry.id);
   if (!linked || Number(linked.amount) === 0) return false;
   const amount = -Number(linked.amount);
   const movementType = amount > 0 ? "credit" : "debit";
-  const label = entry.service_code === "RR" ? "repos récupérateur"
+  const label = entry.service_code === "RR" ? "repos"
     : entry.service_code === "RPC" ? "RPC"
     : entry.service_code === "P" ? "permanence"
     : "mouvement";
@@ -54,8 +54,8 @@ async function reverseLinkedMovement(db, entry, permission, comment = "") {
       (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, reversal_of, created_by)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
-    Number(linked.person_id), todayIso(), todayIso(), amount, movementType,
-    `Annulation ${label}`, cleanText(comment, 500), crypto.randomUUID(), linked.id, permission.username
+    Number(linked.person_id), linked.movement_date, linked.period_end || linked.movement_date, amount, movementType,
+    `Annulation ${label}`, cleanText(comment, 500), reversalGroup, linked.id, permission.username
   ).run();
   // Détache l'ancien mouvement de la case : si la même case reçoit plus tard
   // un nouveau RR/P, elle pourra créer un nouveau mouvement lié sans heurter l'index UNIQUE.
@@ -228,10 +228,18 @@ export async function onRequestGet(context) {
       const person = await db.prepare(`SELECT id, grade, display_name FROM service_people WHERE id=? AND active=1`).bind(personId).first();
       if (!person) return serviceJson({ error: "Cadre introuvable." }, 404);
       const result = await db.prepare(`
-        SELECT id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, reversal_of, entry_id, created_by, created_at
-        FROM service_recovery_ledger
-        WHERE person_id=?
-        ORDER BY movement_date DESC, id DESC
+        SELECT l.id, l.movement_date, l.period_end, l.amount, l.movement_type, l.reason, l.comment,
+               l.movement_group, l.reversal_of, l.entry_id, l.created_by, l.created_at,
+               COALESCE(src.movement_date, l.movement_date) AS effective_start,
+               COALESCE(src.period_end, src.movement_date, l.period_end, l.movement_date) AS effective_end,
+               CASE
+                 WHEN l.reversal_of IS NOT NULL THEN 'reversal:' || COALESCE(NULLIF(src.movement_group, ''), CAST(l.reversal_of AS TEXT))
+                 ELSE 'movement:' || COALESCE(NULLIF(l.movement_group, ''), CAST(l.id AS TEXT))
+               END AS display_group
+        FROM service_recovery_ledger l
+        LEFT JOIN service_recovery_ledger src ON src.id=l.reversal_of
+        WHERE l.person_id=?
+        ORDER BY l.created_at DESC, l.id DESC
         LIMIT 500
       `).bind(personId).all();
       return serviceJson({ success: true, person, movements: result.results || [] });
@@ -274,6 +282,7 @@ export async function onRequestPost(context) {
       const removalReason = cleanText(body.removal_reason, 500);
       const saved = [];
       const permanenceCreditCandidates = [];
+      const reversalGroup = crypto.randomUUID();
 
       for (const raw of items) {
         const targetType = raw.target_type === "peloton" ? "peloton" : "person";
@@ -304,7 +313,7 @@ export async function onRequestPost(context) {
           if (["RR", "RPC"].includes(previous.service_code) && !removalReason) {
             return serviceJson({ error: "Indiquez le motif du retrait du repos avant de remplacer cette case." }, 400);
           }
-          await reverseLinkedMovement(db, previous, permission, removalReason);
+          await reverseLinkedMovement(db, previous, permission, removalReason, reversalGroup);
         }
 
         const result = await db.prepare(`
@@ -402,6 +411,7 @@ export async function onRequestPost(context) {
       const deletionReason = cleanText(body.deletion_reason, 500);
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection à supprimer invalide." }, 400);
       const permanenceCreditCandidates = [];
+      const reversalGroup = crypto.randomUUID();
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) continue;
@@ -412,7 +422,7 @@ export async function onRequestPost(context) {
           return serviceJson({ error: "Le motif du retrait du repos est obligatoire." }, 400);
         }
         const affectedPermanences = await affectedPermanenceForRpj(db, previous);
-        await reverseLinkedMovement(db, previous, permission, deletionReason);
+        await reverseLinkedMovement(db, previous, permission, deletionReason, reversalGroup);
         await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(id).run();
         await auditService(db, "delete", id, permission.username, previous, { deletion_reason: deletionReason });
         for (const permanence of affectedPermanences) {

@@ -557,18 +557,21 @@ async function loadRecoveryDetail(personId) {
     const grouped = [];
     const byGroup = new Map();
     for (const movement of data.movements) {
-      const key = movement.movement_group || `single-${movement.id}`;
+      const key = movement.display_group || movement.movement_group || `single-${movement.id}`;
+      const effectiveStart = movement.effective_start || movement.movement_date;
+      const effectiveEnd = movement.effective_end || movement.period_end || effectiveStart;
       if (!byGroup.has(key)) {
-        const row = { ...movement, amount: 0, start_date: movement.movement_date, end_date: movement.period_end || movement.movement_date };
+        const row = { ...movement, amount: 0, start_date: effectiveStart, end_date: effectiveEnd, action_date: movement.created_at || movement.movement_date };
         byGroup.set(key, row); grouped.push(row);
       }
       const row = byGroup.get(key);
       row.amount += Number(movement.amount || 0);
-      if (movement.movement_date < row.start_date) row.start_date = movement.movement_date;
-      const movementEnd = movement.period_end || movement.movement_date;
-      if (movementEnd > row.end_date) row.end_date = movementEnd;
+      if (effectiveStart < row.start_date) row.start_date = effectiveStart;
+      if (effectiveEnd > row.end_date) row.end_date = effectiveEnd;
+      if (movement.created_at && (!row.action_date || movement.created_at < row.action_date)) row.action_date = movement.created_at;
     }
-    $("recoveryBody").innerHTML = grouped.map(movement => `<tr><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(movement.reason)}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="7" class="empty-state">Aucun mouvement enregistré.</td></tr>';
+    const displayReason = value => String(value || "").replace(/^Annulation repos récupérateur$/i, "Annulation repos");
+    $("recoveryBody").innerHTML = grouped.map(movement => `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="8" class="empty-state">Aucun mouvement enregistré.</td></tr>';
     $("recoveryDetail").hidden = false; $("recoveryDetail").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
