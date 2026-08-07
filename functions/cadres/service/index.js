@@ -5,6 +5,7 @@ import {
   serviceJson,
   servicePermission
 } from "../../_shared/service.js";
+import { LEGACY_SERVICE_IMPORT } from "../../_shared/service-legacy-import.js";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TARGET_PATTERN = /^(?:\d+|P[123])$/;
@@ -115,6 +116,209 @@ async function affectedPermanenceForRpj(db, entry) {
     if (previousNight) result.push(previousNight);
   }
   return result;
+}
+
+
+function legacyNameKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+async function legacyPeopleMap(db) {
+  const result = await db.prepare(`
+    SELECT id, grade, display_name, active FROM service_people ORDER BY active DESC, sort_order, display_name
+  `).all();
+  const byKey = new Map();
+  for (const person of result.results || []) {
+    const key = legacyNameKey(person.display_name);
+    if (key && !byKey.has(key)) byKey.set(key, person);
+  }
+  const mapped = [];
+  const missing = [];
+  for (const source of LEGACY_SERVICE_IMPORT.people || []) {
+    const person = byKey.get(legacyNameKey(source.source_name));
+    if (person) mapped.push({ source, person });
+    else missing.push(source);
+  }
+  return { mapped, missing, byKey };
+}
+
+async function legacyImportPreview(db) {
+  const map = await legacyPeopleMap(db);
+  const entryCounts = {};
+  for (const entry of LEGACY_SERVICE_IMPORT.entries || []) {
+    entryCounts[entry.service_code] = (entryCounts[entry.service_code] || 0) + 1;
+  }
+  const existingService = await db.prepare(`SELECT COUNT(*) AS total FROM service_entries`).first();
+  const existingRecovery = await db.prepare(`SELECT COUNT(*) AS total FROM service_recovery_ledger`).first();
+  const marker = await db.prepare(`SELECT setting_value, updated_at FROM service_settings WHERE setting_key='legacy_import_20260807' LIMIT 1`).first();
+  return {
+    source: LEGACY_SERVICE_IMPORT.source,
+    people: map.mapped.map(item => ({
+      source_name: item.source.source_name,
+      matched_id: item.person.id,
+      matched_name: item.person.display_name,
+      grade_source: item.source.grade,
+      expected_balance: item.source.balance_expected
+    })),
+    missing_people: map.missing,
+    entries_total: (LEGACY_SERVICE_IMPORT.entries || []).length,
+    entry_counts: entryCounts,
+    recovery_total: (LEGACY_SERVICE_IMPORT.recovery || []).length,
+    existing_service_entries: Number(existingService?.total || 0),
+    existing_recovery_movements: Number(existingRecovery?.total || 0),
+    already_imported: Boolean(marker),
+    import_marker: marker || null,
+    warnings: LEGACY_SERVICE_IMPORT.warnings || []
+  };
+}
+
+async function executeLegacyImport(db, permission, options = {}) {
+  if (!permission.isAdmin) return serviceJson({ error: "Import réservé aux administrateurs." }, 403);
+  const map = await legacyPeopleMap(db);
+  if (map.missing.length) {
+    return serviceJson({ error: "Certains cadres de l'ancien planning ne correspondent à aucun cadre du module Service.", missing_people: map.missing }, 409);
+  }
+
+  const existingService = await db.prepare(`SELECT COUNT(*) AS total FROM service_entries`).first();
+  const existingRecovery = await db.prepare(`SELECT COUNT(*) AS total FROM service_recovery_ledger`).first();
+  const replaceService = options.replace_service === true;
+  const replaceRecovery = options.replace_recovery === true;
+  if (Number(existingService?.total || 0) > 0 && !replaceService) {
+    return serviceJson({ error: "Le tableau Service contient déjà des données. Cochez le remplacement des données de service ou purgez-les avant l'import." }, 409);
+  }
+  if (Number(existingRecovery?.total || 0) > 0 && !replaceRecovery) {
+    return serviceJson({ error: "Le suivi des repos contient déjà des mouvements. Cochez le remplacement des repos ou purgez-les avant l'import." }, 409);
+  }
+
+  if (replaceService) {
+    await db.prepare(`DELETE FROM service_entries`).run();
+  }
+  if (replaceRecovery || replaceService) {
+    // Les mouvements liés à des cases supprimées ne doivent pas survivre à une reprise totale.
+    await db.prepare(`DELETE FROM service_recovery_ledger`).run();
+  }
+
+  const personIdBySource = new Map(map.mapped.map(item => [legacyNameKey(item.source.source_name), Number(item.person.id)]));
+  let importedEntries = 0;
+  const statements = [];
+  for (const entry of LEGACY_SERVICE_IMPORT.entries || []) {
+    const targetKey = entry.target_type === "person"
+      ? String(personIdBySource.get(legacyNameKey(entry.target_key_source)) || "")
+      : String(entry.target_key_source || "");
+    if (!targetKey) continue;
+    statements.push(db.prepare(`
+      INSERT INTO service_entries
+        (target_type, target_key, service_date, slot, service_code, custom_label, custom_color, group_id, notes, created_by, updated_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(target_type, target_key, service_date, slot) DO UPDATE SET
+        service_code=excluded.service_code,
+        custom_label=excluded.custom_label,
+        custom_color=excluded.custom_color,
+        group_id=excluded.group_id,
+        notes=excluded.notes,
+        updated_by=excluded.updated_by,
+        updated_at=CURRENT_TIMESTAMP
+    `).bind(
+      entry.target_type, targetKey, entry.service_date, entry.slot, entry.service_code,
+      cleanText(entry.custom_label, 80), cleanText(entry.custom_color, 20), cleanText(entry.group_id, 120),
+      cleanText(entry.notes, 500), `IMPORT_ODS:${permission.username}`, `IMPORT_ODS:${permission.username}`
+    ));
+    if (statements.length >= 50) {
+      await db.batch(statements.splice(0, statements.length));
+    }
+    importedEntries += 1;
+  }
+  if (statements.length) await db.batch(statements);
+
+  // Reprise des soldes et mouvements de repos. Les débits RR/RPC sont éclatés en 0,5 j et
+  // reliés aux cases correspondantes lorsque la période du mouvement concorde avec le planning.
+  let importedMovements = 0;
+  for (let index = 0; index < (LEGACY_SERVICE_IMPORT.recovery || []).length; index += 1) {
+    const movement = LEGACY_SERVICE_IMPORT.recovery[index];
+    const personId = personIdBySource.get(legacyNameKey(movement.person_source));
+    if (!personId) continue;
+    const amount = Number(movement.amount || 0);
+    const movementGroup = `legacy20260807:${personId}:${index}`;
+    const reasonKey = legacyNameKey(movement.reason);
+    const expectedCode = reasonKey === "RPC" ? "RPC" : reasonKey === "REPOSRECUPERATEUR" ? "RR" : "";
+    let linkedEntries = [];
+    if (amount < 0 && expectedCode && Math.abs(amount * 2 - Math.round(amount * 2)) < 0.001) {
+      const linked = await db.prepare(`
+        SELECT id, service_date, slot FROM service_entries
+        WHERE target_type='person' AND target_key=? AND service_code=?
+          AND service_date BETWEEN ? AND ?
+        ORDER BY service_date, slot
+      `).bind(String(personId), expectedCode, movement.movement_date, movement.period_end || movement.movement_date).all();
+      linkedEntries = linked.results || [];
+    }
+    const halfDays = Math.round(Math.abs(amount) * 2);
+    if (amount < 0 && linkedEntries.length === halfDays && halfDays > 0) {
+      for (const entry of linkedEntries) {
+        await db.prepare(`
+          INSERT INTO service_recovery_ledger
+            (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, entry_id, created_by)
+          VALUES (?, ?, ?, -0.5, 'debit', ?, ?, ?, ?, ?)
+        `).bind(
+          personId, movement.movement_date, movement.period_end || movement.movement_date,
+          cleanText(movement.reason, 250), cleanText(movement.comment, 500), movementGroup, entry.id,
+          `IMPORT_ODS:${permission.username}`
+        ).run();
+        importedMovements += 1;
+      }
+    } else {
+      await db.prepare(`
+        INSERT INTO service_recovery_ledger
+          (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        personId, movement.movement_date, movement.period_end || movement.movement_date, amount,
+        movement.movement_type === "adjustment" ? "adjustment" : (amount >= 0 ? "credit" : "debit"),
+        cleanText(movement.reason, 250), cleanText(movement.comment, 500), movementGroup,
+        `IMPORT_ODS:${permission.username}`
+      ).run();
+      importedMovements += 1;
+    }
+  }
+
+  const finalBalances = await db.prepare(`
+    SELECT p.id AS person_id, p.display_name, ROUND(COALESCE(SUM(l.amount),0),2) AS balance
+    FROM service_people p LEFT JOIN service_recovery_ledger l ON l.person_id=p.id
+    WHERE p.active=1 GROUP BY p.id ORDER BY p.sort_order, p.display_name
+  `).all();
+  const expectedById = new Map(map.mapped.map(item => [Number(item.person.id), Number(item.source.balance_expected)]));
+  const balanceChecks = (finalBalances.results || []).filter(row => expectedById.has(Number(row.person_id))).map(row => ({
+    person_id: Number(row.person_id),
+    display_name: row.display_name,
+    expected: expectedById.get(Number(row.person_id)),
+    imported: Number(row.balance || 0),
+    ok: Math.abs(Number(row.balance || 0) - expectedById.get(Number(row.person_id))) < 0.001
+  }));
+
+  const markerValue = JSON.stringify({
+    source: LEGACY_SERVICE_IMPORT.source?.file || "planning ODS",
+    imported_at: new Date().toISOString(),
+    entries: importedEntries,
+    movements: importedMovements,
+    balances_ok: balanceChecks.every(item => item.ok)
+  });
+  await db.prepare(`
+    INSERT INTO service_settings (setting_key, setting_value, updated_by, updated_at)
+    VALUES ('legacy_import_20260807', ?, ?, CURRENT_TIMESTAMP)
+    ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value, updated_by=excluded.updated_by, updated_at=CURRENT_TIMESTAMP
+  `).bind(markerValue, permission.username).run();
+  await auditService(db, "legacy-import", null, permission.username, null, {
+    source: LEGACY_SERVICE_IMPORT.source,
+    entries: importedEntries,
+    movements: importedMovements,
+    replace_service: replaceService,
+    replace_recovery: replaceRecovery,
+    balance_checks: balanceChecks
+  });
+  return serviceJson({ success: true, imported_entries: importedEntries, imported_movements: importedMovements, balance_checks: balanceChecks });
 }
 
 async function bootstrap(db, permission, start, end) {
@@ -253,6 +457,11 @@ export async function onRequestGet(context) {
       return bootstrap(db, permission, start, end);
     }
 
+    if (action === "legacy-import-preview") {
+      if (!permission.isAdmin) return serviceJson({ error: "Import réservé aux administrateurs." }, 403);
+      return serviceJson({ success: true, preview: await legacyImportPreview(db) });
+    }
+
     if (action === "recovery") {
       const personId = Number(url.searchParams.get("person_id"));
       if (!Number.isInteger(personId)) return serviceJson({ error: "Cadre invalide." }, 400);
@@ -295,6 +504,13 @@ export async function onRequestPost(context) {
   const action = String(body.action || "");
 
   try {
+    if (action === "legacy-import") {
+      if (String(body.confirmation || "").trim().toUpperCase() !== "IMPORTER") {
+        return serviceJson({ error: "Saisissez IMPORTER pour confirmer la reprise de l'ancien planning." }, 400);
+      }
+      return executeLegacyImport(db, permission, body);
+    }
+
     if (action === "save-sop-years") {
       if (!permission.isAdmin) return serviceJson({ error: "Seul un administrateur peut modifier les années de l'équité SOP." }, 403);
       const years = [...new Set((Array.isArray(body.years) ? body.years : []).map(Number)
