@@ -23,9 +23,13 @@
     }
     .day-head.today {
       box-shadow: none !important;
-      outline: 0 !important;
+      outline: 2px solid #2f9fe5 !important;
+      outline-offset: -2px;
       border-left-color: inherit !important;
       border-right-color: inherit !important;
+      background: #1f74ad !important;
+      color: #fff !important;
+      font-weight: 800;
     }
     .day-head .day-date-frame {
       display: inline-flex;
@@ -38,9 +42,9 @@
       border-radius: 4px;
     }
     .day-head.today .day-date-frame {
-      border: 2px solid #2f9fe5;
-      background: rgba(47, 159, 229, .12);
-      color: #fff;
+      border: 0 !important;
+      background: transparent !important;
+      color: inherit !important;
       font-weight: 900;
     }
     .today-column-marker {
@@ -53,6 +57,95 @@
       border-left: 0 !important;
       border-right: 0 !important;
     }
+
+
+    /* Activités sur plusieurs cellules : rendu totalement plat, sans effet bouton. */
+    #planningViewport .slot-cell.merged-activity,
+    .planning-screen-print .slot-cell.merged-activity {
+      border: 0 !important;
+      border-bottom: 1px solid #343b40 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      filter: none !important;
+      transform: none !important;
+      outline: 0;
+      padding: 1px !important;
+      z-index: auto !important;
+    }
+    #planningViewport .slot-cell.merged-activity.day-end,
+    .planning-screen-print .slot-cell.merged-activity.day-end {
+      border-right: 1px solid #343b40 !important;
+    }
+    #planningViewport .slot-cell.merged-activity .slot-code,
+    .planning-screen-print .slot-cell.merged-activity .slot-code {
+      font-size: 9px !important;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .planning-screen-print {
+      display: none;
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 5mm; }
+      body.printing-planning-screen {
+        background: #090b0d !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body.printing-planning-screen::before,
+      body.printing-planning-screen .service-app,
+      body.printing-planning-screen dialog,
+      body.printing-planning-screen .student-print-sheet {
+        display: none !important;
+      }
+      body.printing-planning-screen .planning-print-sheet {
+        display: block !important;
+        color: #fff;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body.printing-planning-screen .planning-screen-print {
+        display: block !important;
+        padding: 6mm;
+      }
+      body.printing-planning-screen .planning-screen-print .print-header {
+        margin: 0 0 6mm;
+      }
+      body.printing-planning-screen .planning-screen-print .print-header h1 {
+        margin: 0;
+        font-size: 14pt;
+      }
+      body.printing-planning-screen .planning-screen-print .print-header p {
+        margin: 2mm 0 0;
+        font-size: 9pt;
+      }
+      body.printing-planning-screen .planning-screen-print .planning-viewport {
+        overflow: visible !important;
+        border: 1px solid #4b5359 !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: #0a0d0f !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body.printing-planning-screen .planning-screen-print .planning-grid {
+        transform-origin: top left;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body.printing-planning-screen .planning-screen-print .palette-panel,
+      body.printing-planning-screen .planning-screen-print .selection-bar,
+      body.printing-planning-screen .planning-screen-print .planning-toolbar,
+      body.printing-planning-screen .planning-screen-print .planning-tip,
+      body.printing-planning-screen .planning-screen-print .message {
+        display: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>

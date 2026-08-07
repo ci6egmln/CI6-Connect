@@ -554,10 +554,19 @@ async function refreshCounters() {
 
 function sopDateList(items = []) {
   if (!Array.isArray(items) || !items.length) return '<span class="sop-none">—</span>';
-  return `<div class="sop-dates">${items.map(item => {
+  const byDate = new Map();
+  items.forEach(item => {
     const date = typeof item === "string" ? item : item.date;
     const slot = typeof item === "string" ? "" : item.slot;
-    return `<span>${esc(frDate(date, { day: "2-digit", month: "2-digit", year: "2-digit" }))}${slot ? ` <small>${slot === "M" ? "M" : "N"}</small>` : ""}</span>`;
+    if (!byDate.has(date)) byDate.set(date, new Set());
+    if (slot) byDate.get(date).add(slot);
+  });
+  return `<div class="sop-dates">${[...byDate.entries()].map(([date, slots]) => {
+    let period = "";
+    if (slots.has("M") && slots.has("N")) period = "Journée";
+    else if (slots.has("M")) period = "M";
+    else if (slots.has("N")) period = "N";
+    return `<span>${esc(frDate(date, { day: "2-digit", month: "2-digit", year: "2-digit" }))}${period ? ` <small>${period}</small>` : ""}</span>`;
   }).join("")}</div>`;
 }
 
@@ -1032,21 +1041,34 @@ async function refreshPlanningPrint() {
   }
 }
 
+function currentPlanningScreenDocument() {
+  const viewport = $("planningViewport");
+  const grid = viewport?.querySelector(".planning-grid");
+  if (!grid) throw new Error("Le planning n’est pas encore chargé.");
+  const label = $("periodLabel")?.textContent?.trim() || "Période affichée";
+  return `
+    <section class="planning-screen-print">
+      <header class="print-header">
+        <h1>6<sup>e</sup> compagnie d’instruction — Tableau de service</h1>
+        <p>${esc(label)} — impression conforme à l’écran</p>
+      </header>
+      <div class="planning-viewport">${viewport.innerHTML}</div>
+    </section>`;
+}
+
 async function openPlanningPrint() {
-  $("planningPrintStart").value = iso(monday(utcDate()));
-  $("planningPrintDialog").showModal();
-  await refreshPlanningPrint();
+  await printPlanning4Weeks();
 }
 
 async function printPlanning4Weeks() {
-  const settings = planningPrintSettings();
-  let exportData = state.planningPrintExport;
-  if (!exportData || iso(exportData.start) !== iso(settings.start)) exportData = await refreshPlanningPrint();
-  if (!exportData) return;
-  $("planningPrintSheet").innerHTML = planningPrintDocument(exportData);
-  document.body.classList.add("printing-planning");
-  window.print();
-  setTimeout(() => document.body.classList.remove("printing-planning"), 500);
+  try {
+    $("planningPrintSheet").innerHTML = currentPlanningScreenDocument();
+    document.body.classList.add("printing-planning-screen");
+    window.print();
+    setTimeout(() => document.body.classList.remove("printing-planning-screen"), 500);
+  } catch (error) {
+    message("planningMessage", error.message, "error");
+  }
 }
 
 async function printStudentService() {

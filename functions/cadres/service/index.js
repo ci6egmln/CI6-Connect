@@ -155,8 +155,8 @@ async function bootstrap(db, permission, start, end) {
 
   const sopResult = await db.prepare(`
     SELECT p.id AS person_id,
-      SUM(CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN 1 ELSE 0 END) AS completed,
-      SUM(CASE WHEN e.service_date >= date('now') THEN 1 ELSE 0 END) AS planned,
+      COUNT(DISTINCT CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN e.service_date END) AS completed,
+      COUNT(DISTINCT CASE WHEN e.service_date >= date('now') THEN e.service_date END) AS planned,
       MAX(CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN e.service_date ELSE NULL END) AS last_sop
     FROM service_people p
     LEFT JOIN service_entries e
