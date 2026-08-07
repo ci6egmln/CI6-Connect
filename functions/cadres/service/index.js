@@ -153,16 +153,13 @@ async function bootstrap(db, permission, start, end) {
     GROUP BY p.id
   `).all();
 
+  // Équité SOP : trois années calendaires complètes (A-1, A et A+1).
+  // Les SOP passées et déjà planifiées sont affichées afin d'anticiper les postes de l'année suivante.
   const sopResult = await db.prepare(`
-    SELECT p.id AS person_id,
-      COUNT(DISTINCT CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN e.service_date END) AS completed,
-      COUNT(DISTINCT CASE WHEN e.service_date >= date('now') THEN e.service_date END) AS planned,
-      MAX(CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN e.service_date ELSE NULL END) AS last_sop
+    SELECT p.id AS person_id
     FROM service_people p
-    LEFT JOIN service_entries e
-      ON e.target_type='person' AND e.target_key=CAST(p.id AS TEXT) AND e.service_code='SOP'
     WHERE p.active=1
-    GROUP BY p.id
+    ORDER BY p.sort_order, p.display_name
   `).all();
 
   const sopDatesResult = await db.prepare(`
@@ -170,21 +167,21 @@ async function bootstrap(db, permission, start, end) {
     FROM service_entries
     WHERE target_type='person'
       AND service_code='SOP'
-      AND service_date >= date('now','-1 year')
+      AND service_date >= date('now','start of year','-1 year')
+      AND service_date < date('now','start of year','+2 years')
     ORDER BY service_date, slot
   `).all();
 
   const sopDatesByPerson = new Map();
   for (const item of sopDatesResult.results || []) {
     const personId = Number(item.person_id);
-    if (!sopDatesByPerson.has(personId)) sopDatesByPerson.set(personId, { completed_dates: [], planned_dates: [] });
-    const target = item.service_date < new Date().toISOString().slice(0, 10) ? "completed_dates" : "planned_dates";
-    sopDatesByPerson.get(personId)[target].push({ date: item.service_date, slot: item.slot });
+    if (!sopDatesByPerson.has(personId)) sopDatesByPerson.set(personId, { completed_dates: [] });
+    sopDatesByPerson.get(personId).completed_dates.push({ date: item.service_date, slot: item.slot });
   }
 
   const sopRows = (sopResult.results || []).map(item => ({
     ...item,
-    ...(sopDatesByPerson.get(Number(item.person_id)) || { completed_dates: [], planned_dates: [] })
+    ...(sopDatesByPerson.get(Number(item.person_id)) || { completed_dates: [] })
   }));
 
   const permanenceResult = await db.prepare(`

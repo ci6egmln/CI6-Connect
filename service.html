@@ -146,6 +146,44 @@
       }
     }
 
+  
+    /* Équité SOP : matrice A-1 / A / A+1, 12 mois fixes par année. */
+    .sop-year-panel { overflow-x: auto; }
+    .sop-year-table { min-width: 1420px; table-layout: fixed; }
+    .sop-year-table th:first-child,
+    .sop-year-table td:first-child {
+      position: sticky; left: 0; z-index: 3;
+      width: 190px; min-width: 190px; max-width: 190px;
+      background: #11161a;
+      text-align: left;
+    }
+    .sop-year-table thead th:first-child { z-index: 5; }
+    .sop-year-table th.sop-year-col,
+    .sop-year-table td.sop-year-value {
+      width: 64px; min-width: 64px; text-align: center;
+    }
+    .sop-year-value small { display: block; opacity: .62; font-size: .68rem; margin-top: 2px; }
+    .sop-person-cell { vertical-align: middle !important; }
+    .sop-person-start td { border-top-width: 2px; }
+    .sop-current-year-row td { background-color: rgba(47,159,229,.035); }
+    .sop-year-table th.sop-month {
+      width: 92px; min-width: 92px;
+      text-align: center; white-space: nowrap;
+    }
+    .sop-year-table td.sop-month-cell {
+      min-width: 92px; padding: 6px 4px;
+      vertical-align: top; text-align: center;
+    }
+    .sop-month-dates { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+    .sop-month-date {
+      display: block; width: 100%; padding: 2px 3px;
+      font-size: .76rem; line-height: 1.15;
+      white-space: nowrap;
+    }
+    .sop-month-date small { opacity: .76; font-size: .68rem; }
+    .sop-month-empty { opacity: .24; }
+    .sop-current-month { background: rgba(47,159,229,.08) !important; }
+
   </style>
 </head>
 <body>
@@ -226,10 +264,14 @@
   </section>
 
   <section id="sopTab" class="tab-panel" hidden>
-    <div class="section-head"><div><h2>Répartition des SOP</h2><p>Suivi sur 12 mois glissants des SOP réalisées, avec les dates, et des SOP programmées.</p></div></div>
-    <div class="sop-summary"><div class="summary-card"><span>Moyenne par cadre</span><strong id="sopAverage">0</strong></div><div class="summary-card"><span>Écart maximal</span><strong id="sopGap">0</strong></div><div class="summary-card"><span>SOP programmées</span><strong id="sopPlanned">0</strong></div></div>
-    <div class="panel table-panel"><table class="data-table"><thead><tr><th>Cadre</th><th>Peloton</th><th>Réalisées</th><th>Prévues</th><th>Total</th><th>Dernière SOP</th><th>Écart à la moyenne</th></tr></thead><tbody id="sopBody"></tbody></table></div>
-    <p class="hint">Dans le planning, la palette SOP applique le poste à la case sélectionnée. Les cadres les moins chargés apparaissent en tête de ce tableau.</p>
+    <div class="section-head"><div><h2>Équité SOP — A-1 / A / A+1</h2><p>Trois lignes par cadre et 12 colonnes de janvier à décembre. Les SOP passées et planifiées se mettent à jour automatiquement à partir du planning.</p></div></div>
+    <div class="panel table-panel sop-year-panel">
+      <table class="data-table sop-year-table">
+        <thead><tr id="sopHead"><th>Cadre</th><th>Année</th></tr></thead>
+        <tbody id="sopBody"></tbody>
+      </table>
+    </div>
+    <p class="hint">Chaque cadre dispose de trois lignes : A-1, année en cours (A) et A+1. Une SOP couvrant M et N le même jour apparaît une seule fois avec la mention « Journée ». Les dates futures permettent d’anticiper les postes déjà planifiés.</p>
   </section>
 
   <section id="recoveryTab" class="tab-panel" hidden>

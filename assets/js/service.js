@@ -552,37 +552,74 @@ async function refreshCounters() {
   $("planningViewport").scrollLeft = scroll.left; $("planningViewport").scrollTop = scroll.top;
 }
 
-function sopDateList(items = []) {
-  if (!Array.isArray(items) || !items.length) return '<span class="sop-none">—</span>';
+function sopCalendarMonths(year, currentYear = new Date().getFullYear()) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(year, index, 1, 12, 0, 0);
+    return {
+      key: `${year}-${String(index + 1).padStart(2, "0")}`,
+      label: date.toLocaleDateString("fr-FR", { month: "short" }).replace(".", ""),
+      current: year === currentYear && index === new Date().getMonth()
+    };
+  });
+}
+
+function sopDatesByMonth(items = []) {
+  const result = new Map();
   const byDate = new Map();
-  items.forEach(item => {
+  (Array.isArray(items) ? items : []).forEach(item => {
     const date = typeof item === "string" ? item : item.date;
     const slot = typeof item === "string" ? "" : item.slot;
+    if (!date) return;
     if (!byDate.has(date)) byDate.set(date, new Set());
     if (slot) byDate.get(date).add(slot);
   });
-  return `<div class="sop-dates">${[...byDate.entries()].map(([date, slots]) => {
+  [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, slots]) => {
+    const month = date.slice(0, 7);
     let period = "";
     if (slots.has("M") && slots.has("N")) period = "Journée";
     else if (slots.has("M")) period = "M";
     else if (slots.has("N")) period = "N";
-    return `<span>${esc(frDate(date, { day: "2-digit", month: "2-digit", year: "2-digit" }))}${period ? ` <small>${period}</small>` : ""}</span>`;
-  }).join("")}</div>`;
+    if (!result.has(month)) result.set(month, []);
+    result.get(month).push({ date, period });
+  });
+  return result;
 }
 
 function renderSop() {
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const months = sopCalendarMonths(currentYear, currentYear);
   const eligibleIds = new Set(state.data.people.filter(person => Number(person.sop_eligible) === 1).map(person => Number(person.id)));
-  const rows = state.data.sop.filter(item => eligibleIds.has(Number(item.person_id))).map(item => {
-    const person = state.data.people.find(candidate => Number(candidate.id) === Number(item.person_id));
-    return { ...item, person, completed: Number(item.completed || 0), planned: Number(item.planned || 0), total: Number(item.completed || 0) + Number(item.planned || 0) };
+  const sopByPerson = new Map((state.data.sop || []).map(item => [Number(item.person_id), item]));
+  const people = state.data.people
+    .filter(person => eligibleIds.has(Number(person.id)))
+    .sort((a, b) => Number(a.sort_order || 100) - Number(b.sort_order || 100) || String(a.display_name || "").localeCompare(String(b.display_name || ""), "fr"));
+
+  const head = $("sopHead");
+  if (head) {
+    head.innerHTML = `<th>Cadre</th><th class="sop-year-col">Année</th>${months.map(month => `<th class="sop-month">${esc(month.label)}</th>`).join("")}`;
+  }
+
+  const rows = [];
+  people.forEach(person => {
+    const dataRow = sopByPerson.get(Number(person.id)) || { completed_dates: [] };
+    const dates = sopDatesByMonth(dataRow.completed_dates || []);
+    years.forEach((year, yearIndex) => {
+      const yearMonths = sopCalendarMonths(year, currentYear);
+      const cells = yearMonths.map(month => {
+        const monthDates = dates.get(month.key) || [];
+        const content = monthDates.length
+          ? `<div class="sop-month-dates">${monthDates.map(item => `<span class="sop-month-date">${esc(frDate(item.date, { day: "2-digit" }))}${item.period ? ` <small>${esc(item.period)}</small>` : ""}</span>`).join("")}</div>`
+          : '<span class="sop-month-empty">—</span>';
+        return `<td class="sop-month-cell${month.current ? " sop-current-month" : ""}">${content}</td>`;
+      }).join("");
+      const personCell = yearIndex === 0
+        ? `<td class="sop-person-cell" rowspan="3"><strong>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</strong></td>`
+        : "";
+      rows.push(`<tr class="sop-year-row${yearIndex === 0 ? " sop-person-start" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value"><strong>${year}</strong>${year === currentYear - 1 ? "<small>A-1</small>" : year === currentYear ? "<small>A</small>" : "<small>A+1</small>"}</td>${cells}</tr>`);
+    });
   });
-  const average = rows.length ? rows.reduce((sum, row) => sum + row.total, 0) / rows.length : 0;
-  const totals = rows.map(row => row.total); const gap = totals.length ? Math.max(...totals) - Math.min(...totals) : 0;
-  $("sopAverage").textContent = number(average); $("sopGap").textContent = number(gap); $("sopPlanned").textContent = number(rows.reduce((sum, row) => sum + row.planned, 0));
-  $("sopBody").innerHTML = rows.sort((a, b) => a.total - b.total || String(a.last_sop || "").localeCompare(String(b.last_sop || ""))).map(row => {
-    const difference = row.total - average; const className = difference < -0.4 ? "fair-low" : difference > 0.4 ? "fair-high" : "";
-    return `<tr><td><strong>${esc([row.person?.grade, row.person?.display_name].filter(Boolean).join(" "))}</strong></td><td>${esc(row.person?.peloton || "—")}</td><td><strong>${number(row.completed)}</strong>${sopDateList(row.completed_dates)}</td><td><strong>${number(row.planned)}</strong>${sopDateList(row.planned_dates)}</td><td><strong>${number(row.total)}</strong></td><td>${row.last_sop ? frDate(row.last_sop) : "Jamais"}</td><td class="${className}">${difference > 0 ? "+" : ""}${number(difference)}</td></tr>`;
-  }).join("") || '<tr><td colspan="7" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>';
+  $("sopBody").innerHTML = rows.join("") || `<tr><td colspan="14" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>`;
 }
 
 function renderRecovery() {
