@@ -10,6 +10,17 @@
   <link rel="stylesheet" href="/assets/css/service-palette-compact.css">
   <link rel="stylesheet" href="/assets/css/service-grid-compact.css">
   <style>
+
+    /* Bandeau des opérations : reste proche des en-têtes du planning sur PC. */
+    @media (min-width: 900px) {
+      .palette-panel {
+        position: sticky;
+        top: 6px;
+        z-index: 30;
+        box-shadow: 0 5px 16px rgba(0,0,0,.28);
+        backdrop-filter: blur(8px);
+      }
+    }
     .day-head.today {
       box-shadow: none !important;
       outline: 0 !important;
@@ -204,9 +215,9 @@
     <div class="form-grid"><label>Date début<input id="purgeStart" type="date" required></label><label>Date fin<input id="purgeEnd" type="date" required></label></div>
     <div class="purge-scope" style="display:grid;gap:8px;margin:10px 0 12px">
       <label class="check-line"><input id="purgeServiceEntries" type="checkbox" checked> Purger les cases du tableau de service</label>
-      <label class="check-line"><input id="purgeRecoveryLedger" type="checkbox"> Purger les mouvements de repos récupérateurs / compteurs sur cette période</label>
+      <label class="check-line"><input id="purgeRecoveryLedger" type="checkbox" checked disabled> Purger aussi les mouvements de repos récupérateurs / compteurs sur cette période <span id="purgeRecoveryRequired">(obligatoire avec la purge du service)</span></label>
     </div>
-    <p class="hint">Si vous purgez uniquement le service, les mouvements de repos liés sont contrepassés pour garder les compteurs justes. Si vous purgez aussi les mouvements de repos, ceux-ci sont supprimés de l’historique sur la période.</p>
+    <p class="hint">Une purge du service supprime obligatoirement aussi les repos pris et les crédits/débits de repos de la même période afin de repartir réellement de zéro. Vous pouvez également décocher « service » pour purger uniquement les mouvements de repos.</p>
     <label>Motif<input id="purgeReason" maxlength="200" value="Reprise totale du service" required></label>
     <label>Confirmation<input id="purgeConfirmText" autocomplete="off" placeholder="Saisir PURGER" required></label>
     <div id="purgeMessage" class="message" aria-live="polite"></div>

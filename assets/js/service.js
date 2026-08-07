@@ -816,9 +816,26 @@ function openPurgeDialog() {
   $("purgeConfirmText").value = "";
   $("purgeReason").value = "Reprise totale du service";
   $("purgeServiceEntries").checked = true;
-  $("purgeRecoveryLedger").checked = false;
+  $("purgeRecoveryLedger").checked = true;
+  $("purgeRecoveryLedger").disabled = true;
+  const recoveryRequired = $("purgeRecoveryRequired");
+  if (recoveryRequired) recoveryRequired.hidden = false;
   message("purgeMessage", "", "info");
   $("purgeDialog").showModal();
+}
+
+function syncPurgeScope() {
+  const purgeService = $("purgeServiceEntries").checked;
+  const recovery = $("purgeRecoveryLedger");
+  const required = $("purgeRecoveryRequired");
+  if (purgeService) {
+    recovery.checked = true;
+    recovery.disabled = true;
+    if (required) required.hidden = false;
+  } else {
+    recovery.disabled = false;
+    if (required) required.hidden = true;
+  }
 }
 
 async function purgePlanningPeriod(event) {
@@ -826,7 +843,7 @@ async function purgePlanningPeriod(event) {
   const start = $("purgeStart").value, end = $("purgeEnd").value;
   const reason = $("purgeReason").value.trim();
   const purgeService = $("purgeServiceEntries").checked;
-  const purgeRecovery = $("purgeRecoveryLedger").checked;
+  const purgeRecovery = purgeService ? true : $("purgeRecoveryLedger").checked;
   if (!start || !end || start > end) return message("purgeMessage", "Période invalide.", "error");
   if (!purgeService && !purgeRecovery) return message("purgeMessage", "Choisissez au moins un élément à purger.", "error");
   if (!reason) return message("purgeMessage", "Indiquez le motif de la purge.", "error");
@@ -1098,6 +1115,7 @@ $("closeMonthImage").onclick = () => $("monthImageDialog").close();
 $("cancelMonthImage").onclick = () => $("monthImageDialog").close();
 $("purgePlanning").onclick = openPurgeDialog;
 $("purgeForm").addEventListener("submit", purgePlanningPeriod);
+$("purgeServiceEntries").addEventListener("change", syncPurgeScope);
 $("closePurgeDialog").onclick = () => $("purgeDialog").close();
 $("cancelPurge").onclick = () => $("purgeDialog").close();
 

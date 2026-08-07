@@ -534,7 +534,9 @@ export async function onRequestPost(context) {
       const end = String(body.end || "");
       const reason = cleanText(body.reason, 200);
       const purgeService = body.purge_service !== false;
-      const purgeRecovery = body.purge_recovery === true;
+      // Une reprise totale du service doit aussi remettre à zéro les repos pris/crédités
+      // sur la même période. Cette règle est imposée côté serveur, pas seulement dans l’UI.
+      const purgeRecovery = purgeService ? true : body.purge_recovery === true;
       if (!validDate(start) || !validDate(end) || start > end) return serviceJson({ error: "Période de purge invalide." }, 400);
       if (!purgeService && !purgeRecovery) return serviceJson({ error: "Aucun élément à purger n’a été sélectionné." }, 400);
       if (!reason) return serviceJson({ error: "Le motif de la purge est obligatoire." }, 400);
