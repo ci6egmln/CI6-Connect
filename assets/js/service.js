@@ -155,7 +155,10 @@ async function loadPlanning({ preserveScroll = false } = {}) {
       } else permanenceCounterControl.remove();
     }
     const sopControls = $("sopYearControls");
-    if (sopControls) sopControls.hidden = !data.permission.isAdmin;
+    if (sopControls) {
+      if (data.permission.isAdmin) sopControls.hidden = false;
+      else sopControls.remove();
+    }
     renderPalette();
     renderPlanning();
     renderSop();
@@ -680,7 +683,11 @@ function renderSopYearControls() {
   const controls = $("sopYearControls");
   const chips = $("sopYearChips");
   if (!controls || !chips || !state.data) return;
-  controls.hidden = !state.data.permission?.isAdmin;
+  if (!state.data.permission?.isAdmin) {
+    controls.remove();
+    return;
+  }
+  controls.hidden = false;
   const years = [...new Set((state.data.sopYears || []).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
   chips.innerHTML = years.map(year => `
     <span class="sop-year-chip"><strong>${year}</strong><button type="button" data-remove-sop-year="${year}" title="Retirer ${year}" aria-label="Retirer l’année ${year}">×</button></span>
@@ -749,10 +756,11 @@ function renderSop() {
           : "";
         return `<td class="sop-month-cell${month.current ? " sop-current-month" : ""}">${content}</td>`;
       }).join("");
+      const yearTotal = yearMonths.reduce((total, month) => total + (dates.get(month.key) || []).length, 0);
       const personCell = yearIndex === 0
         ? `<td class="sop-person-cell" rowspan="${years.length}"><strong>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</strong></td>`
         : "";
-      rows.push(`<tr class="sop-year-row sop-year-tone-${yearIndex % 4}${yearIndex === 0 ? " sop-person-start" : ""}${yearIndex === years.length - 1 ? " sop-person-end" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value">${year}</td>${cells}</tr>`);
+      rows.push(`<tr class="sop-year-row sop-year-tone-${yearIndex % 4}${yearIndex === 0 ? " sop-person-start" : ""}${yearIndex === years.length - 1 ? " sop-person-end" : ""}${year === currentYear ? " sop-current-year-row" : ""}">${personCell}<td class="sop-year-value">${year} <span class="sop-year-total">(${yearTotal})</span></td>${cells}</tr>`);
     });
   });
   $("sopBody").innerHTML = rows.join("") || `<tr><td colspan="14" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>`;
