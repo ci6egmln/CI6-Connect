@@ -59,15 +59,37 @@ async function bootstrap(db, permission, start, end) {
 
   const sopResult = await db.prepare(`
     SELECT p.id AS person_id,
-      SUM(CASE WHEN e.service_date < date('now') THEN 1 ELSE 0 END) AS completed,
+      SUM(CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN 1 ELSE 0 END) AS completed,
       SUM(CASE WHEN e.service_date >= date('now') THEN 1 ELSE 0 END) AS planned,
-      MAX(CASE WHEN e.service_date < date('now') THEN e.service_date ELSE NULL END) AS last_sop
+      MAX(CASE WHEN e.service_date >= date('now','-1 year') AND e.service_date < date('now') THEN e.service_date ELSE NULL END) AS last_sop
     FROM service_people p
     LEFT JOIN service_entries e
       ON e.target_type='person' AND e.target_key=CAST(p.id AS TEXT) AND e.service_code='SOP'
     WHERE p.active=1
     GROUP BY p.id
   `).all();
+
+  const sopDatesResult = await db.prepare(`
+    SELECT CAST(target_key AS INTEGER) AS person_id, service_date, slot
+    FROM service_entries
+    WHERE target_type='person'
+      AND service_code='SOP'
+      AND service_date >= date('now','-1 year')
+    ORDER BY service_date, slot
+  `).all();
+
+  const sopDatesByPerson = new Map();
+  for (const item of sopDatesResult.results || []) {
+    const personId = Number(item.person_id);
+    if (!sopDatesByPerson.has(personId)) sopDatesByPerson.set(personId, { completed_dates: [], planned_dates: [] });
+    const target = item.service_date < new Date().toISOString().slice(0, 10) ? "completed_dates" : "planned_dates";
+    sopDatesByPerson.get(personId)[target].push({ date: item.service_date, slot: item.slot });
+  }
+
+  const sopRows = (sopResult.results || []).map(item => ({
+    ...item,
+    ...(sopDatesByPerson.get(Number(item.person_id)) || { completed_dates: [], planned_dates: [] })
+  }));
 
   const permanenceResult = await db.prepare(`
     SELECT p.id AS person_id, COUNT(e.id) AS total
@@ -89,7 +111,7 @@ async function bootstrap(db, permission, start, end) {
     peopleAdmin: peopleAdminResult.results || [],
     entries: entriesResult.results || [],
     recovery: recoveryResult.results || [],
-    sop: sopResult.results || [],
+    sop: sopRows,
     permanence: permanenceResult.results || []
   });
 }

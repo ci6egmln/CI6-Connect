@@ -12,7 +12,8 @@ const state = {
   lastSelected: "",
   entries: new Map(),
   activeRecoveryPerson: null,
-  studentExport: null
+  studentExport: null,
+  planningPrintExport: null
 };
 
 function utcDate(value = new Date()) {
@@ -355,6 +356,15 @@ async function refreshCounters() {
   $("planningViewport").scrollLeft = scroll.left; $("planningViewport").scrollTop = scroll.top;
 }
 
+function sopDateList(items = []) {
+  if (!Array.isArray(items) || !items.length) return '<span class="sop-none">—</span>';
+  return `<div class="sop-dates">${items.map(item => {
+    const date = typeof item === "string" ? item : item.date;
+    const slot = typeof item === "string" ? "" : item.slot;
+    return `<span>${esc(frDate(date, { day: "2-digit", month: "2-digit", year: "2-digit" }))}${slot ? ` <small>${slot === "M" ? "M" : "N"}</small>` : ""}</span>`;
+  }).join("")}</div>`;
+}
+
 function renderSop() {
   const eligibleIds = new Set(state.data.people.filter(person => Number(person.sop_eligible) === 1).map(person => Number(person.id)));
   const rows = state.data.sop.filter(item => eligibleIds.has(Number(item.person_id))).map(item => {
@@ -366,7 +376,7 @@ function renderSop() {
   $("sopAverage").textContent = number(average); $("sopGap").textContent = number(gap); $("sopPlanned").textContent = number(rows.reduce((sum, row) => sum + row.planned, 0));
   $("sopBody").innerHTML = rows.sort((a, b) => a.total - b.total || String(a.last_sop || "").localeCompare(String(b.last_sop || ""))).map(row => {
     const difference = row.total - average; const className = difference < -0.4 ? "fair-low" : difference > 0.4 ? "fair-high" : "";
-    return `<tr><td><strong>${esc([row.person?.grade, row.person?.display_name].filter(Boolean).join(" "))}</strong></td><td>${esc(row.person?.peloton || "—")}</td><td>${number(row.completed)}</td><td>${number(row.planned)}</td><td><strong>${number(row.total)}</strong></td><td>${row.last_sop ? frDate(row.last_sop) : "Jamais"}</td><td class="${className}">${difference > 0 ? "+" : ""}${number(difference)}</td></tr>`;
+    return `<tr><td><strong>${esc([row.person?.grade, row.person?.display_name].filter(Boolean).join(" "))}</strong></td><td>${esc(row.person?.peloton || "—")}</td><td><strong>${number(row.completed)}</strong>${sopDateList(row.completed_dates)}</td><td><strong>${number(row.planned)}</strong>${sopDateList(row.planned_dates)}</td><td><strong>${number(row.total)}</strong></td><td>${row.last_sop ? frDate(row.last_sop) : "Jamais"}</td><td class="${className}">${difference > 0 ? "+" : ""}${number(difference)}</td></tr>`;
   }).join("") || '<tr><td colspan="7" class="empty-state">Aucun cadre éligible aux SOP.</td></tr>';
 }
 
@@ -569,6 +579,89 @@ async function exportStudentService() {
   URL.revokeObjectURL(link.href);
 }
 
+
+function planningPrintSettings() {
+  const rawStart = $("planningPrintStart").value;
+  if (!rawStart) throw new Error("Choisissez la première semaine à imprimer.");
+  const start = monday(utcDate(rawStart));
+  const end = addDays(start, 27);
+  $("planningPrintStart").value = iso(start);
+  return { start, end };
+}
+
+function printEntryMap(data) {
+  return new Map(data.entries.map(entry => [entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry]));
+}
+
+function planningPrintRows(data) {
+  const rows = data.people.map(person => ({
+    name: [person.grade, planningSurname(person)].filter(Boolean).join(" "),
+    targetType: "person",
+    targetKey: String(person.id),
+    peloton: false
+  }));
+  ["P1", "P2", "P3"].forEach(peloton => rows.push({ name: `ACTIVITÉS ${peloton}`, targetType: "peloton", targetKey: peloton, peloton: true }));
+  return rows;
+}
+
+function planningPrintWeek(data, start, weekIndex) {
+  const days = daysBetween(start, addDays(start, 6));
+  const entries = printEntryMap(data);
+  const rows = planningPrintRows(data);
+  const headerDays = days.map(day => `<th colspan="2" class="print-day${[0,6].includes(day.getUTCDay()) || holidayFor(day) ? " weekend" : ""}">${esc(day.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", timeZone: "UTC" }))}<div><span>M</span><span>N</span></div></th>`).join("");
+  const body = rows.map(row => {
+    const cells = days.flatMap(day => ["M", "N"].map(slot => {
+      const entry = entries.get(entryKey(row.targetType, row.targetKey, iso(day), slot));
+      const type = entry ? data.serviceTypes.find(item => item.code === entry.service_code) : null;
+      const label = entry?.custom_label || entry?.service_code || "";
+      const color = entry?.custom_color || type?.color || "";
+      const text = entry?.custom_color ? contrastText(entry.custom_color) : type?.textColor || "#111";
+      return `<td class="print-slot${entry ? " has-entry" : ""}"${entry ? ` style="background:${esc(color)};color:${esc(text)}"` : ""}>${esc(label)}</td>`;
+    })).join("");
+    return `<tr class="${row.peloton ? "print-peloton" : ""}"><th>${esc(row.name)}</th>${cells}</tr>`;
+  }).join("");
+  return `<section class="planning-print-week"><header><h1>6<sup>e</sup> compagnie d’instruction — Tableau de service</h1><p>Semaine ${weekIndex + 1}/4 · du ${frDate(start)} au ${frDate(addDays(start, 6))}</p></header><table><thead><tr><th class="print-name">Cadres</th>${headerDays}</tr></thead><tbody>${body}</tbody></table></section>`;
+}
+
+function planningPrintDocument(exportData) {
+  return Array.from({ length: 4 }, (_, index) => planningPrintWeek(exportData.data, addDays(exportData.start, index * 7), index)).join("");
+}
+
+async function refreshPlanningPrint() {
+  let settings;
+  try { settings = planningPrintSettings(); }
+  catch (error) { message("planningPrintMessage", error.message, "error"); return null; }
+  $("planningPrintPreview").innerHTML = '<div class="loading">Préparation de l’aperçu…</div>';
+  message("planningPrintMessage", "", "info");
+  try {
+    const data = await api(`/cadres/service?action=bootstrap&start=${iso(settings.start)}&end=${iso(settings.end)}`);
+    state.planningPrintExport = { ...settings, data };
+    $("planningPrintPreview").innerHTML = planningPrintDocument(state.planningPrintExport);
+    return state.planningPrintExport;
+  } catch (error) {
+    $("planningPrintPreview").innerHTML = "";
+    message("planningPrintMessage", error.message, "error");
+    return null;
+  }
+}
+
+async function openPlanningPrint() {
+  $("planningPrintStart").value = iso(monday(utcDate()));
+  $("planningPrintDialog").showModal();
+  await refreshPlanningPrint();
+}
+
+async function printPlanning4Weeks() {
+  const settings = planningPrintSettings();
+  let exportData = state.planningPrintExport;
+  if (!exportData || iso(exportData.start) !== iso(settings.start)) exportData = await refreshPlanningPrint();
+  if (!exportData) return;
+  $("planningPrintSheet").innerHTML = planningPrintDocument(exportData);
+  document.body.classList.add("printing-planning");
+  window.print();
+  setTimeout(() => document.body.classList.remove("printing-planning"), 500);
+}
+
 async function printStudentService() {
   const exportData = await ensureStudentServiceCurrent();
   if (!exportData) return;
@@ -603,6 +696,12 @@ $("addActivity").onclick = () => {
 };
 $("exportPlanning").onclick = exportPlanning;
 $("studentService").onclick = openStudentService;
+$("printPlanning4Weeks").onclick = openPlanningPrint;
+$("previewPlanningPrint").onclick = refreshPlanningPrint;
+$("planningPrintStart").onchange = refreshPlanningPrint;
+$("launchPlanningPrint").onclick = printPlanning4Weeks;
+$("closePlanningPrint").onclick = () => $("planningPrintDialog").close();
+$("cancelPlanningPrint").onclick = () => $("planningPrintDialog").close();
 $("previewStudentService").onclick = refreshStudentService;
 $("studentServiceStart").onchange = refreshStudentService;
 $("studentServiceWeeks").onchange = refreshStudentService;
