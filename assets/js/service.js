@@ -996,7 +996,7 @@ function renderRecoveryDetailRows() {
   $("recoveryBody").innerHTML = rows.map(movement => {
     const actions = canEdit ? `<td class="recovery-actions-cell"><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
     const isFutureRR = Number(movement.future_rr || 0) === 1;
-    const isNormalRR = !isFutureRR && String(movement.entry_service_code || "").toUpperCase() === "RR";
+    const isNormalRR = !isFutureRR && ["RR", "RPC"].includes(String(movement.entry_service_code || "").toUpperCase());
     const reason = isFutureRR ? `<span class="future-rr-badge">RR futurs</span>` : esc(displayReason(movement.reason));
     const typeLabel = isFutureRR ? "À décompter" : (movement.movement_type === "credit" ? "Crédit" : "Débit");
     const rowClass = isFutureRR ? "future-rr-row" : (isNormalRR ? "normal-rr-row" : "");

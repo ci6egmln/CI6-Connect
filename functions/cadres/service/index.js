@@ -338,7 +338,7 @@ async function bootstrap(db, permission, start, end) {
       ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount > 0 THEN l.amount ELSE 0 END), 0), 2) AS credited,
       ROUND(ABS(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS taken,
       ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) THEN l.amount ELSE 0 END), 0), 2) AS balance,
-      ROUND(ABS(COALESCE(SUM(CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS future_rr_requested
+      ROUND(ABS(COALESCE(SUM(CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code IN ('RR','RPC') AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS future_rr_requested
     FROM service_people p
     LEFT JOIN service_recovery_ledger l ON l.person_id=p.id
     LEFT JOIN service_entries e ON e.id=l.entry_id
@@ -473,7 +473,7 @@ export async function onRequestGet(context) {
         SELECT l.id, l.movement_date, l.period_end, l.amount, l.movement_type, l.reason, l.comment,
                l.movement_group, l.reversal_of, l.entry_id, l.created_by, l.created_at,
                e.service_code AS entry_service_code,
-               CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN 1 ELSE 0 END AS future_rr,
+               CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code IN ('RR','RPC') AND l.amount < 0 THEN 1 ELSE 0 END AS future_rr,
                COALESCE(src.movement_date, l.movement_date) AS effective_start,
                COALESCE(src.period_end, src.movement_date, l.period_end, l.movement_date) AS effective_end,
                CASE
