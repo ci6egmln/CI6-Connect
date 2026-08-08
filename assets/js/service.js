@@ -931,8 +931,9 @@ function renderRecovery() {
     const totals = state.data.recovery.find(item => Number(item.person_id) === Number(person.id)) || {};
     const balance = Number(totals.balance || 0);
     const futureRR = Number(totals.future_rr_requested || 0);
-    const futureBlock = futureRR > 0 ? `<div><span class="future-rr-summary-label">RR futurs demandés</span><strong class="future-rr-summary">${number(futureRR)}</strong></div>` : "";
-    return `<button class="recovery-card${futureRR > 0 ? " has-future" : ""}" type="button" data-person="${person.id}"><h3>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</h3><div class="recovery-numbers"><div><span>Crédités</span><strong>${number(totals.credited)}</strong></div><div><span>Pris</span><strong>${number(totals.taken)}</strong></div><div><span>Solde</span><strong class="${balance < 0 ? "balance-negative" : ""}">${number(balance)}</strong></div>${futureBlock}</div></button>`;
+    const futureBlock = futureRR > 0 ? `<div><span class="future-rr-summary-label">RR futurs</span><strong class="future-rr-summary">${number(futureRR)}</strong></div>` : "";
+    const activeClass = Number(state.activeRecoveryPerson) === Number(person.id) ? " active-recovery-person" : "";
+    return `<button class="recovery-card${futureRR > 0 ? " has-future" : ""}${activeClass}" type="button" data-person="${person.id}"><h3>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</h3><div class="recovery-numbers"><div><span>Crédités</span><strong>${number(totals.credited)}</strong></div><div><span>Pris</span><strong>${number(totals.taken)}</strong></div><div><span>Solde</span><strong class="${balance < 0 ? "balance-negative" : ""}">${number(balance)}</strong></div>${futureBlock}</div></button>`;
   }).join("") || '<div class="empty-state">Aucun cadre dans le planning.</div>';
   $("recoveryCards").querySelectorAll("[data-person]").forEach(button => button.onclick = () => loadRecoveryDetail(Number(button.dataset.person)));
 }
@@ -941,11 +942,14 @@ async function loadRecoveryDetail(personId) {
   try {
     const data = await api(`/cadres/service?action=recovery&person_id=${personId}`);
     state.activeRecoveryPerson = personId;
+    document.querySelectorAll("#recoveryCards .recovery-card").forEach(card => {
+      card.classList.toggle("active-recovery-person", Number(card.dataset.person) === Number(personId));
+    });
     const totals = state.data.recovery.find(item => Number(item.person_id) === personId) || {};
     $("recoveryPerson").textContent = [data.person.grade, data.person.display_name].filter(Boolean).join(" ");
     const futureRR = Number(totals.future_rr_requested || 0);
     const cutoffLabel = data.completedThrough ? frDate(data.completedThrough) : "non définie";
-    $("recoveryBalance").textContent = `Solde arrêté à la clôture (${cutoffLabel}) : ${number(totals.balance)} jour(s) · RR futurs demandés : ${number(futureRR)} jour(s)`;
+    $("recoveryBalance").textContent = `Solde arrêté à la clôture (${cutoffLabel}) : ${number(totals.balance)} jour(s) · RR futurs : ${number(futureRR)} jour(s)`;
     const grouped = [];
     const byGroup = new Map();
     for (const movement of data.movements) {
@@ -986,11 +990,11 @@ function renderRecoveryDetailRows() {
     const actions = canEdit ? `<td><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
     const isFutureRR = Number(movement.future_rr || 0) === 1;
     const isNormalRR = !isFutureRR && String(movement.entry_service_code || "").toUpperCase() === "RR";
-    const reason = isFutureRR ? `<span class="future-rr-badge">RR futurs demandés</span>` : esc(displayReason(movement.reason));
+    const reason = isFutureRR ? `<span class="future-rr-badge">RR futurs</span>` : esc(displayReason(movement.reason));
     const typeLabel = isFutureRR ? "À décompter" : (movement.movement_type === "credit" ? "Crédit" : "Débit");
     const rowClass = isFutureRR ? "future-rr-row" : (isNormalRR ? "normal-rr-row" : "");
     const amountClass = (isFutureRR || isNormalRR) ? "" : (Number(movement.amount) < 0 ? "fair-high" : "fair-low");
-    return `<tr class="${rowClass}"><td class="recovery-action-date">${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${typeLabel}</td><td class="${amountClass}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${reason}</td><td class="recovery-comment-cell"><span class="recovery-comment-text" title="${esc(movement.comment || (isFutureRR ? "Demande enregistrée, hors compteur jusqu’à la clôture." : "—"))}">${esc(movement.comment || (isFutureRR ? "Demande enregistrée, hors compteur jusqu’à la clôture." : "—"))}</span></td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
+    return `<tr class="${rowClass}"><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${typeLabel}</td><td class="${amountClass}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${reason}</td><td class="recovery-comment-cell"><span class="recovery-comment-text" title="${esc(movement.comment || (isFutureRR ? "Demande enregistrée, hors compteur jusqu’à la clôture." : "—"))}">${esc(movement.comment || (isFutureRR ? "Demande enregistrée, hors compteur jusqu’à la clôture." : "—"))}</span></td><td class="recovery-created-by" title="${esc(movement.created_by)}">${esc(movement.created_by)}</td><td class="recovery-action-date">${frDate(String(movement.action_date || "").slice(0, 10))}</td>${actions}</tr>`;
   }).join("") || `<tr><td colspan="${canEdit ? 9 : 8}" class="empty-state">Aucun mouvement enregistré.</td></tr>`;
   $("recoveryBody").querySelectorAll('[data-edit-recovery]').forEach(button => button.onclick = () => editRecoveryMovement(Number(button.dataset.editRecovery)));
   $("recoveryBody").querySelectorAll('[data-delete-recovery]').forEach(button => button.onclick = () => deleteRecoveryMovements(button.dataset.deleteRecovery.split(',').map(Number)));
@@ -1579,7 +1583,11 @@ $("newMovement").onclick = openMovementDialog;
 $("movementForm").addEventListener("submit", saveMovement);
 $("cancelMovement").onclick = () => { state.editingRecoveryId = null; $("movementDialog").close(); };
 $("closeMovementDialog").onclick = () => { state.editingRecoveryId = null; $("movementDialog").close(); };
-$("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
+$("closeRecovery").onclick = () => {
+  $("recoveryDetail").hidden = true;
+  state.activeRecoveryPerson = null;
+  document.querySelectorAll("#recoveryCards .recovery-card").forEach(card => card.classList.remove("active-recovery-person"));
+};
 $("sortRecoveryStart")?.addEventListener("click", () => { state.recoverySortDirection = state.recoverySortDirection === "asc" ? "desc" : "asc"; renderRecoveryDetailRows(); });
 $("managePeople").onclick = () => {
   if (!state.data?.permission?.isCdu) return;

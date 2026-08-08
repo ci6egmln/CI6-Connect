@@ -1,14 +1,13 @@
-CORRECTIF CI6 CONNECT - REPOS RECUPERATEURS
+Mini-correctif CI6 Connect — Repos récupérateurs
 
 Fichiers à remplacer :
 - service.html
 - assets/js/service.js
-- functions/cadres/service/index.js
 
 Modifications :
-- colonne Commentaire limitée en largeur, affichage sur 2 lignes maximum ;
-- suppression CDU réellement persistante des crédits automatiques de repos hebdomadaires supprimés ;
-- les mouvements supprimés ne sont plus recréés au rechargement.
-
-Aucun fichier à supprimer.
-Aucune migration D1 manuelle nécessaire : la petite table technique de mémorisation des suppressions est créée automatiquement si besoin.
+- « RR futurs demandés » devient « RR futurs ».
+- Colonne « Saisi par » réduite, texte plus petit et gris.
+- « Date action » déplacée en fin de tableau, à côté de « Saisi par ».
+- « Date action » reste compacte, petite et grise.
+- Les actions CDU restent dans la dernière colonne, tout à droite, et ne dépendent que du rôle CDU.
+- La carte du cadre dont le détail est ouvert passe en bleu ; elle revient à son état normal à la fermeture.

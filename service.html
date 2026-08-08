@@ -487,9 +487,12 @@
     .recovery-cutoff-info { display:flex; align-items:center; gap:10px; width:max-content; max-width:100%; }
     .recovery-cutoff-info strong { color:#e3c36d; }
     .recovery-cutoff-info small { color:#8f999f; font-size:.69rem; }
-    .recovery-action-date-head, .recovery-action-date { width:72px; max-width:72px; min-width:72px; white-space:nowrap; }
-    .recovery-action-date { font-size:.68rem; color:#7f8991; font-weight:500; }
-    .recovery-action-date-head { font-size:.68rem; color:#8f989f; font-weight:650; }
+    .recovery-action-date-head, .recovery-action-date { width:66px; max-width:66px; min-width:66px; white-space:nowrap; }
+    .recovery-action-date { font-size:.66rem; color:#7f8991; font-weight:500; }
+    .recovery-action-date-head { font-size:.66rem; color:#8f989f; font-weight:650; }
+    .recovery-created-by-head, .recovery-created-by { width:88px; max-width:88px; min-width:88px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .recovery-created-by { font-size:.66rem; color:#7f8991; font-weight:500; }
+    .recovery-created-by-head { font-size:.66rem; color:#8f989f; font-weight:650; }
     .recovery-row-actions { display:flex; gap:4px; }
     .recovery-row-actions .button { min-height:25px; padding:3px 6px !important; font-size:10px !important; }
     .recovery-comment-head, .recovery-comment-cell { width:210px; max-width:210px; }
@@ -511,6 +514,16 @@
     .ci6-copyright { position:relative; z-index:1; padding:14px 18px 20px; text-align:center; color:#737d84; font-size:11px; letter-spacing:.02em; }
 
     /* RR demandés au-delà de la date de clôture : visibles, mais hors solde courant. */
+    /* Carte du cadre dont le détail des repos est ouvert : état sélectionné bleu. */
+    .recovery-card.active-recovery-person {
+      background:#12496b !important;
+      border-color:#8acbf1 !important;
+      box-shadow:inset 0 0 0 1px rgba(138,203,241,.28);
+    }
+    .recovery-card.active-recovery-person h3,
+    .recovery-card.active-recovery-person .recovery-numbers span,
+    .recovery-card.active-recovery-person .recovery-numbers strong { color:#fff !important; }
+
     .recovery-card.has-future .recovery-numbers { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
     .future-rr-summary { color:#f2a52b !important; }
     .future-rr-summary-label { color:#d99a35 !important; }
@@ -640,7 +653,7 @@
       <small>Information issue du planning Service. Seul le CDU peut modifier cette date depuis l’onglet Planning.</small>
     </div>
     <div id="recoveryCards" class="recovery-cards"></div>
-    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th class="recovery-action-date-head">Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th class="recovery-comment-head">Commentaire</th><th>Saisi par</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th class="recovery-comment-head">Commentaire</th><th class="recovery-created-by-head">Saisi par</th><th class="recovery-action-date-head">Date action</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>
