@@ -482,6 +482,13 @@
     .recovery-action-date-head { font-size:.68rem; color:#8f989f; font-weight:650; }
     .recovery-row-actions { display:flex; gap:4px; }
     .recovery-row-actions .button { min-height:25px; padding:3px 6px !important; font-size:10px !important; }
+    .recovery-comment-head, .recovery-comment-cell { width:210px; max-width:210px; }
+    .recovery-comment-cell { white-space:normal; overflow:hidden; }
+    .recovery-comment-text {
+      display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+      overflow:hidden; line-height:1.25; max-height:2.5em; overflow-wrap:anywhere; word-break:break-word;
+    }
+    @media(max-width:900px){ .recovery-comment-head, .recovery-comment-cell { width:170px; max-width:170px; } }
 
 
     /* Filigrane CI6 : discret, derrière le contenu. */
@@ -623,7 +630,7 @@
       <small>Information issue du planning Service. Seul le CDU peut modifier cette date depuis l’onglet Planning.</small>
     </div>
     <div id="recoveryCards" class="recovery-cards"></div>
-    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th class="recovery-action-date-head">Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th class="recovery-action-date-head">Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th class="recovery-comment-head">Commentaire</th><th>Saisi par</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>

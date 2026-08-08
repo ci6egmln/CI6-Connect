@@ -1,12 +1,14 @@
-CI6 Connect - mini-correctif choix de période
+CORRECTIF CI6 CONNECT - REPOS RECUPERATEURS
 
-Fichier à remplacer :
+Fichiers à remplacer :
 - service.html
+- assets/js/service.js
+- functions/cadres/service/index.js
 
 Modifications :
-- boutons 3 / 6 / 12 / 18 mois noirs par défaut ;
-- bouton « Afficher mois » noir par défaut ;
-- ces boutons deviennent bleus lorsqu'ils correspondent au mode sélectionné ;
-- « Mois complet » renommé « Afficher mois ».
+- colonne Commentaire limitée en largeur, affichage sur 2 lignes maximum ;
+- suppression CDU réellement persistante des crédits automatiques de repos hebdomadaires supprimés ;
+- les mouvements supprimés ne sont plus recréés au rechargement.
 
-Aucun autre fichier à modifier ou supprimer.
+Aucun fichier à supprimer.
+Aucune migration D1 manuelle nécessaire : la petite table technique de mémorisation des suppressions est créée automatiquement si besoin.

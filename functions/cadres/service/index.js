@@ -38,6 +38,24 @@ function mondayIso(value) {
   return date.toISOString().slice(0, 10);
 }
 
+async function ensureRecoverySuppressionSchema(db) {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS service_recovery_suppressions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      movement_group TEXT NOT NULL UNIQUE,
+      suppressed_by TEXT NOT NULL,
+      suppressed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
+}
+
+async function recoveryGroupSuppressed(db, movementGroup) {
+  if (!movementGroup) return false;
+  await ensureRecoverySuppressionSchema(db);
+  const row = await db.prepare(`SELECT 1 AS hidden FROM service_recovery_suppressions WHERE movement_group=? LIMIT 1`).bind(movementGroup).first();
+  return Boolean(row?.hidden);
+}
+
 async function getServiceCompletedThrough(db) {
   const setting = await db.prepare(`
     SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1
@@ -141,6 +159,9 @@ async function syncMissingWeeklyRestCredits(db, permission, start, end) {
           : `Crédit automatique : 1 jour de repos manquant pour la semaine du ${weekStart} au ${weekEnd}. Jour manquant positionné le ${movementDate}.`;
 
         if (missingDays > 0 && !existing) {
+          // Si le CDU a explicitement supprimé cette régularisation automatique,
+          // ne pas la recréer au prochain rechargement du planning.
+          if (await recoveryGroupSuppressed(db, movementGroup)) continue;
           const result = await db.prepare(`
             INSERT INTO service_recovery_ledger
               (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, created_by)
@@ -851,12 +872,27 @@ export async function onRequestPost(context) {
       const ids = Array.isArray(body.ids) ? [...new Set(body.ids.map(Number).filter(Number.isInteger))] : [];
       if (!ids.length || ids.length > 100) return serviceJson({ error: "Mouvements invalides." }, 400);
       let deleted = 0;
+      await ensureRecoverySuppressionSchema(db);
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_recovery_ledger WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) continue;
+        // Les crédits automatiques de repos hebdomadaires sont normalement recalculés
+        // à chaque chargement. Une suppression CDU doit donc être mémorisée pour
+        // qu'ils ne réapparaissent pas immédiatement après leur suppression.
+        const movementGroup = String(previous.movement_group || "");
+        if (movementGroup.startsWith("auto-weekly-rest:")) {
+          await db.prepare(`
+            INSERT INTO service_recovery_suppressions (movement_group, suppressed_by)
+            VALUES (?, ?)
+            ON CONFLICT(movement_group) DO UPDATE SET suppressed_by=excluded.suppressed_by, suppressed_at=CURRENT_TIMESTAMP
+          `).bind(movementGroup, permission.username).run();
+        }
         await db.prepare(`UPDATE service_recovery_ledger SET reversal_of=NULL WHERE reversal_of=?`).bind(id).run();
         await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(id).run();
-        await auditService(db, "recovery-delete-cdu", null, permission.username, previous, null);
+        await auditService(db, "recovery-delete-cdu", null, permission.username, previous, {
+          deleted: true,
+          automatic_recreation_blocked: movementGroup.startsWith("auto-weekly-rest:")
+        });
         deleted += 1;
       }
       return serviceJson({ success: true, deleted });
