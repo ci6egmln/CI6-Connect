@@ -503,7 +503,7 @@
       <div class="toolbar-actions">
         <button id="studentService" class="button compact" type="button">Imprimer permanences</button>
         <button id="saveMonthImage" class="button compact" type="button">Sauvegarder un mois</button>
-        <button id="purgePlanning" class="button danger compact role-admin" type="button" hidden>Purger une période</button>
+        <button id="purgePlanning" class="button danger compact role-cdu" type="button" hidden>Purger une période</button>
         <div id="permanenceCounterStartControl" class="counter-start-control" hidden>
           <label for="permanenceCounterStart">Compteur P depuis</label>
           <input id="permanenceCounterStart" type="date" aria-label="Date de début du compteur P">
@@ -634,8 +634,8 @@
 
 <dialog id="purgeDialog" class="service-dialog">
   <form id="purgeForm" method="dialog">
-    <div class="dialog-head"><div><div class="eyebrow">ADMINISTRATION</div><h2>Purger une période</h2></div><button id="closePurgeDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
-    <p class="hint"><strong>Fonction réservée aux administrateurs.</strong> Choisissez précisément ce qui doit être supprimé sur la période.</p>
+    <div class="dialog-head"><div><div class="eyebrow">CDU</div><h2>Purger une période</h2></div><button id="closePurgeDialog" class="dialog-close" type="button" aria-label="Fermer">×</button></div>
+    <p class="hint"><strong>Fonction réservée au CDU.</strong> Choisissez précisément ce qui doit être supprimé sur la période.</p>
     <div class="form-grid"><label>Date début<input id="purgeStart" type="date" required></label><label>Date fin<input id="purgeEnd" type="date" required></label></div>
     <div class="purge-scope" style="display:grid;gap:8px;margin:10px 0 12px">
       <label class="check-line"><input id="purgeServiceEntries" type="checkbox" checked> Purger les cases du tableau de service</label>

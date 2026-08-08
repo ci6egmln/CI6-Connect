@@ -649,7 +649,7 @@ export async function onRequestPost(context) {
     }
 
     if (action === "purge-period") {
-      if (!permission.isAdmin) return serviceJson({ error: "La purge du service et des repos est réservée aux administrateurs." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "La purge du service et des repos est réservée au CDU." }, 403);
       const start = String(body.start || "");
       const end = String(body.end || "");
       const reason = cleanText(body.reason, 200);

@@ -146,7 +146,7 @@ async function loadPlanning({ preserveScroll = false } = {}) {
     }
     const purgeButton = $("purgePlanning");
     if (purgeButton) {
-      if (data.permission.isAdmin) purgeButton.hidden = false;
+      if (data.permission.isCdu) purgeButton.hidden = false;
       else purgeButton.remove();
     }
     const permanenceCounterControl = $("permanenceCounterStartControl");
@@ -1096,7 +1096,7 @@ function openMonthImageDialog() {
 }
 
 function openPurgeDialog() {
-  if (!state.data?.permission?.isAdmin) return;
+  if (!state.data?.permission?.isCdu) return;
   $("purgeStart").value = iso(monday(utcDate()));
   $("purgeEnd").value = iso(endOfWeek(utcDate()));
   $("purgeConfirmText").value = "";
@@ -1135,7 +1135,7 @@ async function purgePlanningPeriod(event) {
   if (!reason) return message("purgeMessage", "Indiquez le motif de la purge.", "error");
   if ($("purgeConfirmText").value.trim().toUpperCase() !== "PURGER") return message("purgeMessage", "Saisissez PURGER pour confirmer.", "error");
   const targets = [purgeService ? "les cases du service" : "", purgeRecovery ? "les mouvements de repos récupérateurs" : ""].filter(Boolean).join(" et ");
-  if (!confirm(`Supprimer définitivement ${targets} du ${frDate(start)} au ${frDate(end)} ?\n\nCette opération est réservée aux administrateurs et ne peut pas être annulée.`)) return;
+  if (!confirm(`Supprimer définitivement ${targets} du ${frDate(start)} au ${frDate(end)} ?\n\nCette opération est réservée au CDU et ne peut pas être annulée.`)) return;
   $("executePurge").disabled = true;
   message("purgeMessage", "Purge en cours…", "info");
   try {
