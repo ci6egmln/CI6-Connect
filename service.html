@@ -429,10 +429,13 @@
 
 
     /* Ajustements 08/08 : densité, rôles et barres d’outils. */
+    /* P1 / P2 / P3 uniquement : lignes plus fines.
+       Les lignes des cadres conservent leur hauteur normale définie dans service-grid-compact.css. */
     #planningViewport .row-name.peloton,
     #planningViewport .row-counter.peloton,
-    #planningViewport .slot-cell.peloton { min-height: 31px !important; height: 31px !important; }
-    #planningViewport .row-name.peloton { padding-top: 3px !important; padding-bottom: 3px !important; }
+    #planningViewport .day-cell.peloton,
+    #planningViewport .slot-cell.peloton { min-height: 23px !important; height: 23px !important; }
+    #planningViewport .row-name.peloton { padding-top: 1px !important; padding-bottom: 1px !important; }
 
     .planning-controls-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:stretch; }
     .planning-controls-row .planning-toolbar { height:52px; min-height:52px; max-height:52px; padding:4px 6px !important; overflow-x:auto; overflow-y:hidden; }
