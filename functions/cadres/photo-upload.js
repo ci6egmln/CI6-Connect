@@ -13,7 +13,7 @@ function isCadreSession(session) {
   return Boolean(
     session &&
     session.type === "user" &&
-    (session.role === "cadre" || session.role === "admin")
+    (["cadre", "cdu", "admin"].includes(session.role))
   );
 }
 

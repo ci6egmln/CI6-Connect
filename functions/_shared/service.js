@@ -29,11 +29,12 @@ export function serviceJson(data, status = 200) {
 
 export function servicePermission(context) {
   const session = context.data?.session;
-  if (!session || session.type !== "user" || !["cadre", "admin"].includes(session.role)) return null;
+  if (!session || session.type !== "user" || !["cadre", "cdu", "admin"].includes(session.role)) return null;
   return {
     username: session.username,
     role: session.role,
-    isAdmin: session.role === "admin"
+    isAdmin: session.role === "admin",
+    isCdu: session.role === "cdu" || session.role === "admin"
   };
 }
 
@@ -141,7 +142,7 @@ export async function ensureServiceSchema(db) {
     INSERT OR IGNORE INTO service_people (username, display_name, sort_order, active, sop_eligible)
     SELECT username, nom, 100, active, 1
     FROM users
-    WHERE role IN ('cadre','admin') AND nom IS NOT NULL AND TRIM(nom) <> ''
+    WHERE role IN ('cadre','cdu','admin') AND nom IS NOT NULL AND TRIM(nom) <> ''
   `).run();
 }
 

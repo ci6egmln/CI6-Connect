@@ -17,7 +17,9 @@ const state = {
   studentExport: null,
   planningPrintExport: null,
   dragSelection: null,
-  suppressNextClick: false
+  suppressNextClick: false,
+  editingRecoveryId: null,
+  entryColorTouched: false
 };
 
 const RECOVERY_REASONS = {
@@ -149,16 +151,15 @@ async function loadPlanning({ preserveScroll = false } = {}) {
     }
     const permanenceCounterControl = $("permanenceCounterStartControl");
     if (permanenceCounterControl) {
-      if (data.permission.isAdmin) {
-        permanenceCounterControl.hidden = false;
-        $("permanenceCounterStart").value = data.permanenceCountStart || "";
-      } else permanenceCounterControl.remove();
+      permanenceCounterControl.hidden = false;
+      $("permanenceCounterStart").value = data.permanenceCountStart || "";
+      $("permanenceCounterStart").disabled = !data.permission.isCdu;
+      $("savePermanenceCounterStart").hidden = !data.permission.isCdu;
+      permanenceCounterControl.classList.toggle("readonly", !data.permission.isCdu);
+      permanenceCounterControl.title = data.permission.isCdu ? "Date de début du comptage des permanences" : "Information : seul le CDU peut modifier cette date";
     }
     const sopControls = $("sopYearControls");
-    if (sopControls) {
-      if (data.permission.isAdmin) sopControls.hidden = false;
-      else sopControls.remove();
-    }
+    if (sopControls) sopControls.hidden = !data.permission.isCdu;
     renderPalette();
     renderPlanning();
     renderSop();
@@ -173,7 +174,7 @@ async function loadPlanning({ preserveScroll = false } = {}) {
 }
 
 async function savePermanenceCounterStart() {
-  if (!state.data?.permission?.isAdmin) return;
+  if (!state.data?.permission?.isCdu) return;
   const startDate = $("permanenceCounterStart")?.value || "";
   if (!startDate) {
     message("planningMessage", "Choisissez la date de début du compteur P.", "error");
@@ -238,6 +239,9 @@ function renderPalette() {
     $("entryDetails").hidden = !willOpen;
     if (willOpen) syncEntryDetailsFromSelection();
   };
+  document.querySelectorAll('input[name="activityColor"]').forEach(input => {
+    input.onchange = () => { state.entryColorTouched = true; };
+  });
 }
 
 function syncEntryDetailsFromSelection() {
@@ -255,6 +259,9 @@ function syncEntryDetailsFromSelection() {
   // portent le même texte, on le préremplit une seule fois pour permettre sa modification.
   customLabelInput.value = labels.length === 1 ? labels[0] : "";
   notesInput.value = notes.length === 1 ? notes[0] : "";
+  const colors = [...new Set(selectedEntries.map(entry => String(entry.custom_color || "").toLowerCase()))];
+  document.querySelectorAll('input[name="activityColor"]').forEach(input => { input.checked = colors.length === 1 && colors[0] && input.value.toLowerCase() === colors[0]; });
+  state.entryColorTouched = false;
 }
 
 function planningRows() {
@@ -551,7 +558,10 @@ function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-
 function updateSelectionBar() {
   const count = state.selected.size;
   $("selectionCount").textContent = count ? `${count} case${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}` : "Aucune case sélectionnée";
+  const allFilled = count > 0 && [...state.selected].every(key => state.entries.has(key));
   $("deleteSelection").disabled = ![...state.selected].some(key => state.entries.has(key));
+  const modifyButton = $("modifySelection");
+  if (modifyButton) modifyButton.disabled = !allFilled;
   if (count) syncEntryDetailsFromSelection();
 }
 
@@ -606,10 +616,13 @@ async function saveEntryDetails() {
   const notes = $("entryNotes").value.trim();
   message("planningMessage", "Enregistrement du libellé / de la note…", "info");
   try {
+    const selectedColor = document.querySelector('input[name="activityColor"]:checked')?.value || "";
+    const payload = { action: "update-entry-details", ids, custom_label: customLabel, notes };
+    if (state.entryColorTouched) payload.custom_color = selectedColor;
     const data = await api("/cadres/service", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update-entry-details", ids, custom_label: customLabel, notes })
+      body: JSON.stringify(payload)
     });
     (data.entries || []).forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     message("planningMessage", `${ids.length} case${ids.length > 1 ? "s" : ""} mise${ids.length > 1 ? "s" : ""} à jour.`, "ok");
@@ -617,6 +630,19 @@ async function saveEntryDetails() {
     clearSelection();
   } catch (error) {
     message("planningMessage", error.message, "error");
+  }
+}
+
+function modifySelection() {
+  if (!state.selected.size || ![...state.selected].every(key => state.entries.has(key))) {
+    return message("planningMessage", "Sélectionnez uniquement des cases déjà renseignées.", "error");
+  }
+  const details = $("entryDetails");
+  if (details) {
+    details.hidden = false;
+    syncEntryDetailsFromSelection();
+    $("customLabel")?.focus();
+    details.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
   }
 }
 
@@ -683,14 +709,14 @@ function renderSopYearControls() {
   const controls = $("sopYearControls");
   const chips = $("sopYearChips");
   if (!controls || !chips || !state.data) return;
-  if (!state.data.permission?.isAdmin) {
-    controls.remove();
+  if (!state.data.permission?.isCdu) {
+    controls.hidden = true;
     return;
   }
   controls.hidden = false;
   const years = [...new Set((state.data.sopYears || []).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
   chips.innerHTML = years.map(year => `
-    <span class="sop-year-chip"><strong>${year}</strong><button type="button" data-remove-sop-year="${year}" title="Retirer ${year}" aria-label="Retirer l’année ${year}">×</button></span>
+    <span class="sop-year-chip"><strong>${year}</strong><button class="role-cdu" type="button" data-remove-sop-year="${year}" title="Retirer ${year}" aria-label="Retirer l’année ${year}">×</button></span>
   `).join("");
   chips.querySelectorAll("[data-remove-sop-year]").forEach(button => {
     button.onclick = () => removeSopYear(Number(button.dataset.removeSopYear));
@@ -789,10 +815,11 @@ async function loadRecoveryDetail(personId) {
       const effectiveStart = movement.effective_start || movement.movement_date;
       const effectiveEnd = movement.effective_end || movement.period_end || effectiveStart;
       if (!byGroup.has(key)) {
-        const row = { ...movement, amount: 0, start_date: effectiveStart, end_date: effectiveEnd, action_date: movement.created_at || movement.movement_date };
+        const row = { ...movement, amount: 0, ids: [], start_date: effectiveStart, end_date: effectiveEnd, action_date: movement.created_at || movement.movement_date };
         byGroup.set(key, row); grouped.push(row);
       }
       const row = byGroup.get(key);
+      row.ids.push(Number(movement.id));
       row.amount += Number(movement.amount || 0);
       if (effectiveStart < row.start_date) row.start_date = effectiveStart;
       if (effectiveEnd > row.end_date) row.end_date = effectiveEnd;
@@ -813,12 +840,53 @@ function renderRecoveryDetailRows() {
     if (startCompare) return startCompare * direction;
     return String(a.action_date || "").localeCompare(String(b.action_date || "")) * direction;
   });
-  $("recoveryBody").innerHTML = rows.map(movement => `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td></tr>`).join("") || '<tr><td colspan="8" class="empty-state">Aucun mouvement enregistré.</td></tr>';
+  const canEdit = Boolean(state.data?.permission?.isCdu);
+  const actionsHead = $("recoveryActionsHead");
+  if (actionsHead) actionsHead.hidden = !canEdit;
+  $("recoveryBody").innerHTML = rows.map(movement => {
+    const actions = canEdit ? `<td><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
+    return `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
+  }).join("") || `<tr><td colspan="${canEdit ? 9 : 8}" class="empty-state">Aucun mouvement enregistré.</td></tr>`;
+  $("recoveryBody").querySelectorAll('[data-edit-recovery]').forEach(button => button.onclick = () => editRecoveryMovement(Number(button.dataset.editRecovery)));
+  $("recoveryBody").querySelectorAll('[data-delete-recovery]').forEach(button => button.onclick = () => deleteRecoveryMovements(button.dataset.deleteRecovery.split(',').map(Number)));
   const button = $("sortRecoveryStart");
   if (button) {
     button.textContent = state.recoverySortDirection === "asc" ? "Date début ↑" : "Date début ↓";
     button.title = state.recoverySortDirection === "asc" ? "Tri du plus ancien au plus récent. Cliquer pour inverser." : "Tri du plus récent au plus ancien. Cliquer pour inverser.";
   }
+}
+
+async function editRecoveryMovement(id) {
+  if (!state.data?.permission?.isCdu) return;
+  const row = (state.recoveryGroupedRows || []).find(item => (item.ids || [item.id]).includes(id));
+  if (!row) return;
+  state.editingRecoveryId = id;
+  $("movementType").value = row.movement_type || (Number(row.amount) < 0 ? "debit" : "credit");
+  updateMovementReasons();
+  $("movementAmount").value = Math.abs(Number(row.amount || 0.5));
+  $("movementDate").value = row.start_date || row.movement_date;
+  $("movementEndDate").value = row.end_date || row.period_end || row.start_date || row.movement_date;
+  const reason = String(row.reason || "");
+  if (![...$("movementReason").options].some(option => option.value === reason)) {
+    $("movementReason").insertAdjacentHTML("beforeend", `<option value="${esc(reason)}">${esc(reason)}</option>`);
+  }
+  $("movementReason").value = reason;
+  $("movementComment").value = row.comment || "";
+  $("movementPeople").closest("fieldset").hidden = true;
+  $("movementDialog").querySelector("h2").textContent = "Modifier le mouvement";
+  $("saveMovement").textContent = "Enregistrer les modifications";
+  $("movementDialog").showModal();
+}
+
+async function deleteRecoveryMovements(ids) {
+  if (!state.data?.permission?.isCdu || !ids.length) return;
+  if (!confirm(`Supprimer définitivement ${ids.length > 1 ? "ces mouvements" : "ce mouvement"} du détail des repos récupérateurs ?`)) return;
+  try {
+    await api("/cadres/service", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ action:"delete-recovery-movements", ids }) });
+    await loadPlanning({ preserveScroll:true });
+    await loadRecoveryDetail(state.activeRecoveryPerson);
+    message("recoveryMessage", "Mouvement supprimé.", "ok");
+  } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
 
 function populateMovementPeople(selectedIds = []) {
@@ -833,6 +901,10 @@ function updateMovementReasons() {
 
 function openMovementDialog() {
   if (!state.activeRecoveryPerson) return;
+  state.editingRecoveryId = null;
+  $("movementPeople").closest("fieldset").hidden = false;
+  $("movementDialog").querySelector("h2").textContent = "Ajouter un mouvement";
+  $("saveMovement").textContent = "Enregistrer";
   populateMovementPeople([state.activeRecoveryPerson]);
   $("movementDate").value = iso(utcDate());
   $("movementEndDate").value = $("movementDate").value;
@@ -843,14 +915,21 @@ function openMovementDialog() {
 
 async function saveMovement(event) {
   event.preventDefault();
-  const personIds = [...$("movementPeople").querySelectorAll('input[type="checkbox"]:checked')].map(input => Number(input.value));
-  if (!personIds.length) return message("recoveryMessage", "Sélectionnez au moins un cadre.", "error");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_ids: personIds, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, period_end: $("movementEndDate").value, reason: $("movementReason").value, comment: $("movementComment").value }) });
+    let data;
+    if (state.editingRecoveryId) {
+      data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update-recovery-movement", id: state.editingRecoveryId, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, period_end: $("movementEndDate").value, reason: $("movementReason").value, comment: $("movementComment").value }) });
+    } else {
+      const personIds = [...$("movementPeople").querySelectorAll('input[type="checkbox"]:checked')].map(input => Number(input.value));
+      if (!personIds.length) return message("recoveryMessage", "Sélectionnez au moins un cadre.", "error");
+      data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-movement", person_ids: personIds, movement_type: $("movementType").value, amount: Number($("movementAmount").value), movement_date: $("movementDate").value, period_end: $("movementEndDate").value, reason: $("movementReason").value, comment: $("movementComment").value }) });
+    }
+    const wasEditing = Boolean(state.editingRecoveryId);
+    state.editingRecoveryId = null;
     $("movementDialog").close(); $("movementComment").value = "";
     await refreshCounters();
     if (state.activeRecoveryPerson) await loadRecoveryDetail(state.activeRecoveryPerson);
-    message("recoveryMessage", `Mouvement enregistré pour ${data.created} cadre${data.created > 1 ? "s" : ""}.`, "ok");
+    message("recoveryMessage", wasEditing ? "Mouvement modifié." : `Mouvement enregistré pour ${data.created} cadre${data.created > 1 ? "s" : ""}.`, "ok");
   } catch (error) { message("recoveryMessage", error.message, "error"); }
 }
 
@@ -1287,6 +1366,7 @@ document.querySelectorAll(".range-button").forEach(button => button.onclick = ()
 $("previousPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks -= 1; loadPlanning(); };
 $("nextPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks += 1; loadPlanning(); };
 $("today").onclick = () => { state.mode = "default"; state.offsetWeeks = 0; loadPlanning(); };
+$("modifySelection").onclick = modifySelection;
 $("deleteSelection").onclick = deleteSelection;
 $("saveEntryDetails").onclick = saveEntryDetails;
 $("addActivity").onclick = () => {
@@ -1319,8 +1399,8 @@ $("movementDate").onchange = () => { if (!$("movementEndDate").value || $("movem
 updateMovementReasons();
 $("newMovement").onclick = openMovementDialog;
 $("movementForm").addEventListener("submit", saveMovement);
-$("cancelMovement").onclick = () => $("movementDialog").close();
-$("closeMovementDialog").onclick = () => $("movementDialog").close();
+$("cancelMovement").onclick = () => { state.editingRecoveryId = null; $("movementDialog").close(); };
+$("closeMovementDialog").onclick = () => { state.editingRecoveryId = null; $("movementDialog").close(); };
 $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
 $("sortRecoveryStart")?.addEventListener("click", () => { state.recoverySortDirection = state.recoverySortDirection === "asc" ? "desc" : "asc"; renderRecoveryDetailRows(); });
 $("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };

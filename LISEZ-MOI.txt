@@ -1,0 +1,24 @@
+CI6 Connect — Correctif 08/08/2026
+Service + profil CDU + couleurs de rôles
+
+Base utilisée : 20260808_1030_CI6-Connect-main.zip
+
+PRINCIPALES MODIFICATIONS
+- Lignes P1/P2/P3 du planning réduites d'environ 25 %.
+- Espace augmenté entre « Semaine actuelle » et la période affichée.
+- Barres d'outils compactées avec hauteur fixe sur PC.
+- Date de début du compteur P visible par tous les cadres ; modifiable uniquement par CDU ou administrateur.
+- Bouton « Modifier » ajouté à la sélection : modification du texte, de la note et de la couleur des cases déjà renseignées.
+- Équité SOP : ajout/suppression d'année réservé au CDU (l'administrateur possède aussi les pouvoirs CDU).
+- Repos récupérateurs : le CDU peut modifier ou supprimer directement un mouvement dans le détail.
+- Nouveau rôle « cdu » pris en charge par l'authentification et l'administration.
+- Notations : les fonctions jusque-là considérées comme « CDU » utilisent désormais le pouvoir CDU, distinct de l'administration.
+- Convention visuelle : actions communes noires, actions CDU dorées, actions administrateur argentées.
+- Dans Sanctions, le bouton Retour est noir.
+
+INSTALLATION
+Copier les fichiers du correctif en conservant exactement l'arborescence et remplacer les fichiers existants.
+Aucun fichier n'est à supprimer.
+
+IMPORTANT
+Le compte administrateur conserve automatiquement tous les pouvoirs CDU. Il n'est donc pas nécessaire de transformer le compte administrateur en profil CDU.

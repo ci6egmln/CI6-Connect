@@ -380,6 +380,7 @@ function isCadreMode() {
     currentSession.type === "user" &&
     (
       currentSession.role === "cadre" ||
+      currentSession.role === "cdu" ||
       currentSession.role === "admin" ||
       currentSession.role === "visiteur"
     )
@@ -7406,7 +7407,7 @@ async function removePushSubscription(subscription) {
 async function configurePushButton(container, sessionData) {
   if (
     sessionData.type !== "user" ||
-    !["eleve", "cadre", "admin"].includes(sessionData.role)
+    !["eleve", "cadre", "cdu", "admin"].includes(sessionData.role)
   ) return;
 
   const button = document.createElement("button");
@@ -7542,6 +7543,8 @@ async function displayConnectedUser() {
         sentence.textContent =
           data.role === "admin"
             ? "Vous êtes connecté en tant que cadre administrateur."
+            : data.role === "cdu"
+              ? "Vous êtes connecté avec le profil CDU."
             : data.role === "visiteur"
               ? "Vous êtes connecté en mode visiteur (démonstration)."
               : `Vous êtes connecté en tant que ${data.roleLabel}.`;

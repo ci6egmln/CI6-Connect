@@ -144,7 +144,7 @@ export async function onRequestGet(context) {
         .prepare(`
           SELECT COUNT(*) AS total
           FROM users
-          WHERE role = 'cadre'
+          WHERE role IN ('cadre','cdu')
             AND active = 1
         `)
         .first(),
@@ -166,7 +166,7 @@ export async function onRequestGet(context) {
             created_at,
             updated_at
           FROM users
-          WHERE role IN ('cadre','admin')
+          WHERE role IN ('cadre','cdu','admin')
           ORDER BY
             CASE role
               WHEN 'admin' THEN 0
@@ -282,6 +282,7 @@ export async function onRequestPost(context) {
 
       if (
         role !== "cadre" &&
+        role !== "cdu" &&
         role !== "admin"
       ) {
         return jsonResponse(
@@ -303,7 +304,7 @@ export async function onRequestPost(context) {
               active
             FROM users
             WHERE username = ?
-              AND role IN ('cadre','admin')
+              AND role IN ('cadre','cdu','admin')
             LIMIT 1
           `)
           .bind(username)

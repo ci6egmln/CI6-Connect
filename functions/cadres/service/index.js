@@ -9,7 +9,7 @@ import {
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TARGET_PATTERN = /^(?:\d+|P[123])$/;
 const VALID_CODES = new Set(SERVICE_TYPES.map(item => item.code));
-const ACTIVITY_COLORS = new Set(["#f2c230", "#2489c5", "#8a5a32", "#c63f4d", "#36a45c"]);
+const ACTIVITY_COLORS = new Set(["#f2c230", "#2489c5", "#78864b", "#c63f4d", "#36a45c", "#ffffff", "#a145e8", "#ff8a1f"]);
 
 function validDate(value) {
   if (!DATE_PATTERN.test(value)) return false;
@@ -309,7 +309,7 @@ export async function onRequestPost(context) {
   try {
 
     if (action === "save-permanence-count-start") {
-      if (!permission.isAdmin) return serviceJson({ error: "Seul un administrateur peut réinitialiser le compteur des permanences." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date de comptage des permanences." }, 403);
       const startDate = String(body.start_date || "");
       if (!validDate(startDate)) return serviceJson({ error: "Date de début de comptage invalide." }, 400);
       const previous = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='permanence_count_start' LIMIT 1`).first();
@@ -325,7 +325,7 @@ export async function onRequestPost(context) {
     }
 
     if (action === "save-sop-years") {
-      if (!permission.isAdmin) return serviceJson({ error: "Seul un administrateur peut modifier les années de l'équité SOP." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier les années de l'équité SOP." }, 403);
       const years = [...new Set((Array.isArray(body.years) ? body.years : []).map(Number)
         .filter(year => Number.isInteger(year) && year >= 2000 && year <= 2100))]
         .sort((a, b) => a - b);
@@ -347,15 +347,27 @@ export async function onRequestPost(context) {
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
       const customLabel = cleanText(body.custom_label, 80);
       const notes = cleanText(body.notes, 500);
+      const requestedColor = body.custom_color == null ? null : String(body.custom_color || "").toLowerCase();
+      if (requestedColor !== null && requestedColor !== "" && !ACTIVITY_COLORS.has(requestedColor)) {
+        return serviceJson({ error: "Couleur personnalisée invalide." }, 400);
+      }
       const saved = [];
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) return serviceJson({ error: "Une case sélectionnée est introuvable." }, 404);
-        await db.prepare(`
-          UPDATE service_entries
-          SET custom_label=?, notes=?, updated_by=?, updated_at=CURRENT_TIMESTAMP
-          WHERE id=?
-        `).bind(customLabel, notes, permission.username, id).run();
+        if (requestedColor === null) {
+          await db.prepare(`
+            UPDATE service_entries
+            SET custom_label=?, notes=?, updated_by=?, updated_at=CURRENT_TIMESTAMP
+            WHERE id=?
+          `).bind(customLabel, notes, permission.username, id).run();
+        } else {
+          await db.prepare(`
+            UPDATE service_entries
+            SET custom_label=?, notes=?, custom_color=?, updated_by=?, updated_at=CURRENT_TIMESTAMP
+            WHERE id=?
+          `).bind(customLabel, notes, requestedColor, permission.username, id).run();
+        }
         const current = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         await auditService(db, "update-details", id, permission.username, previous, current);
         saved.push(current);
@@ -593,6 +605,48 @@ export async function onRequestPost(context) {
       return serviceJson({ success: true, created: ids.length, ids });
     }
 
+
+    if (action === "update-recovery-movement") {
+      if (!permission.isCdu) return serviceJson({ error: "Modification réservée au CDU." }, 403);
+      const id = Number(body.id);
+      if (!Number.isInteger(id)) return serviceJson({ error: "Mouvement invalide." }, 400);
+      const previous = await db.prepare(`SELECT * FROM service_recovery_ledger WHERE id=? LIMIT 1`).bind(id).first();
+      if (!previous) return serviceJson({ error: "Mouvement introuvable." }, 404);
+      const movementType = ["credit", "debit"].includes(body.movement_type) ? body.movement_type : previous.movement_type;
+      const rawAmount = Math.abs(Number(body.amount));
+      const date = String(body.movement_date || previous.movement_date || "");
+      const periodEnd = String(body.period_end || date);
+      const reason = cleanText(body.reason, 250);
+      const comment = cleanText(body.comment, 500);
+      if (!validDate(date) || !validDate(periodEnd) || periodEnd < date || !reason || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
+        return serviceJson({ error: "Mouvement de repos incomplet ou invalide." }, 400);
+      }
+      const amount = movementType === "debit" ? -rawAmount : rawAmount;
+      await db.prepare(`
+        UPDATE service_recovery_ledger
+        SET movement_date=?, period_end=?, amount=?, movement_type=?, reason=?, comment=?
+        WHERE id=?
+      `).bind(date, periodEnd, amount, movementType, reason, comment, id).run();
+      const current = await db.prepare(`SELECT * FROM service_recovery_ledger WHERE id=? LIMIT 1`).bind(id).first();
+      await auditService(db, "recovery-update-cdu", null, permission.username, previous, current);
+      return serviceJson({ success: true, movement: current });
+    }
+
+    if (action === "delete-recovery-movements") {
+      if (!permission.isCdu) return serviceJson({ error: "Suppression réservée au CDU." }, 403);
+      const ids = Array.isArray(body.ids) ? [...new Set(body.ids.map(Number).filter(Number.isInteger))] : [];
+      if (!ids.length || ids.length > 100) return serviceJson({ error: "Mouvements invalides." }, 400);
+      let deleted = 0;
+      for (const id of ids) {
+        const previous = await db.prepare(`SELECT * FROM service_recovery_ledger WHERE id=? LIMIT 1`).bind(id).first();
+        if (!previous) continue;
+        await db.prepare(`UPDATE service_recovery_ledger SET reversal_of=NULL WHERE reversal_of=?`).bind(id).run();
+        await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(id).run();
+        await auditService(db, "recovery-delete-cdu", null, permission.username, previous, null);
+        deleted += 1;
+      }
+      return serviceJson({ success: true, deleted });
+    }
 
     if (action === "purge-period") {
       if (!permission.isAdmin) return serviceJson({ error: "La purge du service et des repos est réservée aux administrateurs." }, 403);

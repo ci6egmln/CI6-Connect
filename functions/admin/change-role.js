@@ -48,6 +48,7 @@ export async function onRequestPost(context) {
 
   if (
     requestedRole !== "cadre" &&
+    requestedRole !== "cdu" &&
     requestedRole !== "admin"
   ) {
     return jsonResponse(
@@ -79,12 +80,13 @@ export async function onRequestPost(context) {
 
     if (
       user.role !== "cadre" &&
+      user.role !== "cdu" &&
       user.role !== "admin"
     ) {
       return jsonResponse(
         {
           error:
-            "Seuls les comptes cadres peuvent recevoir ou perdre les droits administrateur."
+            "Seuls les comptes cadres peuvent recevoir les profils CDU ou administrateur."
         },
         403
       );
@@ -106,7 +108,7 @@ export async function onRequestPost(context) {
      */
     if (
       user.role === "admin" &&
-      requestedRole === "cadre"
+      requestedRole !== "admin"
     ) {
       const result = await context.env.DB
         .prepare(`
@@ -168,7 +170,9 @@ export async function onRequestPost(context) {
       message:
         requestedRole === "admin"
           ? "Le cadre possède désormais les droits administrateur."
-          : "Les droits administrateur ont été retirés.",
+          : requestedRole === "cdu"
+            ? "Le cadre possède désormais le profil CDU."
+            : "Le compte possède désormais le profil cadre.",
       user: {
         username: updatedUser.username,
         active:

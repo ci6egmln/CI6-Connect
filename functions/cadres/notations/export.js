@@ -40,17 +40,17 @@ export async function onRequestGet(context) {
   const permission = await notationPermission(context);
 
   if (!permission) return notationJson({ error: "Accès cadre requis." }, 403);
-  if (!permission.isAdmin && !permission.scope) {
+  if (!permission.isCdu && !permission.scope) {
     return notationJson({ error: "Aucun peloton de notation n’est attribué à votre compte." }, 403);
   }
 
   const url = new URL(context.request.url);
   let scope = String(url.searchParams.get("scope") || permission.scope || "ALL").toUpperCase();
 
-  if (!permission.isAdmin) scope = permission.scope;
+  if (!permission.isCdu) scope = permission.scope;
   if (scope !== "ALL" && !validPeloton(scope)) return notationJson({ error: "Périmètre d’export invalide." }, 400);
 
-  const statusSql = permission.isAdmin
+  const statusSql = permission.isCdu
     ? "r.status IN ('company_finalized','exported')"
     : "r.status IN ('platoon_validated','company_finalized','exported')";
   const bindings = [];

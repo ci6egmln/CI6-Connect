@@ -427,6 +427,43 @@
       }
     }
 
+
+    /* Ajustements 08/08 : densité, rôles et barres d’outils. */
+    #planningViewport .row-name.peloton,
+    #planningViewport .row-counter.peloton,
+    #planningViewport .slot-cell.peloton { min-height: 31px !important; height: 31px !important; }
+    #planningViewport .row-name.peloton { padding-top: 3px !important; padding-bottom: 3px !important; }
+
+    .planning-controls-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:stretch; }
+    .planning-controls-row .planning-toolbar { height:52px; min-height:52px; max-height:52px; padding:4px 6px !important; overflow-x:auto; overflow-y:hidden; }
+    .planning-controls-row .selection-bar { height:52px; min-height:52px; max-height:52px; margin-bottom:10px; align-items:center !important; }
+    .planning-controls-row .period-controls { row-gap:4px !important; }
+    .planning-controls-row .period-label { margin-top:3px; }
+    .counter-start-control { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .counter-start-control label { margin:0; font-size:11px; }
+    .counter-start-control input { width:128px; min-width:128px; height:30px; padding:3px 5px; }
+    .counter-start-control .button { height:30px; min-height:30px; padding:4px 7px !important; }
+
+    /* Couleurs fonctionnelles des boutons : commun noir, CDU or, admin argent. */
+    .button:not(.danger):not(.role-cdu):not(.role-admin),
+    .icon-button, .range-button { background:#15191c !important; border-color:#59636a !important; color:#fff !important; }
+    .button:not(.danger):not(.role-cdu):not(.role-admin):hover,
+    .icon-button:hover, .range-button:hover { background:#1e5f89 !important; border-color:#68b8eb !important; }
+    .range-button.active { background:#1e5f89 !important; border-color:#68b8eb !important; color:#fff !important; }
+    .role-cdu { background:linear-gradient(135deg,#e2bf59,#a87a1d) !important; border-color:#f0d37a !important; color:#17130a !important; }
+    .role-admin { background:linear-gradient(135deg,#d6dbe0,#8d979e) !important; border-color:#edf1f3 !important; color:#15191c !important; }
+    .counter-start-control.readonly { opacity:.9; }
+    .counter-start-control.readonly input { color:#dbe1e5; background:#101417; border-color:#485158; }
+    #modifySelection:disabled { opacity:.42; }
+    .table-sort-button { border:0; padding:0; background:transparent; color:inherit; font:inherit; font-weight:800; cursor:pointer; }
+    .recovery-row-actions { display:flex; gap:4px; }
+    .recovery-row-actions .button { min-height:25px; padding:3px 6px !important; font-size:10px !important; }
+
+    @media(max-width:1000px){
+      .planning-controls-row { grid-template-columns:1fr; }
+      .planning-controls-row .planning-toolbar,.planning-controls-row .selection-bar { max-height:none; height:auto; min-height:44px; }
+    }
+
   </style>
 </head>
 <body>
@@ -437,7 +474,7 @@
       <div><div class="eyebrow">ESPACE CADRES</div><h1>Service</h1><p>Planning prévisionnel, permanences et repos récupérateurs</p></div>
     </div>
     <div class="top-actions">
-      <button id="managePeople" class="button secondary" type="button" hidden>Gérer les cadres</button>
+      <button id="managePeople" class="button secondary role-admin" type="button" hidden>Gérer les cadres</button>
       <a class="button secondary" href="/#espace-cadres">Retour à l’espace cadres</a>
     </div>
   </header>
@@ -466,18 +503,18 @@
       <div class="toolbar-actions">
         <button id="studentService" class="button compact" type="button">Imprimer permanences</button>
         <button id="saveMonthImage" class="button compact" type="button">Sauvegarder un mois</button>
-        <button id="purgePlanning" class="button danger compact" type="button" hidden>Purger une période</button>
+        <button id="purgePlanning" class="button danger compact role-admin" type="button" hidden>Purger une période</button>
         <div id="permanenceCounterStartControl" class="counter-start-control" hidden>
           <label for="permanenceCounterStart">Compteur P depuis</label>
           <input id="permanenceCounterStart" type="date" aria-label="Date de début du compteur P">
-          <button id="savePermanenceCounterStart" class="button secondary compact" type="button">Enregistrer</button>
+          <button id="savePermanenceCounterStart" class="button secondary compact role-cdu" type="button">Enregistrer</button>
         </div>
       </div>
     </div>
 
     <div class="selection-bar panel-soft">
       <div><strong id="selectionCount">Aucune case sélectionnée</strong><span id="selectionHelp"> Clic : nouvelle sélection · Cliquer-glisser : sélectionner une plage, y compris sur plusieurs lignes · Ctrl + clic : ajouter ou retirer · Maj + clic : étendre la sélection.</span></div>
-      <div class="selection-actions"><button id="deleteSelection" class="button danger compact" type="button" disabled>Supprimer</button></div>
+      <div class="selection-actions"><button id="modifySelection" class="button compact" type="button" disabled>Modifier</button><button id="deleteSelection" class="button danger compact" type="button" disabled>Supprimer</button></div>
     </div>
     </div>
 
@@ -513,7 +550,7 @@
     <div class="section-head"><div><h2>Équité SOP</h2><p>Une ligne par année affichée et 12 colonnes de janvier à décembre. Les dates suivent automatiquement le planning.</p></div></div>
     <div id="sopYearControls" class="panel-soft sop-year-controls" hidden>
       <label>Ajouter une année <input id="sopYearInput" type="number" min="2000" max="2100" step="1" placeholder="2028"></label>
-      <button id="sopAddYear" class="button compact" type="button">Ajouter</button>
+      <button id="sopAddYear" class="button compact role-cdu" type="button">Ajouter</button>
       <div id="sopYearChips" class="sop-year-chips" aria-label="Années affichées"></div>
     </div>
     <div class="panel table-panel sop-year-panel">
@@ -522,13 +559,13 @@
         <tbody id="sopBody"></tbody>
       </table>
     </div>
-    <p class="hint">L’administrateur choisit les années conservées à l’écran. Par exemple, en 2027 : retirer 2025 puis ajouter 2028. Une SOP apparaît une seule fois à sa date, au format jour/mois.</p>
+    <p class="hint">Le CDU choisit les années conservées à l’écran. Par exemple, en 2027 : retirer 2025 puis ajouter 2028. Une SOP apparaît une seule fois à sa date, au format jour/mois.</p>
   </section>
 
   <section id="recoveryTab" class="tab-panel" hidden>
     <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div></div>
     <div id="recoveryCards" class="recovery-cards"></div>
-    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date action</th><th>Date début</th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
+    <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th>Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>

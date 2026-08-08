@@ -2226,6 +2226,8 @@
     .notations-admin-table td { border: 0; padding: 4px 0; }
   }
 
+
+.account-role-select{min-width:145px;border:1px solid #778087;border-radius:8px;padding:9px 10px;background:#151a1e;color:#fff;font-weight:700}
 </style>
 </head>
 
@@ -2383,12 +2385,17 @@
         Réinitialiser le mot de passe
       </button>
     
+      <select id="roleTargetSelect" class="account-role-select" aria-label="Profil du compte">
+        <option value="cadre">Cadre</option>
+        <option value="cdu">CDU</option>
+        <option value="admin">Administrateur</option>
+      </select>
       <button
         id="changeRoleButton"
         class="account-action-button change-role"
         type="button"
       >
-        Passer administrateur
+        Appliquer le profil
       </button>
     </div>
     
@@ -2438,6 +2445,7 @@
             >
               <option value="eleve">Élève</option>
               <option value="cadre">Cadre</option>
+              <option value="cdu">CDU</option>
               <option value="visiteur">Visiteur (démonstration)</option>
             </select>
           </div>
@@ -3427,10 +3435,8 @@
       "resetPasswordButton"
     );
 
-    const changeRoleButton =
-  document.getElementById(
-    "changeRoleButton"
-  );
+    const changeRoleButton = document.getElementById("changeRoleButton");
+    const roleTargetSelect = document.getElementById("roleTargetSelect");
     
   const actionMessage =
     document.getElementById("actionMessage");
@@ -3441,6 +3447,7 @@
     const roles = {
       eleve: "Élève",
       cadre: "Cadre",
+      cdu: "CDU",
       admin: "Administrateur",
       visiteur: "Visiteur"
     };
@@ -3511,18 +3518,15 @@
       toggleActiveButton.disabled = false;
     }
 
-    if (user.role === "cadre") {
+    if (["cadre", "cdu", "admin"].includes(user.role)) {
+      roleTargetSelect.hidden = false;
+      roleTargetSelect.value = user.role;
       changeRoleButton.hidden = false;
       changeRoleButton.disabled = false;
-      changeRoleButton.textContent = "Passer administrateur";
+      changeRoleButton.textContent = "Appliquer le profil";
       changeRoleButton.className = "account-action-button change-role";
-    } else if (user.role === "admin") {
-      changeRoleButton.hidden = false;
-      changeRoleButton.disabled = false;
-      changeRoleButton.textContent = "Revenir cadre";
-      changeRoleButton.className =
-        "account-action-button change-role remove-admin";
     } else {
+      roleTargetSelect.hidden = true;
       changeRoleButton.hidden = true;
     }
 
@@ -3840,20 +3844,24 @@
 
     if (
       currentUser.role !== "cadre" &&
+      currentUser.role !== "cdu" &&
       currentUser.role !== "admin"
     ) {
       return;
     }
 
-    const newRole =
-      currentUser.role === "cadre"
-        ? "admin"
-        : "cadre";
+    const newRole = String(roleTargetSelect?.value || "");
+    if (!["cadre", "cdu", "admin"].includes(newRole) || newRole === currentUser.role) {
+      actionMessage.className = "search-info";
+      actionMessage.textContent = newRole === currentUser.role ? "Ce profil est déjà appliqué." : "Profil invalide.";
+      return;
+    }
 
-    const confirmationMessage =
-      newRole === "admin"
-        ? `Donner les droits administrateur au compte ${currentUser.username} ?`
-        : `Retirer les droits administrateur du compte ${currentUser.username} ?`;
+    const confirmationMessage = newRole === "admin"
+      ? `Donner les droits administrateur au compte ${currentUser.username} ?`
+      : newRole === "cdu"
+        ? `Attribuer le profil CDU au compte ${currentUser.username} ?`
+        : `Attribuer le profil cadre au compte ${currentUser.username} ?`;
 
     if (!window.confirm(confirmationMessage)) {
       return;
@@ -3904,38 +3912,16 @@
       ).textContent =
         currentUser.sessionVersion;
 
+      roleTargetSelect.value = currentUser.role;
+      changeRoleButton.textContent = "Appliquer le profil";
+      changeRoleButton.className = "account-action-button change-role";
       if (currentUser.role === "admin") {
-        changeRoleButton.textContent =
-          "Revenir cadre";
-
-        changeRoleButton.className =
-          "account-action-button change-role remove-admin";
-
-        toggleActiveButton.textContent =
-          "Compte administrateur protégé";
-
-        toggleActiveButton.className =
-          "account-action-button";
-
+        toggleActiveButton.textContent = "Compte administrateur protégé";
+        toggleActiveButton.className = "account-action-button";
         toggleActiveButton.disabled = true;
-
       } else {
-        changeRoleButton.textContent =
-          "Passer administrateur";
-
-        changeRoleButton.className =
-          "account-action-button change-role";
-
-        toggleActiveButton.textContent =
-          currentUser.active
-            ? "Désactiver le compte"
-            : "Réactiver le compte";
-
-        toggleActiveButton.className =
-          currentUser.active
-            ? "account-action-button"
-            : "account-action-button activate";
-
+        toggleActiveButton.textContent = currentUser.active ? "Désactiver le compte" : "Réactiver le compte";
+        toggleActiveButton.className = currentUser.active ? "account-action-button" : "account-action-button activate";
         toggleActiveButton.disabled = false;
       }
 
@@ -4109,6 +4095,7 @@ function escapeCredentialHtml(value) {
 
 function credentialRoleLabel(role) {
   if (role === "cadre") return "Cadre";
+  if (role === "cdu") return "CDU";
   if (role === "visiteur") return "Visiteur";
   return "Élève";
 }
@@ -7218,6 +7205,9 @@ async function loadTrainingClosureData() {
             <select class="cadre-role-select">
               <option value="cadre"${cadre.role === "cadre" ? " selected" : ""}>
                 Cadre
+              </option>
+              <option value="cdu"${cadre.role === "cdu" ? " selected" : ""}>
+                CDU
               </option>
               <option value="admin"${cadre.role === "admin" ? " selected" : ""}>
                 Administrateur

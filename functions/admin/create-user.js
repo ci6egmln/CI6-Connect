@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
     const promotion = String(body.promotion || "").trim();
     const password = String(body.password || "");
     const requestedRole = String(body.role || "").trim();
-    const role = ["eleve", "cadre", "visiteur"].includes(requestedRole) ? requestedRole : "eleve";
+    const role = ["eleve", "cadre", "cdu", "visiteur"].includes(requestedRole) ? requestedRole : "eleve";
 
     if (!nom || nom.length > 120) return jsonResponse({ error: "Le nom est obligatoire et limité à 120 caractères." }, 400);
     if (prenom.length > 120) return jsonResponse({ error: "Le prénom est limité à 120 caractères." }, 400);

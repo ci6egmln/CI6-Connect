@@ -12,7 +12,7 @@ function validUserSession(session) {
   return Boolean(
     session &&
     session.type === "user" &&
-    ["eleve", "cadre", "admin"].includes(session.role)
+    ["eleve", "cadre", "cdu", "admin"].includes(session.role)
   );
 }
 

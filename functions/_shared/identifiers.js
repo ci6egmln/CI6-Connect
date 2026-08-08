@@ -29,7 +29,7 @@ function randomDigits() {
 }
 
 export function candidateIdentifier(role, displayName = "") {
-  if (["cadre", "admin"].includes(role)) {
+  if (["cadre", "cdu", "admin"].includes(role)) {
     return `${cadrePrefix(displayName)}${randomDigits()}`;
   }
 

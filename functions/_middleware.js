@@ -1327,6 +1327,8 @@ export async function onRequest(context) {
       roleLabel = "accès collectif";
     } else if (session.role === "admin") {
       roleLabel = "administrateur";
+    } else if (session.role === "cdu") {
+      roleLabel = "CDU";
     } else if (session.role === "cadre") {
       roleLabel = "cadre";
     } else if (session.role === "eleve") {
@@ -1366,7 +1368,7 @@ export async function onRequest(context) {
   ) {
     if (
       session.type !== "user" ||
-      !["cadre", "admin"].includes(session.role)
+      !["cadre", "cdu", "admin"].includes(session.role)
     ) {
       const isApi = path.startsWith("/cadres/");
       return new Response(

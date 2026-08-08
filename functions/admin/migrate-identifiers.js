@@ -72,7 +72,7 @@ async function listEligibleUsers(db) {
   return (result.results || []).filter(user => {
     const username = String(user.username || "").toUpperCase();
     if (!IDENTIFIER_PATTERN.test(username)) return true;
-    if (["cadre", "admin"].includes(user.role)) {
+    if (["cadre", "cdu", "admin"].includes(user.role)) {
       return !username.startsWith(cadrePrefix(user.nom));
     }
     return false;

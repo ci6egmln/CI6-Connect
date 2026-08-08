@@ -50,7 +50,7 @@ async function studentForPermission(db, id, permission) {
   `).bind(id).first();
 
   if (!student) return null;
-  if (!permission.isAdmin && student.peloton !== permission.scope) return null;
+  if (!permission.isCdu && student.peloton !== permission.scope) return null;
   return student;
 }
 
@@ -61,7 +61,7 @@ export async function onRequestGet(context) {
 
   const permission = await notationPermission(context);
   if (!permission) return notationJson({ error: "Accès cadre requis." }, 403);
-  if (!permission.isAdmin && !permission.scope) {
+  if (!permission.isCdu && !permission.scope) {
     return notationJson({ error: "Aucun peloton de notation n’est attribué à votre compte." }, 403);
   }
 
@@ -75,7 +75,7 @@ export async function onRequestGet(context) {
       const bindings = [promotion];
       let scopeSql = "";
 
-      if (!permission.isAdmin) {
+      if (!permission.isCdu) {
         scopeSql = " AND s.peloton=?";
         bindings.push(permission.scope);
       }
@@ -154,7 +154,7 @@ export async function onRequestPost(context) {
 
   const permission = await notationPermission(context);
   if (!permission) return notationJson({ error: "Accès cadre requis." }, 403);
-  if (!permission.isAdmin && !permission.scope) {
+  if (!permission.isCdu && !permission.scope) {
     return notationJson({ error: "Aucun peloton de notation n’est attribué à votre compte." }, 403);
   }
 
@@ -177,7 +177,7 @@ export async function onRequestPost(context) {
   const previousStatus = previous?.status || "todo";
 
   if (action === "return-platoon") {
-    if (!permission.isAdmin) {
+    if (!permission.isCdu) {
       return notationJson({ error: "Le retour au commandant de peloton est réservé au CDU." }, 403);
     }
     if (!previous || !["platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
@@ -246,11 +246,11 @@ export async function onRequestPost(context) {
     return notationJson({ error: "Le littéral ne peut pas être vide lors de la validation." }, 400);
   }
 
-  if (!permission.isAdmin && !["todo", "draft", "returned_to_platoon"].includes(previousStatus)) {
+  if (!permission.isCdu && !["todo", "draft", "returned_to_platoon"].includes(previousStatus)) {
     return notationJson({ error: "Cette notation a déjà été transmise au commandant de compagnie." }, 409);
   }
 
-  if (action === "finalize-company" && !permission.isAdmin) {
+  if (action === "finalize-company" && !permission.isCdu) {
     return notationJson({ error: "Finalisation réservée aux administrateurs." }, 403);
   }
   if (action === "finalize-company" && !["platoon_validated", "company_finalized"].includes(previousStatus)) {
@@ -261,7 +261,7 @@ export async function onRequestPost(context) {
   if (action === "save" && previousStatus === "returned_to_platoon") status = "returned_to_platoon";
   if (action === "validate-platoon") status = "platoon_validated";
   if (action === "finalize-company") status = "company_finalized";
-  if (permission.isAdmin && action === "save" && ["returned_to_platoon", "platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
+  if (permission.isCdu && action === "save" && ["returned_to_platoon", "platoon_validated", "company_finalized", "exported"].includes(previousStatus)) {
     status = previousStatus === "exported" ? "company_finalized" : previousStatus;
   }
 

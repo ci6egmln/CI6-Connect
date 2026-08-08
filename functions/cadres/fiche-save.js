@@ -22,6 +22,7 @@ function isCadreSession(session) {
     session.type === "user" &&
     (
       session.role === "cadre" ||
+      session.role === "cdu" ||
       session.role === "admin"
     )
   );

@@ -122,25 +122,21 @@ export function validPeloton(value) {
 export async function notationPermission(context) {
   const session = context.data?.session;
 
-  if (!session || session.type !== "user") {
-    return null;
-  }
+  if (!session || session.type !== "user") return null;
 
-  if (session.role === "admin") {
+  if (["admin", "cdu"].includes(session.role)) {
     return {
       username: session.username,
-      role: "admin",
-      isAdmin: true,
+      role: session.role,
+      isAdmin: session.role === "admin",
+      isCdu: true,
       scope: "ALL"
     };
   }
 
-  if (session.role !== "cadre") {
-    return null;
-  }
+  if (session.role !== "cadre") return null;
 
   await ensureNotationSchema(context.env.DB);
-
   const row = await context.env.DB.prepare(`
     SELECT peloton
     FROM notation_access
@@ -149,18 +145,10 @@ export async function notationPermission(context) {
   `).bind(session.username).first();
 
   if (!row || !validPeloton(row.peloton)) {
-    return {
-      username: session.username,
-      role: "cadre",
-      isAdmin: false,
-      scope: null
-    };
+    return { username: session.username, role: "cadre", isAdmin: false, isCdu: false, scope: null };
   }
-
   return {
-    username: session.username,
-    role: "cadre",
-    isAdmin: false,
+    username: session.username, role: "cadre", isAdmin: false, isCdu: false,
     scope: String(row.peloton).toUpperCase()
   };
 }
