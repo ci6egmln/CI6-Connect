@@ -45,6 +45,13 @@ async function getServiceCompletedThrough(db) {
   return validDate(setting?.setting_value || "") ? setting.setting_value : "";
 }
 
+async function dateLockedForNonCdu(db, permission, date) {
+  if (permission.isCdu) return false;
+  if (date < todayIso()) return true;
+  const completedThrough = await getServiceCompletedThrough(db);
+  return Boolean(completedThrough && date <= completedThrough);
+}
+
 async function removeAutoWeeklyRestCreditsAfter(db, permission, completedThrough) {
   const result = await db.prepare(`
     SELECT id, person_id, movement_date, period_end, amount, movement_group, comment
@@ -290,16 +297,24 @@ async function bootstrap(db, permission, start, end) {
   // de service arrêté par le CDU. Sans cette date, aucun crédit automatique.
   await syncMissingWeeklyRestCredits(db, permission, start, end);
 
+  const serviceCompletedThrough = await getServiceCompletedThrough(db);
   const recoveryResult = await db.prepare(`
     SELECT p.id AS person_id,
-      ROUND(COALESCE(SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END), 0), 2) AS credited,
-      ROUND(ABS(COALESCE(SUM(CASE WHEN l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS taken,
-      ROUND(COALESCE(SUM(l.amount), 0), 2) AS balance
+      ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount > 0 THEN l.amount ELSE 0 END), 0), 2) AS credited,
+      ROUND(ABS(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS taken,
+      ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) THEN l.amount ELSE 0 END), 0), 2) AS balance,
+      ROUND(ABS(COALESCE(SUM(CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS future_rr_requested
     FROM service_people p
     LEFT JOIN service_recovery_ledger l ON l.person_id=p.id
+    LEFT JOIN service_entries e ON e.id=l.entry_id
     WHERE p.active=1
     GROUP BY p.id
-  `).all();
+  `).bind(
+    serviceCompletedThrough, serviceCompletedThrough,
+    serviceCompletedThrough, serviceCompletedThrough,
+    serviceCompletedThrough, serviceCompletedThrough,
+    serviceCompletedThrough, serviceCompletedThrough
+  ).all();
 
   // Équité SOP : les années visibles sont choisies manuellement par l'administrateur.
   // À la première utilisation, on initialise simplement année précédente / année courante / année suivante.
@@ -352,8 +367,6 @@ async function bootstrap(db, permission, start, end) {
     ...item,
     ...(sopDatesByPerson.get(Number(item.person_id)) || { completed_dates: [] })
   }));
-
-  const serviceCompletedThrough = await getServiceCompletedThrough(db);
 
   // Le compteur P peut être remis à zéro à chaque nouvelle promotion sans supprimer l'historique.
   const permanenceStartSetting = await db.prepare(`
@@ -420,9 +433,12 @@ export async function onRequestGet(context) {
       if (!Number.isInteger(personId)) return serviceJson({ error: "Cadre invalide." }, 400);
       const person = await db.prepare(`SELECT id, grade, display_name FROM service_people WHERE id=? AND active=1`).bind(personId).first();
       if (!person) return serviceJson({ error: "Cadre introuvable." }, 404);
+      const completedThrough = await getServiceCompletedThrough(db);
       const result = await db.prepare(`
         SELECT l.id, l.movement_date, l.period_end, l.amount, l.movement_type, l.reason, l.comment,
                l.movement_group, l.reversal_of, l.entry_id, l.created_by, l.created_at,
+               e.service_code AS entry_service_code,
+               CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN 1 ELSE 0 END AS future_rr,
                COALESCE(src.movement_date, l.movement_date) AS effective_start,
                COALESCE(src.period_end, src.movement_date, l.period_end, l.movement_date) AS effective_end,
                CASE
@@ -431,11 +447,12 @@ export async function onRequestGet(context) {
                END AS display_group
         FROM service_recovery_ledger l
         LEFT JOIN service_recovery_ledger src ON src.id=l.reversal_of
+        LEFT JOIN service_entries e ON e.id=l.entry_id
         WHERE l.person_id=?
         ORDER BY l.created_at DESC, l.id DESC
         LIMIT 500
-      `).bind(personId).all();
-      return serviceJson({ success: true, person, movements: result.results || [] });
+      `).bind(completedThrough, completedThrough, personId).all();
+      return serviceJson({ success: true, person, completedThrough, movements: result.results || [] });
     }
 
     return serviceJson({ error: "Action inconnue." }, 400);
@@ -459,9 +476,10 @@ export async function onRequestPost(context) {
   try {
 
     if (action === "save-service-completed-through") {
-      if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date jusqu'à laquelle le service est considéré comme établi." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date de clôture du service." }, 403);
       const completedThrough = String(body.completed_through || "");
-      if (!validDate(completedThrough)) return serviceJson({ error: "Date de service établi invalide." }, 400);
+      if (!validDate(completedThrough)) return serviceJson({ error: "Date de clôture du service invalide." }, 400);
+      if (completedThrough > todayIso()) return serviceJson({ error: "La date de clôture ne peut pas être postérieure à aujourd’hui." }, 400);
       const previous = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1`).first();
       await db.prepare(`
         INSERT INTO service_settings (setting_key, setting_value, updated_by, updated_at)
@@ -529,8 +547,8 @@ export async function onRequestPost(context) {
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) return serviceJson({ error: "Une case sélectionnée est introuvable." }, 404);
-        if (previous.service_date < todayIso() && !permission.isCdu) {
-          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+        if (await dateLockedForNonCdu(db, permission, previous.service_date)) {
+          return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
         }
         if (requestedColor === null) {
           await db.prepare(`
@@ -555,9 +573,6 @@ export async function onRequestPost(context) {
     if (action === "set-entries") {
       const items = Array.isArray(body.items) ? body.items : [];
       if (!items.length || items.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
-      if (!permission.isCdu && items.some(item => validDate(String(item.service_date || "")) && String(item.service_date) < todayIso())) {
-        return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
-      }
       const code = String(body.service_code || "").toUpperCase();
       if (!VALID_CODES.has(code)) return serviceJson({ error: "Type de service invalide." }, 400);
       const customLabel = cleanText(body.custom_label, 80);
@@ -581,8 +596,8 @@ export async function onRequestPost(context) {
         const date = String(raw.service_date || "");
         const slot = raw.slot === "N" ? "N" : "M";
         if (!TARGET_PATTERN.test(targetKey) || !validDate(date)) return serviceJson({ error: "Une case sélectionnée est invalide." }, 400);
-        if (date < todayIso() && !permission.isCdu) {
-          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+        if (await dateLockedForNonCdu(db, permission, date)) {
+          return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
         }
         if (targetType === "peloton" && !["P1", "P2", "P3"].includes(targetKey)) return serviceJson({ error: "Peloton invalide." }, 400);
         if (targetType === "person") {
@@ -707,7 +722,8 @@ export async function onRequestPost(context) {
         `).bind(Number(entry.target_key), entry.service_date, entry.service_date, type, movementGroup, entry.id, permission.username).run();
         created += 1;
       }
-      return serviceJson({ success: true, created });
+      const completedThrough = await getServiceCompletedThrough(db);
+      return serviceJson({ success: true, created, completed_through: completedThrough });
     }
 
     if (action === "recovery-from-permanence") {
@@ -736,8 +752,8 @@ export async function onRequestPost(context) {
       if (!permission.isCdu) {
         for (const id of ids) {
           const row = await db.prepare(`SELECT service_date FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
-          if (row?.service_date < todayIso()) {
-            return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+          if (row && await dateLockedForNonCdu(db, permission, row.service_date)) {
+            return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
           }
         }
       }
@@ -748,8 +764,8 @@ export async function onRequestPost(context) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) continue;
         affectedDates.push(previous.service_date);
-        if (previous.service_date < todayIso() && !permission.isCdu) {
-          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+        if (await dateLockedForNonCdu(db, permission, previous.service_date)) {
+          return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
         }
         if (["RR", "RPC"].includes(previous.service_code) && !deletionReason) {
           return serviceJson({ error: "Le motif du retrait du repos est obligatoire." }, 400);

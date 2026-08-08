@@ -173,8 +173,16 @@ async function loadPlanning({ preserveScroll = false } = {}) {
       $("saveServiceCompletedThrough").hidden = !data.permission.isCdu;
       serviceCompletedControl.classList.toggle("readonly", !data.permission.isCdu);
       serviceCompletedControl.title = data.permission.isCdu
-        ? "Date jusqu’à laquelle le service est considéré comme établi"
-        : "Information : seul le CDU peut modifier cette date";
+        ? "Date de clôture : le service et les repos sont considérés comme réalisés jusqu’à cette date"
+        : "Information : seul le CDU peut modifier la date de clôture";
+    }
+    const completedInfo = $("serviceCompletedThroughInfo");
+    if (completedInfo) {
+      completedInfo.hidden = false;
+      const infoDate = $("serviceCompletedThroughInfoDate");
+      if (infoDate) infoDate.textContent = data.serviceCompletedThrough
+        ? frDate(data.serviceCompletedThrough, { day: "2-digit", month: "2-digit", year: "numeric" })
+        : "Non définie";
     }
     const sopControls = $("sopYearControls");
     if (sopControls) sopControls.hidden = !data.permission.isCdu;
@@ -217,21 +225,21 @@ async function saveServiceCompletedThrough() {
   if (!state.data?.permission?.isCdu) return;
   const completedThrough = $("serviceCompletedThrough")?.value || "";
   if (!completedThrough) {
-    message("recoveryMessage", "Choisissez la date jusqu’à laquelle le service est établi.", "error");
+    message("planningMessage", "Choisissez la date de clôture du service.", "error");
     return;
   }
   const label = frDate(completedThrough, { day: "2-digit", month: "2-digit", year: "numeric" });
-  if (!confirm(`Confirmer que le service est établi jusqu’au ${label} ?\n\nLes repos hebdomadaires manquants seront calculés uniquement pour les semaines entièrement couvertes par cette date.`)) return;
+  if (!confirm(`Clôturer le service jusqu’au ${label} ?\n\nJusqu’à cette date, le planning est considéré comme réalisé : les repos manquants et les RR pris entrent dans le compteur. Les cadres ne pourront plus modifier cette période. Les RR placés après cette date resteront affichés comme demandes futures, sans être décomptés du solde.`)) return;
   try {
     await api("/cadres/service", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "save-service-completed-through", completed_through: completedThrough })
     });
-    message("recoveryMessage", `Service considéré comme établi jusqu’au ${label}. Les repos manquants ont été recalculés.`, "success");
+    message("planningMessage", `Service clôturé jusqu’au ${label}. Les repos manquants et les RR pris ont été recalculés.`, "success");
     await loadPlanning({ preserveScroll: true });
   } catch (error) {
-    message("recoveryMessage", error.message, "error");
+    message("planningMessage", error.message, "error");
   }
 }
 
@@ -599,12 +607,16 @@ function selectCells(keys, { extend = false, additive = false } = {}) {
 }
 
 function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-keys]").forEach(cell => cell.classList.toggle("selected", cell.dataset.keys.split(",").some(key => state.selected.has(key)))); }
-function selectionContainsPastDate() {
+function selectionContainsLockedDate() {
   const today = iso(utcDate());
-  return [...state.selected].some(key => parseKey(key).service_date < today);
+  const cutoff = state.data?.serviceCompletedThrough || "";
+  return [...state.selected].some(key => {
+    const date = parseKey(key).service_date;
+    return date < today || Boolean(cutoff && date <= cutoff);
+  });
 }
 function pastPlanningLocked() {
-  return Boolean(state.selected.size && selectionContainsPastDate() && !state.data?.permission?.isCdu);
+  return Boolean(state.selected.size && selectionContainsLockedDate() && !state.data?.permission?.isCdu);
 }
 function updateSelectionBar() {
   const count = state.selected.size;
@@ -680,7 +692,7 @@ function confirmRorRR(code) {
 
 async function applyService(code, { merge = false, customColor = "", activity = false } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
-  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier une date passée ou déjà clôturée.", "error");
   code = confirmRorRR(code);
   if (!code) return message("planningMessage", "Ajout annulé : aucune modification n’a été apportée au planning.", "info");
   const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
@@ -700,7 +712,12 @@ async function applyService(code, { merge = false, customColor = "", activity = 
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     if (["RR", "RPC"].includes(code)) {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
-      if (personEntries.length && confirm(`Déduire automatiquement ${number(personEntries.length * 0.5)} jour(s) des compteurs de repos concernés ?`)) {
+      if (personEntries.length && code === "RR") {
+        // Un RR posé au planning doit toujours apparaître dans le suivi. S'il est au-delà
+        // de la date de clôture, le serveur le conserve comme RR futur demandé et ne le
+        // décompte du solde qu'une fois la clôture avancée jusqu'à sa date.
+        await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
+      } else if (personEntries.length && code === "RPC" && confirm(`Déduire automatiquement ${number(personEntries.length * 0.5)} jour(s) des compteurs de repos concernés ?`)) {
         await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
       }
     }
@@ -721,7 +738,7 @@ async function applyService(code, { merge = false, customColor = "", activity = 
 
 async function saveEntryDetails() {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases déjà renseignées.", "error");
-  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier une date passée ou déjà clôturée.", "error");
   const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
   if (!selectedEntries.length) return message("planningMessage", "La sélection ne contient aucun service auquel ajouter une note.", "error");
   if (selectedEntries.length !== state.selected.size) return message("planningMessage", "Pour ajouter une note, toutes les cases sélectionnées doivent déjà contenir un service.", "error");
@@ -749,7 +766,7 @@ async function saveEntryDetails() {
 }
 
 function modifySelection() {
-  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier une date passée ou déjà clôturée.", "error");
   if (!state.selected.size || ![...state.selected].every(key => state.entries.has(key))) {
     return message("planningMessage", "Sélectionnez uniquement des cases déjà renseignées.", "error");
   }
@@ -763,7 +780,7 @@ function modifySelection() {
 }
 
 async function deleteSelection() {
-  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier une date passée ou déjà clôturée.", "error");
   const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
   const ids = [...new Set(selectedEntries.map(entry => entry.id).filter(Boolean))];
   if (!ids.length) return;
@@ -913,7 +930,9 @@ function renderRecovery() {
   $("recoveryCards").innerHTML = state.data.people.map(person => {
     const totals = state.data.recovery.find(item => Number(item.person_id) === Number(person.id)) || {};
     const balance = Number(totals.balance || 0);
-    return `<button class="recovery-card" type="button" data-person="${person.id}"><h3>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</h3><div class="recovery-numbers"><div><span>Crédités</span><strong>${number(totals.credited)}</strong></div><div><span>Pris</span><strong>${number(totals.taken)}</strong></div><div><span>Solde</span><strong class="${balance < 0 ? "balance-negative" : ""}">${number(balance)}</strong></div></div></button>`;
+    const futureRR = Number(totals.future_rr_requested || 0);
+    const futureBlock = futureRR > 0 ? `<div><span class="future-rr-summary-label">RR futurs demandés</span><strong class="future-rr-summary">${number(futureRR)}</strong></div>` : "";
+    return `<button class="recovery-card${futureRR > 0 ? " has-future" : ""}" type="button" data-person="${person.id}"><h3>${esc([person.grade, person.display_name].filter(Boolean).join(" "))}</h3><div class="recovery-numbers"><div><span>Crédités</span><strong>${number(totals.credited)}</strong></div><div><span>Pris</span><strong>${number(totals.taken)}</strong></div><div><span>Solde</span><strong class="${balance < 0 ? "balance-negative" : ""}">${number(balance)}</strong></div>${futureBlock}</div></button>`;
   }).join("") || '<div class="empty-state">Aucun cadre dans le planning.</div>';
   $("recoveryCards").querySelectorAll("[data-person]").forEach(button => button.onclick = () => loadRecoveryDetail(Number(button.dataset.person)));
 }
@@ -924,15 +943,18 @@ async function loadRecoveryDetail(personId) {
     state.activeRecoveryPerson = personId;
     const totals = state.data.recovery.find(item => Number(item.person_id) === personId) || {};
     $("recoveryPerson").textContent = [data.person.grade, data.person.display_name].filter(Boolean).join(" ");
-    $("recoveryBalance").textContent = `Solde actuel : ${number(totals.balance)} jour(s)`;
+    const futureRR = Number(totals.future_rr_requested || 0);
+    const cutoffLabel = data.completedThrough ? frDate(data.completedThrough) : "non définie";
+    $("recoveryBalance").textContent = `Solde arrêté à la clôture (${cutoffLabel}) : ${number(totals.balance)} jour(s) · RR futurs demandés : ${number(futureRR)} jour(s)`;
     const grouped = [];
     const byGroup = new Map();
     for (const movement of data.movements) {
-      const key = movement.display_group || movement.movement_group || `single-${movement.id}`;
+      const futureFlag = Number(movement.future_rr || 0) === 1;
+      const key = `${movement.display_group || movement.movement_group || `single-${movement.id}`}|future:${futureFlag ? 1 : 0}`;
       const effectiveStart = movement.effective_start || movement.movement_date;
       const effectiveEnd = movement.effective_end || movement.period_end || effectiveStart;
       if (!byGroup.has(key)) {
-        const row = { ...movement, amount: 0, ids: [], start_date: effectiveStart, end_date: effectiveEnd, action_date: movement.created_at || movement.movement_date };
+        const row = { ...movement, future_rr: futureFlag ? 1 : 0, amount: 0, ids: [], start_date: effectiveStart, end_date: effectiveEnd, action_date: movement.created_at || movement.movement_date };
         byGroup.set(key, row); grouped.push(row);
       }
       const row = byGroup.get(key);
@@ -962,7 +984,13 @@ function renderRecoveryDetailRows() {
   if (actionsHead) actionsHead.hidden = !canEdit;
   $("recoveryBody").innerHTML = rows.map(movement => {
     const actions = canEdit ? `<td><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
-    return `<tr><td class="recovery-action-date">${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
+    const isFutureRR = Number(movement.future_rr || 0) === 1;
+    const isNormalRR = !isFutureRR && String(movement.entry_service_code || "").toUpperCase() === "RR";
+    const reason = isFutureRR ? `<span class="future-rr-badge">RR futurs demandés</span>` : esc(displayReason(movement.reason));
+    const typeLabel = isFutureRR ? "À décompter" : (movement.movement_type === "credit" ? "Crédit" : "Débit");
+    const rowClass = isFutureRR ? "future-rr-row" : (isNormalRR ? "normal-rr-row" : "");
+    const amountClass = (isFutureRR || isNormalRR) ? "" : (Number(movement.amount) < 0 ? "fair-high" : "fair-low");
+    return `<tr class="${rowClass}"><td class="recovery-action-date">${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${typeLabel}</td><td class="${amountClass}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${reason}</td><td>${esc(movement.comment || (isFutureRR ? "Demande enregistrée, hors compteur jusqu’à la clôture." : "—"))}</td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
   }).join("") || `<tr><td colspan="${canEdit ? 9 : 8}" class="empty-state">Aucun mouvement enregistré.</td></tr>`;
   $("recoveryBody").querySelectorAll('[data-edit-recovery]').forEach(button => button.onclick = () => editRecoveryMovement(Number(button.dataset.editRecovery)));
   $("recoveryBody").querySelectorAll('[data-delete-recovery]').forEach(button => button.onclick = () => deleteRecoveryMovements(button.dataset.deleteRecovery.split(',').map(Number)));

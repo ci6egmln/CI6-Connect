@@ -473,11 +473,36 @@
     .recovery-cutoff-control label { display:flex; align-items:center; gap:7px; margin:0; font-size:.78rem; }
     .recovery-cutoff-control input { width:142px; padding:5px 7px; }
     .recovery-cutoff-control.readonly { opacity:.78; }
+    .service-cutoff-planning { border-left:2px solid #c8a24f; padding-left:7px; }
+    .recovery-cutoff-info { display:flex; align-items:center; gap:10px; width:max-content; max-width:100%; }
+    .recovery-cutoff-info strong { color:#e3c36d; }
+    .recovery-cutoff-info small { color:#8f999f; font-size:.69rem; }
     .recovery-action-date-head, .recovery-action-date { width:72px; max-width:72px; min-width:72px; white-space:nowrap; }
     .recovery-action-date { font-size:.68rem; color:#7f8991; font-weight:500; }
     .recovery-action-date-head { font-size:.68rem; color:#8f989f; font-weight:650; }
     .recovery-row-actions { display:flex; gap:4px; }
     .recovery-row-actions .button { min-height:25px; padding:3px 6px !important; font-size:10px !important; }
+
+
+    /* Filigrane CI6 : discret, derrière le contenu. */
+    body::before {
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:url('/assets/img/dragon-filigrane.png') center 58% / min(46vw,680px) auto no-repeat;
+      opacity:.045;
+    }
+    .service-app, body > dialog, body > section { position:relative; z-index:1; }
+    .ci6-copyright { position:relative; z-index:1; padding:14px 18px 20px; text-align:center; color:#737d84; font-size:11px; letter-spacing:.02em; }
+
+    /* RR demandés au-delà de la date de clôture : visibles, mais hors solde courant. */
+    .recovery-card.has-future .recovery-numbers { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+    .future-rr-summary { color:#f2a52b !important; }
+    .future-rr-summary-label { color:#d99a35 !important; }
+    .future-rr-row { background:rgba(231,126,24,.10) !important; }
+    .future-rr-row td { color:#e9a23a; }
+    .normal-rr-row td { color:#f1f1f1; }
+    .future-rr-row .recovery-action-date { color:#9c8668 !important; }
+    .future-rr-badge { display:inline-block; padding:2px 6px; border:1px solid rgba(242,165,43,.65); border-radius:999px; color:#f2a52b; background:rgba(242,165,43,.09); font-size:.74rem; font-weight:800; }
+    @media(max-width:720px){ .recovery-card.has-future .recovery-numbers { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
 
     @media(max-width:1000px){
       .planning-controls-row { grid-template-columns:1fr; }
@@ -532,6 +557,11 @@
           <label for="permanenceCounterStart">Compteur P depuis</label>
           <input id="permanenceCounterStart" type="date" aria-label="Date de début du compteur P">
           <button id="savePermanenceCounterStart" class="button secondary compact role-cdu" type="button">Enregistrer</button>
+        </div>
+        <div id="serviceCompletedThroughControl" class="counter-start-control service-cutoff-planning" hidden>
+          <label for="serviceCompletedThrough">Service clôturé jusqu’au</label>
+          <input id="serviceCompletedThrough" type="date" aria-label="Date de clôture du service">
+          <button id="saveServiceCompletedThrough" class="button compact role-cdu" type="button">Valider</button>
         </div>
       </div>
     </div>
@@ -588,16 +618,16 @@
 
   <section id="recoveryTab" class="tab-panel" hidden>
     <div class="section-head"><div><h2>Repos récupérateurs</h2><p>Crédits acquis, repos pris et solde restant pour chaque cadre.</p></div></div>
-    <div id="serviceCompletedThroughControl" class="panel-soft recovery-cutoff-control" hidden>
-      <label for="serviceCompletedThrough">Service établi jusqu’au <input id="serviceCompletedThrough" type="date" aria-label="Service établi jusqu’au"></label>
-      <button id="saveServiceCompletedThrough" class="button compact role-cdu" type="button">Enregistrer</button>
+    <div id="serviceCompletedThroughInfo" class="panel-soft recovery-cutoff-control recovery-cutoff-info" hidden>
+      <span>Service clôturé jusqu’au <strong id="serviceCompletedThroughInfoDate">—</strong></span>
+      <small>Information issue du planning Service. Seul le CDU peut modifier cette date depuis l’onglet Planning.</small>
     </div>
     <div id="recoveryCards" class="recovery-cards"></div>
     <div id="recoveryDetail" class="panel recovery-detail" hidden><div class="section-head"><div><h3 id="recoveryPerson"></h3><p id="recoveryBalance"></p></div><div class="recovery-detail-actions"><button id="newMovement" class="button compact" type="button">Ajouter un mouvement</button><button id="closeRecovery" class="button secondary compact" type="button">Fermer le détail</button></div></div><div class="table-panel"><table class="data-table"><thead><tr><th class="recovery-action-date-head">Date action</th><th><button id="sortRecoveryStart" class="table-sort-button" type="button">Date début ↓</button></th><th>Date fin</th><th>Type</th><th>Montant</th><th>Motif</th><th>Commentaire</th><th>Saisi par</th><th id="recoveryActionsHead" hidden>Actions CDU</th></tr></thead><tbody id="recoveryBody"></tbody></table></div></div>
     <div id="recoveryMessage" class="message" aria-live="polite"></div>
   </section>
 </main>
-
+<footer class="ci6-copyright">© 2026 Capitaine Jean-Noël Panis — CI6 Connect</footer>
 
 <dialog id="movementDialog" class="service-dialog">
   <form id="movementForm" method="dialog">

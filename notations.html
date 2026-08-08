@@ -26,6 +26,9 @@
     /* Rôles : actions communes noires, actions CDU dorées, admin argentées. */
     .btn{background:#15191c!important;border-color:#59636a!important;color:#fff!important}.btn:hover{background:#1e5f89!important;border-color:#68b8eb!important}.btn.cdu-action,.scope-filter.cdu-action{background:linear-gradient(135deg,#e2bf59,#a87a1d)!important;border-color:#f0d37a!important;color:#17130a!important}.btn.admin-action{background:linear-gradient(135deg,#d6dbe0,#8d979e)!important;border-color:#edf1f3!important;color:#15191c!important}
 </style>
+<style id="ci6-copyright-style">
+.ci6-copyright{position:relative;z-index:2;padding:12px 18px 18px;text-align:center;color:#737d84;font-size:11px;letter-spacing:.02em;font-family:Arial,sans-serif}
+</style>
 </head>
 <body>
 <main class="wrap">
@@ -280,5 +283,6 @@ async function loadBootstrap(){const response=await fetch('/cadres/notations?act
 
 $('companyControls').querySelectorAll('[data-scope]').forEach(button=>button.onclick=()=>{activeScope=button.dataset.scope;$('companyControls').querySelectorAll('[data-scope]').forEach(item=>item.classList.toggle('active',item===button));selected=null;record=null;$('editor').hidden=true;$('noSelection').hidden=false;renderList()});$('literal').addEventListener('input',()=>{updateCounter();if(!$('literal').readOnly)literalManuallyEdited=true});window.addEventListener('resize',autoResizeLiteral);$('generate').onclick=generateLiteral;$('alternateWording').onclick=alternateWording;$('saveDraft').onclick=()=>save('save');$('validatePlatoon').onclick=()=>save('validate-platoon');$('returnPlatoon').onclick=returnToPlatoon;$('finalizeCompany').onclick=()=>save('finalize-company');$('exportCurrent').onclick=exportScope;loadBootstrap();
 </script>
+<footer class="ci6-copyright">© 2026 Capitaine Jean-Noël Panis — CI6 Connect</footer>
 </body>
 </html>
