@@ -60,12 +60,16 @@ async function getServiceCompletedThrough(db) {
   const setting = await db.prepare(`
     SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1
   `).first();
-  return validDate(setting?.setting_value || "") ? setting.setting_value : "";
+  if (validDate(setting?.setting_value || "")) return setting.setting_value;
+
+  // Sans clôture fixée par le CDU, on applique une clôture automatique à J-3.
+  // Cela laisse les deux derniers jours passés modifiables par les cadres tout en
+  // garantissant une régularisation automatique des repos sur le service stabilisé.
+  return addIsoDays(todayIso(), -3);
 }
 
 async function dateLockedForNonCdu(db, permission, date) {
   if (permission.isCdu) return false;
-  if (date < todayIso()) return true;
   const completedThrough = await getServiceCompletedThrough(db);
   return Boolean(completedThrough && date <= completedThrough);
 }

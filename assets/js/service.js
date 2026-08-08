@@ -608,11 +608,10 @@ function selectCells(keys, { extend = false, additive = false } = {}) {
 
 function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-keys]").forEach(cell => cell.classList.toggle("selected", cell.dataset.keys.split(",").some(key => state.selected.has(key)))); }
 function selectionContainsLockedDate() {
-  const today = iso(utcDate());
   const cutoff = state.data?.serviceCompletedThrough || "";
   return [...state.selected].some(key => {
     const date = parseKey(key).service_date;
-    return date < today || Boolean(cutoff && date <= cutoff);
+    return Boolean(cutoff && date <= cutoff);
   });
 }
 function pastPlanningLocked() {
