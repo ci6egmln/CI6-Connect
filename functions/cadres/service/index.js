@@ -234,6 +234,16 @@ async function reverseLinkedMovement(db, entry, permission, comment = "", revers
   return true;
 }
 
+async function deleteLinkedMovement(db, entry) {
+  const linked = await linkedLedger(db, entry.id);
+  if (!linked) return false;
+  // Une correction simple du planning ne doit pas créer une ligne d’annulation dans le suivi.
+  // On retire donc directement le mouvement lié ; le solde est recalculé naturellement.
+  await db.prepare(`UPDATE service_recovery_ledger SET reversal_of=NULL WHERE reversal_of=?`).bind(linked.id).run();
+  await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(linked.id).run();
+  return true;
+}
+
 async function permanenceCreditCandidate(db, entry) {
   if (!entry || entry.target_type !== "person" || entry.service_code !== "P") return false;
 
@@ -500,7 +510,8 @@ export async function onRequestPost(context) {
       if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date de clôture du service." }, 403);
       const completedThrough = String(body.completed_through || "");
       if (!validDate(completedThrough)) return serviceJson({ error: "Date de clôture du service invalide." }, 400);
-      if (completedThrough > todayIso()) return serviceJson({ error: "La date de clôture ne peut pas être postérieure à aujourd’hui." }, 400);
+      // La clôture correspond à la date jusqu’à laquelle le CDU a établi et validé le service
+      // (notamment d’après Hyperplanning). Elle peut donc être postérieure à la date du jour.
       const previous = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1`).first();
       await db.prepare(`
         INSERT INTO service_settings (setting_key, setting_value, updated_by, updated_at)
@@ -606,7 +617,8 @@ export async function onRequestPost(context) {
       if (customActivity && !customLabel) return serviceJson({ error: "Le libellé de l’activité est obligatoire." }, 400);
       if (customActivity && !customColor) return serviceJson({ error: "Choisissez une couleur pour l’activité." }, 400);
       const groupId = merge ? crypto.randomUUID() : "";
-      const removalReason = cleanText(body.removal_reason, 500);
+      const recordModification = body.record_modification === true;
+      const modificationComment = cleanText(body.modification_comment, 500);
       const saved = [];
       const permanenceCreditCandidates = [];
       const reversalGroup = crypto.randomUUID();
@@ -637,10 +649,16 @@ export async function onRequestPost(context) {
         }
 
         if (previous && previous.service_code !== code) {
-          if (["RR", "RPC"].includes(previous.service_code) && !removalReason) {
-            return serviceJson({ error: "Indiquez le motif du retrait du repos avant de remplacer cette case." }, 400);
+          if (["RR", "RPC"].includes(previous.service_code)) {
+            if (recordModification) {
+              if (!modificationComment) return serviceJson({ error: "Le commentaire de modification est vide." }, 400);
+              await reverseLinkedMovement(db, previous, permission, modificationComment, reversalGroup);
+            } else {
+              await deleteLinkedMovement(db, previous);
+            }
+          } else {
+            await reverseLinkedMovement(db, previous, permission, "", reversalGroup);
           }
-          await reverseLinkedMovement(db, previous, permission, removalReason, reversalGroup);
         }
 
         const result = await db.prepare(`
@@ -768,7 +786,8 @@ export async function onRequestPost(context) {
 
     if (action === "delete-entries") {
       const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).map(Number).filter(Number.isInteger))];
-      const deletionReason = cleanText(body.deletion_reason, 500);
+      const recordModification = body.record_modification === true;
+      const modificationComment = cleanText(body.modification_comment, 500);
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection à supprimer invalide." }, 400);
       if (!permission.isCdu) {
         for (const id of ids) {
@@ -788,13 +807,22 @@ export async function onRequestPost(context) {
         if (await dateLockedForNonCdu(db, permission, previous.service_date)) {
           return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
         }
-        if (["RR", "RPC"].includes(previous.service_code) && !deletionReason) {
-          return serviceJson({ error: "Le motif du retrait du repos est obligatoire." }, 400);
-        }
         const affectedPermanences = await affectedPermanenceForRpj(db, previous);
-        await reverseLinkedMovement(db, previous, permission, deletionReason, reversalGroup);
+        if (["RR", "RPC"].includes(previous.service_code)) {
+          if (recordModification) {
+            if (!modificationComment) return serviceJson({ error: "Le commentaire de modification est vide." }, 400);
+            await reverseLinkedMovement(db, previous, permission, modificationComment, reversalGroup);
+          } else {
+            await deleteLinkedMovement(db, previous);
+          }
+        } else {
+          await reverseLinkedMovement(db, previous, permission, "", reversalGroup);
+        }
         await db.prepare(`DELETE FROM service_entries WHERE id=?`).bind(id).run();
-        await auditService(db, "delete", id, permission.username, previous, { deletion_reason: deletionReason });
+        await auditService(db, "delete", id, permission.username, previous, {
+          record_modification: recordModification,
+          modification_comment: recordModification ? modificationComment : ""
+        });
         for (const permanence of affectedPermanences) {
           if (await permanenceCreditCandidate(db, permanence)) permanenceCreditCandidates.push(permanence);
         }

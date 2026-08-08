@@ -696,10 +696,14 @@ async function applyService(code, { merge = false, customColor = "", activity = 
   code = confirmRorRR(code);
   if (!code) return message("planningMessage", "Ajout annulé : aucune modification n’a été apportée au planning.", "info");
   const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
-  let removalReason = "";
+  let recordModification = false;
+  let modificationComment = "";
   if (replacedRest.length) {
-    removalReason = prompt("Motif du retrait du repos :", "Modification du planning") || "";
-    if (!removalReason.trim()) return message("planningMessage", "Le motif du retrait est obligatoire.", "error");
+    recordModification = confirm("Voulez-vous enregistrer le motif de cette modification ?\n\nOK : conserver une trace dans le suivi des repos.\nAnnuler : modifier simplement le planning sans ajouter de ligne au suivi.");
+    if (recordModification) {
+      modificationComment = prompt("Commentaire sur la modification :", "Modification demandée") || "";
+      if (!modificationComment.trim()) return message("planningMessage", "Indiquez un commentaire ou annulez l’enregistrement du motif.", "error");
+    }
   }
   const items = [...state.selected].map(key => ({
     ...parseKey(key),
@@ -708,7 +712,7 @@ async function applyService(code, { merge = false, customColor = "", activity = 
   }));
   message("planningMessage", "Enregistrement en cours…", "info");
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity, removal_reason: removalReason }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity, record_modification: recordModification, modification_comment: modificationComment }) });
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
     if (["RR", "RPC"].includes(code)) {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
@@ -785,13 +789,17 @@ async function deleteSelection() {
   const ids = [...new Set(selectedEntries.map(entry => entry.id).filter(Boolean))];
   if (!ids.length) return;
   if (!confirm(`Supprimer le contenu de ${ids.length} case${ids.length > 1 ? "s" : ""} ?`)) return;
-  let deletionReason = "";
+  let recordModification = false;
+  let modificationComment = "";
   if (selectedEntries.some(entry => ["RR", "RPC"].includes(entry.service_code))) {
-    deletionReason = prompt("Motif du retrait du repos :", "Modification du planning") || "";
-    if (!deletionReason.trim()) return message("planningMessage", "Le motif du retrait est obligatoire.", "error");
+    recordModification = confirm("Voulez-vous enregistrer le motif de cette modification ?\n\nOK : conserver une trace dans le suivi des repos.\nAnnuler : supprimer simplement le RR/RPC sans ajouter de ligne au suivi.");
+    if (recordModification) {
+      modificationComment = prompt("Commentaire sur la modification :", "Modification demandée") || "";
+      if (!modificationComment.trim()) return message("planningMessage", "Indiquez un commentaire ou annulez l’enregistrement du motif.", "error");
+    }
   }
   try {
-    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete-entries", ids, deletion_reason: deletionReason }) });
+    const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete-entries", ids, record_modification: recordModification, modification_comment: modificationComment }) });
     [...state.selected].forEach(key => state.entries.delete(key));
     const permanenceCandidates = data.permanence_credit_candidates || [];
     if (permanenceCandidates.length && confirm(`Le retrait du RPJ rend ${permanenceCandidates.length} permanence${permanenceCandidates.length > 1 ? "s" : ""} éligible${permanenceCandidates.length > 1 ? "s" : ""} à récupération. Créditer +0,5 jour par permanence ?`)) {
