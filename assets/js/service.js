@@ -141,7 +141,7 @@ async function loadPlanning({ preserveScroll = false } = {}) {
     state.entries = new Map(data.entries.map(entry => [entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry]));
     const managePeopleButton = $("managePeople");
     if (managePeopleButton) {
-      if (data.permission.isAdmin) managePeopleButton.hidden = false;
+      if (data.permission.isCdu) managePeopleButton.hidden = false;
       else managePeopleButton.remove();
     }
     const purgeButton = $("purgePlanning");
@@ -1403,7 +1403,11 @@ $("cancelMovement").onclick = () => { state.editingRecoveryId = null; $("movemen
 $("closeMovementDialog").onclick = () => { state.editingRecoveryId = null; $("movementDialog").close(); };
 $("closeRecovery").onclick = () => { $("recoveryDetail").hidden = true; state.activeRecoveryPerson = null; };
 $("sortRecoveryStart")?.addEventListener("click", () => { state.recoverySortDirection = state.recoverySortDirection === "asc" ? "desc" : "asc"; renderRecoveryDetailRows(); });
-$("managePeople").onclick = () => { renderPeopleEditor(); $("peopleDialog").showModal(); };
+$("managePeople").onclick = () => {
+  if (!state.data?.permission?.isCdu) return;
+  renderPeopleEditor();
+  $("peopleDialog").showModal();
+};
 $("addPerson").onclick = addPersonEditorRow;
 $("saveAllPeople").onclick = saveAllPeople;
 $("saveMonthImage").onclick = openMonthImageDialog;

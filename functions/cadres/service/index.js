@@ -135,7 +135,7 @@ async function bootstrap(db, permission, start, end) {
     ORDER BY service_date, target_type, target_key, slot
   `).bind(start, end).all();
 
-  const peopleAdminResult = permission.isAdmin
+  const peopleAdminResult = permission.isCdu
     ? await db.prepare(`
         SELECT id, username, grade, display_name, peloton, sort_order, active, sop_eligible
         FROM service_people
@@ -712,7 +712,7 @@ export async function onRequestPost(context) {
     }
 
     if (action === "save-people") {
-      if (!permission.isAdmin) return serviceJson({ error: "Paramétrage réservé aux administrateurs." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "Gestion des cadres réservée au CDU." }, 403);
       const people = Array.isArray(body.people) ? body.people : [];
       if (!people.length || people.length > 200) return serviceJson({ error: "Liste de cadres invalide." }, 400);
       const normalized = people.map(raw => ({
@@ -737,7 +737,7 @@ export async function onRequestPost(context) {
     }
 
     if (action === "save-person") {
-      if (!permission.isAdmin) return serviceJson({ error: "Paramétrage réservé aux administrateurs." }, 403);
+      if (!permission.isCdu) return serviceJson({ error: "Gestion des cadres réservée au CDU." }, 403);
       const id = Number(body.id || 0);
       const grade = cleanText(body.grade, 30);
       const displayName = cleanText(body.display_name, 120);
