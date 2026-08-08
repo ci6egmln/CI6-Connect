@@ -456,7 +456,13 @@
     .icon-button, .range-button { background:#1e5f89 !important; border-color:#68b8eb !important; color:#fff !important; }
     .button:not(.danger):not(.role-cdu):not(.role-admin):hover,
     .icon-button:hover, .range-button:hover { background:#2879aa !important; border-color:#8acbf1 !important; }
-    .range-button.active { background:#12496b !important; border-color:#8acbf1 !important; color:#fff !important; }
+    /* Choix de la période affichée : noir par défaut, bleu lorsqu'il est sélectionné. */
+    .planning-controls-row .range-button,
+    .planning-controls-row #showFullMonth { background:#171a1d !important; border-color:#4b5359 !important; color:#fff !important; }
+    .planning-controls-row .range-button:hover,
+    .planning-controls-row #showFullMonth:hover { background:#2a2f33 !important; border-color:#68737a !important; }
+    .planning-controls-row .range-button.active,
+    .planning-controls-row #showFullMonth.active { background:#12496b !important; border-color:#8acbf1 !important; color:#fff !important; }
     .role-cdu { background:linear-gradient(135deg,#e2bf59,#a87a1d) !important; border-color:#f0d37a !important; color:#17130a !important; }
     .role-admin { background:linear-gradient(135deg,#d6dbe0,#8d979e) !important; border-color:#edf1f3 !important; color:#15191c !important; }
     .counter-start-control.readonly { opacity:.9; }
@@ -509,7 +515,7 @@
       </div>
       <div class="month-view-control" aria-label="Afficher un mois complet">
         <input id="monthPicker" type="month" aria-label="Mois et année à afficher">
-        <button id="showFullMonth" class="button compact" type="button">Mois complet</button>
+        <button id="showFullMonth" class="button compact" type="button">Afficher mois</button>
       </div>
       <div class="toolbar-actions">
         <button id="studentService" class="button compact" type="button">Imprimer permanences</button>

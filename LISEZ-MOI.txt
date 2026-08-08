@@ -1,17 +1,12 @@
-CORRECTIF CI6 CONNECT — ADMINISTRATION / GESTION DES CADRES CDU
+CI6 Connect - mini-correctif choix de période
 
-À remplacer :
-- administration.html
+Fichier à remplacer :
 - service.html
-- assets/js/service.js
-- functions/cadres/service/index.js
-
-Aucun fichier à supprimer.
 
 Modifications :
-- ajout d'un bouton direct « Espace cadres » dans l'espace Administration ;
-- « Gérer les cadres » dans le module Service devient une fonction CDU ;
-- bouton « Gérer les cadres » doré (role-cdu) ;
-- visibilité du bouton et chargement de la liste complète réservés au CDU ;
-- enregistrement/modification des cadres sécurisé côté serveur pour le CDU ;
-- un administrateur conserve ces droits car le rôle admin cumule les pouvoirs CDU.
+- boutons 3 / 6 / 12 / 18 mois noirs par défaut ;
+- bouton « Afficher mois » noir par défaut ;
+- ces boutons deviennent bleus lorsqu'ils correspondent au mode sélectionné ;
+- « Mois complet » renommé « Afficher mois ».
+
+Aucun autre fichier à modifier ou supprimer.
