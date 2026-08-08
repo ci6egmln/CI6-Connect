@@ -252,6 +252,7 @@ function renderPalette() {
   document.querySelectorAll('input[name="activityColor"]').forEach(input => {
     input.onchange = () => { state.entryColorTouched = true; };
   });
+  updateSelectionBar();
 }
 
 function syncEntryDetailsFromSelection() {
@@ -565,20 +566,89 @@ function selectCells(keys, { extend = false, additive = false } = {}) {
 }
 
 function refreshSelectionClasses() { document.querySelectorAll(".slot-cell[data-keys]").forEach(cell => cell.classList.toggle("selected", cell.dataset.keys.split(",").some(key => state.selected.has(key)))); }
+function selectionContainsPastDate() {
+  const today = iso(utcDate());
+  return [...state.selected].some(key => parseKey(key).service_date < today);
+}
+function pastPlanningLocked() {
+  return Boolean(state.selected.size && selectionContainsPastDate() && !state.data?.permission?.isCdu);
+}
 function updateSelectionBar() {
   const count = state.selected.size;
   $("selectionCount").textContent = count ? `${count} case${count > 1 ? "s" : ""} sélectionnée${count > 1 ? "s" : ""}` : "Aucune case sélectionnée";
   const allFilled = count > 0 && [...state.selected].every(key => state.entries.has(key));
-  $("deleteSelection").disabled = ![...state.selected].some(key => state.entries.has(key));
+  const pastLocked = pastPlanningLocked();
+  $("deleteSelection").disabled = ![...state.selected].some(key => state.entries.has(key)) || pastLocked;
   const modifyButton = $("modifySelection");
-  if (modifyButton) modifyButton.disabled = !allFilled;
+  if (modifyButton) modifyButton.disabled = !allFilled || pastLocked;
+  document.querySelectorAll("#servicePalette .palette-button").forEach(button => { button.disabled = pastLocked; });
+  const detailsToggle = $("toggleDetails");
+  if (detailsToggle) detailsToggle.disabled = pastLocked;
   if (count) syncEntryDetailsFromSelection();
 }
 
 function clearSelection() { state.selected.clear(); state.lastSelected = ""; refreshSelectionClasses(); updateSelectionBar(); }
 
+function weeklyRestConflictForR() {
+  const restCodes = new Set(["R", "PERM_POSEE", "PERM_VALIDEE"]);
+  const selectedPersonDates = new Map();
+
+  for (const key of state.selected) {
+    const parsed = parseKey(key);
+    if (parsed.target_type !== "person") continue;
+    const weekStart = iso(monday(utcDate(parsed.service_date)));
+    const groupKey = `${parsed.target_key}|${weekStart}`;
+    if (!selectedPersonDates.has(groupKey)) selectedPersonDates.set(groupKey, new Set());
+    selectedPersonDates.get(groupKey).add(parsed.service_date);
+  }
+  if (!selectedPersonDates.size) return [];
+
+  const existingByGroup = new Map();
+  for (const [key, entry] of state.entries) {
+    if (state.selected.has(key) || entry.target_type !== "person" || !restCodes.has(entry.service_code)) continue;
+    const weekStart = iso(monday(utcDate(entry.service_date)));
+    const groupKey = `${entry.target_key}|${weekStart}`;
+    if (!selectedPersonDates.has(groupKey)) continue;
+    if (!existingByGroup.has(groupKey)) existingByGroup.set(groupKey, new Set());
+    existingByGroup.get(groupKey).add(entry.service_date);
+  }
+
+  const conflicts = [];
+  for (const [groupKey, selectedDates] of selectedPersonDates) {
+    const existingDates = existingByGroup.get(groupKey) || new Set();
+    const resultingDates = new Set([...existingDates, ...selectedDates]);
+    if (existingDates.size >= 2 || resultingDates.size > 2) {
+      const [personId, weekStart] = groupKey.split("|");
+      const person = state.data?.people?.find(item => String(item.id) === String(personId));
+      conflicts.push({
+        personId,
+        personName: person ? [String(person.grade || "").trim(), planningSurname(person)].filter(Boolean).join(" ") : `Cadre ${personId}`,
+        weekStart,
+        existing: existingDates.size,
+        resulting: resultingDates.size
+      });
+    }
+  }
+  return conflicts;
+}
+
+function confirmRorRR(code) {
+  if (code !== "R") return code;
+  const conflicts = weeklyRestConflictForR();
+  if (!conflicts.length) return code;
+  const first = conflicts[0];
+  const extra = conflicts.length > 1 ? `\n${conflicts.length - 1} autre(s) cadre/semaine sont également concernés.` : "";
+  const useRR = confirm(
+    `${first.personName} dispose déjà de 2 jours de repos, ou cette saisie porterait la semaine à plus de 2 jours de repos (semaine du ${frDate(first.weekStart)}).\n\n` +
+    `Vous avez peut-être voulu saisir un RR.\n\nOK : poser RR à la place de R\nAnnuler : conserver R.${extra}`
+  );
+  return useRR ? "RR" : "R";
+}
+
 async function applyService(code, { merge = false, customColor = "", activity = false } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
+  code = confirmRorRR(code);
   const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
   let removalReason = "";
   if (replacedRest.length) {
@@ -617,6 +687,7 @@ async function applyService(code, { merge = false, customColor = "", activity = 
 
 async function saveEntryDetails() {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases déjà renseignées.", "error");
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
   const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
   if (!selectedEntries.length) return message("planningMessage", "La sélection ne contient aucun service auquel ajouter une note.", "error");
   if (selectedEntries.length !== state.selected.size) return message("planningMessage", "Pour ajouter une note, toutes les cases sélectionnées doivent déjà contenir un service.", "error");
@@ -644,6 +715,7 @@ async function saveEntryDetails() {
 }
 
 function modifySelection() {
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
   if (!state.selected.size || ![...state.selected].every(key => state.entries.has(key))) {
     return message("planningMessage", "Sélectionnez uniquement des cases déjà renseignées.", "error");
   }
@@ -657,6 +729,7 @@ function modifySelection() {
 }
 
 async function deleteSelection() {
+  if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
   const selectedEntries = [...state.selected].map(key => state.entries.get(key)).filter(Boolean);
   const ids = [...new Set(selectedEntries.map(entry => entry.id).filter(Boolean))];
   if (!ids.length) return;

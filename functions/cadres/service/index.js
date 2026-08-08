@@ -31,6 +31,94 @@ function addIsoDays(value, amount) {
   return date.toISOString().slice(0, 10);
 }
 
+function mondayIso(value) {
+  const date = new Date(`${value}T12:00:00Z`);
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 1 - day);
+  return date.toISOString().slice(0, 10);
+}
+
+async function syncMissingWeeklyRestCredits(db, permission, start, end) {
+  const today = todayIso();
+  let weekStart = mondayIso(start);
+  const lastWeekStart = mondayIso(end);
+  const peopleResult = await db.prepare(`SELECT id FROM service_people WHERE active=1 ORDER BY id`).all();
+  const people = (peopleResult.results || []).map(row => Number(row.id)).filter(Number.isInteger);
+  if (!people.length) return { created: 0, updated: 0, removed: 0 };
+
+  let created = 0;
+  let updated = 0;
+  let removed = 0;
+  while (weekStart <= lastWeekStart) {
+    const weekEnd = addIsoDays(weekStart, 6);
+    // Une semaine n'est régularisée qu'une fois totalement terminée.
+    if (weekEnd < today) {
+      // R et permissions comptent comme repos. Une même date ne compte qu'une fois,
+      // même si matin et nuit sont tous les deux renseignés.
+      const restsResult = await db.prepare(`
+        SELECT CAST(target_key AS INTEGER) AS person_id,
+               COUNT(DISTINCT service_date) AS rest_days
+        FROM service_entries
+        WHERE target_type='person'
+          AND service_code IN ('R','PERM_POSEE','PERM_VALIDEE')
+          AND service_date BETWEEN ? AND ?
+        GROUP BY target_key
+      `).bind(weekStart, weekEnd).all();
+      const restDaysByPerson = new Map(
+        (restsResult.results || []).map(row => [Number(row.person_id), Number(row.rest_days || 0)])
+      );
+
+      const autoResult = await db.prepare(`
+        SELECT id, person_id, amount, movement_group, comment
+        FROM service_recovery_ledger
+        WHERE movement_group LIKE ?
+      `).bind(`auto-weekly-rest:${weekStart}:%`).all();
+      const autoByPerson = new Map((autoResult.results || []).map(row => [Number(row.person_id), row]));
+
+      for (const personId of people) {
+        const restDays = Math.min(2, Math.max(0, Number(restDaysByPerson.get(personId) || 0)));
+        const missingDays = 2 - restDays;
+        const existing = autoByPerson.get(personId);
+        const movementGroup = `auto-weekly-rest:${weekStart}:${personId}`;
+        const comment = `Crédit automatique : ${missingDays} jour(s) de repos manquant(s) du ${weekStart} au ${weekEnd} (${restDays} jour(s) R/permission constaté(s)).`;
+
+        if (missingDays > 0 && !existing) {
+          const result = await db.prepare(`
+            INSERT INTO service_recovery_ledger
+              (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, created_by)
+            VALUES (?, ?, ?, ?, 'credit', 'Repos hebdomadaires manquants', ?, ?, ?)
+          `).bind(personId, weekStart, weekEnd, missingDays, comment, movementGroup, "SYSTEME").run();
+          await auditService(db, 'weekly-rest-auto-credit', null, "SYSTEME", null, {
+            id: result.meta?.last_row_id, personId, weekStart, weekEnd, amount: missingDays, restDays, triggeredBy: permission.username
+          });
+          created += 1;
+        } else if (missingDays > 0 && existing && Number(existing.amount) !== missingDays) {
+          const before = { ...existing };
+          await db.prepare(`
+            UPDATE service_recovery_ledger
+            SET amount=?, movement_type='credit', reason='Repos hebdomadaires manquants', comment=?, period_end=?
+            WHERE id=?
+          `).bind(missingDays, comment, weekEnd, existing.id).run();
+          await auditService(db, 'weekly-rest-auto-credit-update', null, "SYSTEME", before, {
+            ...before, amount: missingDays, comment, period_end: weekEnd, restDays, triggeredBy: permission.username
+          });
+          updated += 1;
+        } else if (missingDays === 0 && existing) {
+          // Ce crédit est une donnée calculée : dès que les 2 jours de repos sont
+          // présents (R et/ou permission), on retire directement l'écriture automatique.
+          await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(existing.id).run();
+          await auditService(db, 'weekly-rest-auto-credit-remove', null, "SYSTEME", existing, {
+            personId, weekStart, weekEnd, reason: 'Deux jours de repos R/permission sont désormais présents dans la semaine.', triggeredBy: permission.username
+          });
+          removed += 1;
+        }
+      }
+    }
+    weekStart = addIsoDays(weekStart, 7);
+  }
+  return { created, updated, removed };
+}
+
 async function linkedLedger(db, entryId) {
   return db.prepare(`
     SELECT id, person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group
@@ -142,6 +230,10 @@ async function bootstrap(db, permission, start, end) {
         ORDER BY active DESC, sort_order, display_name
       `).all()
     : { results: [] };
+
+  // Régularise automatiquement les semaines entièrement passées comprises dans
+  // la période consultée : sans aucun R, le cadre récupère les 2 jours manquants.
+  await syncMissingWeeklyRestCredits(db, permission, start, end);
 
   const recoveryResult = await db.prepare(`
     SELECT p.id AS person_id,
@@ -355,6 +447,9 @@ export async function onRequestPost(context) {
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) return serviceJson({ error: "Une case sélectionnée est introuvable." }, 404);
+        if (previous.service_date < todayIso() && !permission.isCdu) {
+          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+        }
         if (requestedColor === null) {
           await db.prepare(`
             UPDATE service_entries
@@ -378,6 +473,9 @@ export async function onRequestPost(context) {
     if (action === "set-entries") {
       const items = Array.isArray(body.items) ? body.items : [];
       if (!items.length || items.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
+      if (!permission.isCdu && items.some(item => validDate(String(item.service_date || "")) && String(item.service_date) < todayIso())) {
+        return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+      }
       const code = String(body.service_code || "").toUpperCase();
       if (!VALID_CODES.has(code)) return serviceJson({ error: "Type de service invalide." }, 400);
       const customLabel = cleanText(body.custom_label, 80);
@@ -401,6 +499,9 @@ export async function onRequestPost(context) {
         const date = String(raw.service_date || "");
         const slot = raw.slot === "N" ? "N" : "M";
         if (!TARGET_PATTERN.test(targetKey) || !validDate(date)) return serviceJson({ error: "Une case sélectionnée est invalide." }, 400);
+        if (date < todayIso() && !permission.isCdu) {
+          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+        }
         if (targetType === "peloton" && !["P1", "P2", "P3"].includes(targetKey)) return serviceJson({ error: "Peloton invalide." }, 400);
         if (targetType === "person") {
           const person = await db.prepare(`SELECT id FROM service_people WHERE id=? AND active=1`).bind(Number(targetKey)).first();
@@ -418,9 +519,6 @@ export async function onRequestPost(context) {
         }
 
         if (previous && previous.service_code !== code) {
-          if (previous.service_code === "RR" && previous.service_date < todayIso() && !permission.isAdmin) {
-            return serviceJson({ error: "Un RR d’un jour passé ne peut être retiré que par un administrateur." }, 403);
-          }
           if (["RR", "RPC"].includes(previous.service_code) && !removalReason) {
             return serviceJson({ error: "Indiquez le motif du retrait du repos avant de remplacer cette case." }, 400);
           }
@@ -487,6 +585,10 @@ export async function onRequestPost(context) {
         const fresh = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(candidate.id).first();
         if (fresh && await permanenceCreditCandidate(db, fresh)) validatedCandidates.push(fresh);
       }
+      if (saved.length) {
+        const dates = saved.map(entry => entry.service_date).sort();
+        await syncMissingWeeklyRestCredits(db, permission, dates[0], dates.at(-1));
+      }
       return serviceJson({ success: true, entries: saved, permanence_credit_candidates: validatedCandidates });
     }
 
@@ -549,13 +651,23 @@ export async function onRequestPost(context) {
       const ids = [...new Set((Array.isArray(body.ids) ? body.ids : []).map(Number).filter(Number.isInteger))];
       const deletionReason = cleanText(body.deletion_reason, 500);
       if (!ids.length || ids.length > 200) return serviceJson({ error: "Sélection à supprimer invalide." }, 400);
+      if (!permission.isCdu) {
+        for (const id of ids) {
+          const row = await db.prepare(`SELECT service_date FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
+          if (row?.service_date < todayIso()) {
+            return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
+          }
+        }
+      }
       const permanenceCreditCandidates = [];
       const reversalGroup = crypto.randomUUID();
+      const affectedDates = [];
       for (const id of ids) {
         const previous = await db.prepare(`SELECT * FROM service_entries WHERE id=? LIMIT 1`).bind(id).first();
         if (!previous) continue;
-        if (previous.service_code === "RR" && previous.service_date < todayIso() && !permission.isAdmin) {
-          return serviceJson({ error: "Un RR d’un jour passé ne peut être retiré que par un administrateur." }, 403);
+        affectedDates.push(previous.service_date);
+        if (previous.service_date < todayIso() && !permission.isCdu) {
+          return serviceJson({ error: "Seul le CDU peut modifier le planning d’un jour passé." }, 403);
         }
         if (["RR", "RPC"].includes(previous.service_code) && !deletionReason) {
           return serviceJson({ error: "Le motif du retrait du repos est obligatoire." }, 400);
@@ -567,6 +679,10 @@ export async function onRequestPost(context) {
         for (const permanence of affectedPermanences) {
           if (await permanenceCreditCandidate(db, permanence)) permanenceCreditCandidates.push(permanence);
         }
+      }
+      if (affectedDates.length) {
+        affectedDates.sort();
+        await syncMissingWeeklyRestCredits(db, permission, affectedDates[0], affectedDates.at(-1));
       }
       return serviceJson({ success: true, permanence_credit_candidates: permanenceCreditCandidates });
     }
