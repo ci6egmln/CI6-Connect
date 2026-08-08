@@ -34,7 +34,7 @@ const RECOVERY_REASONS = {
     "Permanence soir sans récup",
     "Permanence matin sans récup"
   ],
-  debit: ["RPC", "Repos récupérateur"]
+  debit: ["Repos récupérateur"]
 };
 
 function utcDate(value = new Date()) {
@@ -270,7 +270,8 @@ function renderPalette() {
   // « Ajouter un libellé ou une note », pour rester compact et sur la même ligne.
   const detailsPanel = $("entryDetails");
   if (detailsPanel) detailsPanel.remove();
-  $("servicePalette").innerHTML = state.data.serviceTypes.map(type => {
+  const visibleTypes = state.data.serviceTypes.filter(type => state.data?.permission?.isCdu || !["RPC", "RPJ"].includes(type.code));
+  $("servicePalette").innerHTML = visibleTypes.map(type => {
     const button = `
       <button class="palette-button${type.code.startsWith("PERM_") ? " palette-button-permission" : ""}" type="button" data-code="${type.code}" style="--palette-color:${type.color};--palette-text:${type.textColor}" title="${esc(type.label)}">
         ${esc(paletteButtonText(type))}
@@ -694,7 +695,7 @@ async function applyService(code, { merge = false, customColor = "", activity = 
   if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier une date passée ou déjà clôturée.", "error");
   code = confirmRorRR(code);
   if (!code) return message("planningMessage", "Ajout annulé : aucune modification n’a été apportée au planning.", "info");
-  const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
+  const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && entry.service_code === "RR" && entry.service_code !== code);
   let recordModification = false;
   let modificationComment = "";
   if (replacedRest.length) {
@@ -713,14 +714,12 @@ async function applyService(code, { merge = false, customColor = "", activity = 
   try {
     const data = await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "set-entries", items, service_code: code, custom_label: $("customLabel").value, custom_color: customColor, notes: $("entryNotes").value, merge, activity, record_modification: recordModification, modification_comment: modificationComment }) });
     data.entries.forEach(entry => state.entries.set(entryKey(entry.target_type, entry.target_key, entry.service_date, entry.slot), entry));
-    if (["RR", "RPC"].includes(code)) {
+    if (code === "RR") {
       const personEntries = data.entries.filter(entry => entry.target_type === "person");
       if (personEntries.length && code === "RR") {
         // Un RR posé au planning doit toujours apparaître dans le suivi. S'il est au-delà
         // de la date de clôture, le serveur le conserve comme RR futur demandé et ne le
         // décompte du solde qu'une fois la clôture avancée jusqu'à sa date.
-        await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
-      } else if (personEntries.length && code === "RPC" && confirm(`Déduire automatiquement ${number(personEntries.length * 0.5)} jour(s) des compteurs de repos concernés ?`)) {
         await api("/cadres/service", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recovery-from-entries", ids: personEntries.map(entry => entry.id) }) });
       }
     }
@@ -790,8 +789,8 @@ async function deleteSelection() {
   if (!confirm(`Supprimer le contenu de ${ids.length} case${ids.length > 1 ? "s" : ""} ?`)) return;
   let recordModification = false;
   let modificationComment = "";
-  if (selectedEntries.some(entry => ["RR", "RPC"].includes(entry.service_code))) {
-    recordModification = confirm("Voulez-vous enregistrer le motif de cette modification ?\n\nOK : conserver une trace dans le suivi des repos.\nAnnuler : supprimer simplement le RR/RPC sans ajouter de ligne au suivi.");
+  if (selectedEntries.some(entry => entry.service_code === "RR")) {
+    recordModification = confirm("Voulez-vous enregistrer le motif de cette modification ?\n\nOK : conserver une trace dans le suivi des repos.\nAnnuler : supprimer simplement le RR sans ajouter de ligne au suivi.");
     if (recordModification) {
       modificationComment = prompt("Commentaire sur la modification :", "Modification demandée") || "";
       if (!modificationComment.trim()) return message("planningMessage", "Indiquez un commentaire ou annulez l’enregistrement du motif.", "error");
@@ -996,7 +995,7 @@ function renderRecoveryDetailRows() {
   $("recoveryBody").innerHTML = rows.map(movement => {
     const actions = canEdit ? `<td class="recovery-actions-cell"><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
     const isFutureRR = Number(movement.future_rr || 0) === 1;
-    const isNormalRR = !isFutureRR && ["RR", "RPC"].includes(String(movement.entry_service_code || "").toUpperCase());
+    const isNormalRR = !isFutureRR && String(movement.entry_service_code || "").toUpperCase() === "RR";
     const reason = isFutureRR ? `<span class="future-rr-badge">RR futurs</span>` : esc(displayReason(movement.reason));
     const typeLabel = isFutureRR ? "À décompter" : (movement.movement_type === "credit" ? "Crédit" : "Débit");
     const rowClass = isFutureRR ? "future-rr-row" : (isNormalRR ? "normal-rr-row" : "");

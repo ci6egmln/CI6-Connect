@@ -338,7 +338,7 @@ async function bootstrap(db, permission, start, end) {
       ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount > 0 THEN l.amount ELSE 0 END), 0), 2) AS credited,
       ROUND(ABS(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS taken,
       ROUND(COALESCE(SUM(CASE WHEN (? = '' OR l.movement_date <= ?) THEN l.amount ELSE 0 END), 0), 2) AS balance,
-      ROUND(ABS(COALESCE(SUM(CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code IN ('RR','RPC') AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS future_rr_requested
+      ROUND(ABS(COALESCE(SUM(CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN l.amount ELSE 0 END), 0)), 2) AS future_rr_requested
     FROM service_people p
     LEFT JOIN service_recovery_ledger l ON l.person_id=p.id
     LEFT JOIN service_entries e ON e.id=l.entry_id
@@ -473,7 +473,7 @@ export async function onRequestGet(context) {
         SELECT l.id, l.movement_date, l.period_end, l.amount, l.movement_type, l.reason, l.comment,
                l.movement_group, l.reversal_of, l.entry_id, l.created_by, l.created_at,
                e.service_code AS entry_service_code,
-               CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code IN ('RR','RPC') AND l.amount < 0 THEN 1 ELSE 0 END AS future_rr,
+               CASE WHEN ? <> '' AND l.movement_date > ? AND e.service_code='RR' AND l.amount < 0 THEN 1 ELSE 0 END AS future_rr,
                COALESCE(src.movement_date, l.movement_date) AS effective_start,
                COALESCE(src.period_end, src.movement_date, l.period_end, l.movement_date) AS effective_end,
                CASE
@@ -611,6 +611,9 @@ export async function onRequestPost(context) {
       if (!items.length || items.length > 200) return serviceJson({ error: "Sélection vide ou trop importante." }, 400);
       const code = String(body.service_code || "").toUpperCase();
       if (!VALID_CODES.has(code)) return serviceJson({ error: "Type de service invalide." }, 400);
+      if (!permission.isCdu && ["RPC", "RPJ"].includes(code)) {
+        return serviceJson({ error: "RPC et RPJ sont réservés au CDU." }, 403);
+      }
       const customLabel = cleanText(body.custom_label, 80);
       const notes = cleanText(body.notes, 500);
       const merge = body.merge === true;
@@ -653,13 +656,20 @@ export async function onRequestPost(context) {
         }
 
         if (previous && previous.service_code !== code) {
-          if (["RR", "RPC"].includes(previous.service_code)) {
+          if (!permission.isCdu && ["RPC", "RPJ"].includes(previous.service_code)) {
+            return serviceJson({ error: "RPC et RPJ sont réservés au CDU." }, 403);
+          }
+          if (previous.service_code === "RR") {
             if (recordModification) {
               if (!modificationComment) return serviceJson({ error: "Le commentaire de modification est vide." }, 400);
               await reverseLinkedMovement(db, previous, permission, modificationComment, reversalGroup);
             } else {
               await deleteLinkedMovement(db, previous);
             }
+          } else if (previous.service_code === "RPC") {
+            // RPC ne fait plus partie du compteur de repos récupérateurs.
+            // On supprime seulement un éventuel ancien mouvement lié, sans contre-écriture.
+            await deleteLinkedMovement(db, previous);
           } else {
             await reverseLinkedMovement(db, previous, permission, "", reversalGroup);
           }
@@ -741,7 +751,7 @@ export async function onRequestPost(context) {
         const entry = await db.prepare(`
           SELECT id, target_key, service_date, slot, service_code
           FROM service_entries
-          WHERE id=? AND target_type='person' AND service_code IN ('RR','RPC')
+          WHERE id=? AND target_type='person' AND service_code='RR'
           LIMIT 1
         `).bind(id).first();
         if (entry) entries.push(entry);
@@ -752,12 +762,12 @@ export async function onRequestPost(context) {
       for (const entry of entries) {
         const existing = await db.prepare(`SELECT id FROM service_recovery_ledger WHERE entry_id=? LIMIT 1`).bind(entry.id).first();
         if (existing) continue;
-        const runKey = `${entry.target_key}|${entry.service_code}`;
+        const runKey = `${entry.target_key}|RR`;
         const currentOrdinal = ordinal(entry);
         const previousRun = runState.get(runKey);
         const movementGroup = previousRun && currentOrdinal === previousRun.ordinal + 1 ? previousRun.group : crypto.randomUUID();
         runState.set(runKey, { ordinal: currentOrdinal, group: movementGroup });
-        const type = entry.service_code === "RR" ? "Repos récupérateur" : "RPC";
+        const type = "Repos récupérateur";
         await db.prepare(`
           INSERT INTO service_recovery_ledger
             (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, entry_id, created_by)
@@ -812,13 +822,18 @@ export async function onRequestPost(context) {
           return serviceJson({ error: "Seul le CDU peut modifier une date passée ou déjà clôturée." }, 403);
         }
         const affectedPermanences = await affectedPermanenceForRpj(db, previous);
-        if (["RR", "RPC"].includes(previous.service_code)) {
+        if (!permission.isCdu && ["RPC", "RPJ"].includes(previous.service_code)) {
+          return serviceJson({ error: "RPC et RPJ sont réservés au CDU." }, 403);
+        }
+        if (previous.service_code === "RR") {
           if (recordModification) {
             if (!modificationComment) return serviceJson({ error: "Le commentaire de modification est vide." }, 400);
             await reverseLinkedMovement(db, previous, permission, modificationComment, reversalGroup);
           } else {
             await deleteLinkedMovement(db, previous);
           }
+        } else if (previous.service_code === "RPC") {
+          await deleteLinkedMovement(db, previous);
         } else {
           await reverseLinkedMovement(db, previous, permission, "", reversalGroup);
         }
@@ -847,7 +862,7 @@ export async function onRequestPost(context) {
       const reason = cleanText(body.reason, 250);
       const comment = cleanText(body.comment, 500);
       const creditReasons = new Set(["Activité rupture de rythme", "Activité tradition", "Jour férié travaillé", "Samedi travaillé", "Dimanche travaillé", "Week-end travaillé", "Permanence soir sans récup", "Permanence matin sans récup"]);
-      const debitReasons = new Set(["RPC", "Repos récupérateur"]);
+      const debitReasons = new Set(["Repos récupérateur"]);
       const reasonAllowed = movementType === "credit" ? creditReasons.has(reason) : debitReasons.has(reason);
       if (!personIds.length || personIds.length > 200 || !movementType || !validDate(date) || !validDate(periodEnd) || periodEnd < date || !reasonAllowed || !Number.isFinite(rawAmount) || rawAmount <= 0 || rawAmount > 100) {
         return serviceJson({ error: "Mouvement de repos incomplet ou invalide." }, 400);
