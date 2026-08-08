@@ -38,10 +38,42 @@ function mondayIso(value) {
   return date.toISOString().slice(0, 10);
 }
 
+async function getServiceCompletedThrough(db) {
+  const setting = await db.prepare(`
+    SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1
+  `).first();
+  return validDate(setting?.setting_value || "") ? setting.setting_value : "";
+}
+
+async function removeAutoWeeklyRestCreditsAfter(db, permission, completedThrough) {
+  const result = await db.prepare(`
+    SELECT id, person_id, movement_date, period_end, amount, movement_group, comment
+    FROM service_recovery_ledger
+    WHERE movement_group LIKE 'auto-weekly-rest:%'
+  `).all();
+  let removed = 0;
+  for (const row of result.results || []) {
+    const match = String(row.movement_group || '').match(/^auto-weekly-rest:(\d{4}-\d{2}-\d{2}):/);
+    if (!match) continue;
+    const weekEnd = addIsoDays(match[1], 6);
+    if (weekEnd <= completedThrough) continue;
+    await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(row.id).run();
+    await auditService(db, 'weekly-rest-auto-credit-cutoff-remove', null, "SYSTEME", row, {
+      completedThrough,
+      reason: "La date de service établi a été reculée avant cette semaine.",
+      triggeredBy: permission.username
+    });
+    removed += 1;
+  }
+  return removed;
+}
+
 async function syncMissingWeeklyRestCredits(db, permission, start, end) {
-  const today = todayIso();
+  const completedThrough = await getServiceCompletedThrough(db);
+  if (!completedThrough) return { created: 0, updated: 0, removed: 0 };
+
   let weekStart = mondayIso(start);
-  const lastWeekStart = mondayIso(end);
+  const lastWeekStart = mondayIso(end < completedThrough ? end : completedThrough);
   const peopleResult = await db.prepare(`SELECT id FROM service_people WHERE active=1 ORDER BY id`).all();
   const people = (peopleResult.results || []).map(row => Number(row.id)).filter(Number.isInteger);
   if (!people.length) return { created: 0, updated: 0, removed: 0 };
@@ -50,65 +82,88 @@ async function syncMissingWeeklyRestCredits(db, permission, start, end) {
   let updated = 0;
   let removed = 0;
   while (weekStart <= lastWeekStart) {
-    const weekEnd = addIsoDays(weekStart, 6);
-    // Une semaine n'est régularisée qu'une fois totalement terminée.
-    if (weekEnd < today) {
-      // R et permissions comptent comme repos. Une même date ne compte qu'une fois,
-      // même si matin et nuit sont tous les deux renseignés.
+    const saturday = addIsoDays(weekStart, 5);
+    const sunday = addIsoDays(weekStart, 6);
+    const weekEnd = sunday;
+    // Une semaine n'est régularisée que lorsque le CDU a indiqué que le service
+    // est établi au moins jusqu'au dimanche de cette semaine.
+    if (weekEnd <= completedThrough) {
       const restsResult = await db.prepare(`
-        SELECT CAST(target_key AS INTEGER) AS person_id,
-               COUNT(DISTINCT service_date) AS rest_days
+        SELECT CAST(target_key AS INTEGER) AS person_id, service_date
         FROM service_entries
         WHERE target_type='person'
           AND service_code IN ('R','PERM_POSEE','PERM_VALIDEE')
           AND service_date BETWEEN ? AND ?
-        GROUP BY target_key
+        GROUP BY target_key, service_date
       `).bind(weekStart, weekEnd).all();
-      const restDaysByPerson = new Map(
-        (restsResult.results || []).map(row => [Number(row.person_id), Number(row.rest_days || 0)])
-      );
+      const restDatesByPerson = new Map();
+      for (const row of restsResult.results || []) {
+        const personId = Number(row.person_id);
+        if (!restDatesByPerson.has(personId)) restDatesByPerson.set(personId, new Set());
+        restDatesByPerson.get(personId).add(row.service_date);
+      }
 
       const autoResult = await db.prepare(`
-        SELECT id, person_id, amount, movement_group, comment
+        SELECT id, person_id, movement_date, period_end, amount, movement_group, comment
         FROM service_recovery_ledger
         WHERE movement_group LIKE ?
       `).bind(`auto-weekly-rest:${weekStart}:%`).all();
       const autoByPerson = new Map((autoResult.results || []).map(row => [Number(row.person_id), row]));
 
       for (const personId of people) {
-        const restDays = Math.min(2, Math.max(0, Number(restDaysByPerson.get(personId) || 0)));
+        const restDates = restDatesByPerson.get(personId) || new Set();
+        const restDays = Math.min(2, restDates.size);
         const missingDays = 2 - restDays;
         const existing = autoByPerson.get(personId);
         const movementGroup = `auto-weekly-rest:${weekStart}:${personId}`;
-        const comment = `Crédit automatique : ${missingDays} jour(s) de repos manquant(s) du ${weekStart} au ${weekEnd} (${restDays} jour(s) R/permission constaté(s)).`;
+
+        let movementDate = saturday;
+        let periodEnd = sunday;
+        if (missingDays === 1) {
+          // Si samedi est déjà en repos, le jour manquant est dimanche.
+          // Si dimanche est déjà en repos, le jour manquant est samedi.
+          // Si l'unique repos a été pris du lundi au vendredi, par principe
+          // le repos manquant est positionné au dimanche.
+          movementDate = restDates.has(saturday) && !restDates.has(sunday) ? sunday
+            : restDates.has(sunday) && !restDates.has(saturday) ? saturday
+            : sunday;
+          periodEnd = movementDate;
+        }
+        const comment = missingDays === 2
+          ? `Crédit automatique : 2 jours de repos manquants pour la semaine du ${weekStart} au ${weekEnd}. Repos manquants positionnés samedi et dimanche.`
+          : `Crédit automatique : 1 jour de repos manquant pour la semaine du ${weekStart} au ${weekEnd}. Jour manquant positionné le ${movementDate}.`;
 
         if (missingDays > 0 && !existing) {
           const result = await db.prepare(`
             INSERT INTO service_recovery_ledger
               (person_id, movement_date, period_end, amount, movement_type, reason, comment, movement_group, created_by)
             VALUES (?, ?, ?, ?, 'credit', 'Repos hebdomadaires manquants', ?, ?, ?)
-          `).bind(personId, weekStart, weekEnd, missingDays, comment, movementGroup, "SYSTEME").run();
+          `).bind(personId, movementDate, periodEnd, missingDays, comment, movementGroup, "SYSTEME").run();
           await auditService(db, 'weekly-rest-auto-credit', null, "SYSTEME", null, {
-            id: result.meta?.last_row_id, personId, weekStart, weekEnd, amount: missingDays, restDays, triggeredBy: permission.username
+            id: result.meta?.last_row_id, personId, weekStart, weekEnd, movementDate, periodEnd,
+            amount: missingDays, restDays, completedThrough, triggeredBy: permission.username
           });
           created += 1;
-        } else if (missingDays > 0 && existing && Number(existing.amount) !== missingDays) {
+        } else if (missingDays > 0 && existing && (
+          Number(existing.amount) !== missingDays || existing.movement_date !== movementDate || existing.period_end !== periodEnd
+        )) {
           const before = { ...existing };
           await db.prepare(`
             UPDATE service_recovery_ledger
-            SET amount=?, movement_type='credit', reason='Repos hebdomadaires manquants', comment=?, period_end=?
+            SET movement_date=?, period_end=?, amount=?, movement_type='credit', reason='Repos hebdomadaires manquants', comment=?
             WHERE id=?
-          `).bind(missingDays, comment, weekEnd, existing.id).run();
+          `).bind(movementDate, periodEnd, missingDays, comment, existing.id).run();
           await auditService(db, 'weekly-rest-auto-credit-update', null, "SYSTEME", before, {
-            ...before, amount: missingDays, comment, period_end: weekEnd, restDays, triggeredBy: permission.username
+            ...before, movement_date: movementDate, period_end: periodEnd, amount: missingDays,
+            comment, restDays, completedThrough, triggeredBy: permission.username
           });
           updated += 1;
         } else if (missingDays === 0 && existing) {
-          // Ce crédit est une donnée calculée : dès que les 2 jours de repos sont
-          // présents (R et/ou permission), on retire directement l'écriture automatique.
           await db.prepare(`DELETE FROM service_recovery_ledger WHERE id=?`).bind(existing.id).run();
           await auditService(db, 'weekly-rest-auto-credit-remove', null, "SYSTEME", existing, {
-            personId, weekStart, weekEnd, reason: 'Deux jours de repos R/permission sont désormais présents dans la semaine.', triggeredBy: permission.username
+            personId, weekStart, weekEnd,
+            reason: 'Deux jours de repos R/permission sont désormais présents dans la semaine.',
+            completedThrough, triggeredBy: permission.username
           });
           removed += 1;
         }
@@ -231,8 +286,8 @@ async function bootstrap(db, permission, start, end) {
       `).all()
     : { results: [] };
 
-  // Régularise automatiquement les semaines entièrement passées comprises dans
-  // la période consultée : sans aucun R, le cadre récupère les 2 jours manquants.
+  // Les repos hebdomadaires manquants ne sont régularisés que jusqu'à la date
+  // de service arrêté par le CDU. Sans cette date, aucun crédit automatique.
   await syncMissingWeeklyRestCredits(db, permission, start, end);
 
   const recoveryResult = await db.prepare(`
@@ -298,6 +353,8 @@ async function bootstrap(db, permission, start, end) {
     ...(sopDatesByPerson.get(Number(item.person_id)) || { completed_dates: [] })
   }));
 
+  const serviceCompletedThrough = await getServiceCompletedThrough(db);
+
   // Le compteur P peut être remis à zéro à chaque nouvelle promotion sans supprimer l'historique.
   const permanenceStartSetting = await db.prepare(`
     SELECT setting_value FROM service_settings WHERE setting_key='permanence_count_start' LIMIT 1
@@ -330,6 +387,7 @@ async function bootstrap(db, permission, start, end) {
     recovery: recoveryResult.results || [],
     sop: sopRows,
     sopYears,
+    serviceCompletedThrough,
     permanenceCountStart,
     permanence: permanenceResult.results || []
   });
@@ -399,6 +457,30 @@ export async function onRequestPost(context) {
   const action = String(body.action || "");
 
   try {
+
+    if (action === "save-service-completed-through") {
+      if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date jusqu'à laquelle le service est considéré comme établi." }, 403);
+      const completedThrough = String(body.completed_through || "");
+      if (!validDate(completedThrough)) return serviceJson({ error: "Date de service établi invalide." }, 400);
+      const previous = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='service_completed_through' LIMIT 1`).first();
+      await db.prepare(`
+        INSERT INTO service_settings (setting_key, setting_value, updated_by, updated_at)
+        VALUES ('service_completed_through', ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(setting_key) DO UPDATE SET
+          setting_value=excluded.setting_value, updated_by=excluded.updated_by, updated_at=CURRENT_TIMESTAMP
+      `).bind(completedThrough, permission.username).run();
+      await auditService(db, "service-completed-through", null, permission.username,
+        previous ? { completed_through: previous.setting_value } : null, { completed_through: completedThrough });
+
+      const removedAfterCutoff = await removeAutoWeeklyRestCreditsAfter(db, permission, completedThrough);
+      const permanenceStart = await db.prepare(`SELECT setting_value FROM service_settings WHERE setting_key='permanence_count_start' LIMIT 1`).first();
+      const earliest = await db.prepare(`SELECT MIN(service_date) AS min_date FROM service_entries WHERE target_type='person'`).first();
+      const syncStart = validDate(permanenceStart?.setting_value || "")
+        ? permanenceStart.setting_value
+        : (validDate(earliest?.min_date || "") ? earliest.min_date : "");
+      const sync = syncStart ? await syncMissingWeeklyRestCredits(db, permission, syncStart, completedThrough) : { created: 0, updated: 0, removed: 0 };
+      return serviceJson({ success: true, completed_through: completedThrough, sync: { ...sync, removed_after_cutoff: removedAfterCutoff } });
+    }
 
     if (action === "save-permanence-count-start") {
       if (!permission.isCdu) return serviceJson({ error: "Seul le CDU peut modifier la date de comptage des permanences." }, 403);

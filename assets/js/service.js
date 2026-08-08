@@ -165,6 +165,17 @@ async function loadPlanning({ preserveScroll = false } = {}) {
       permanenceCounterControl.classList.toggle("readonly", !data.permission.isCdu);
       permanenceCounterControl.title = data.permission.isCdu ? "Date de début du comptage des permanences" : "Information : seul le CDU peut modifier cette date";
     }
+    const serviceCompletedControl = $("serviceCompletedThroughControl");
+    if (serviceCompletedControl) {
+      serviceCompletedControl.hidden = false;
+      $("serviceCompletedThrough").value = data.serviceCompletedThrough || "";
+      $("serviceCompletedThrough").disabled = !data.permission.isCdu;
+      $("saveServiceCompletedThrough").hidden = !data.permission.isCdu;
+      serviceCompletedControl.classList.toggle("readonly", !data.permission.isCdu);
+      serviceCompletedControl.title = data.permission.isCdu
+        ? "Date jusqu’à laquelle le service est considéré comme établi"
+        : "Information : seul le CDU peut modifier cette date";
+    }
     const sopControls = $("sopYearControls");
     if (sopControls) sopControls.hidden = !data.permission.isCdu;
     renderPalette();
@@ -199,6 +210,28 @@ async function savePermanenceCounterStart() {
     await loadPlanning({ preserveScroll: true });
   } catch (error) {
     message("planningMessage", error.message, "error");
+  }
+}
+
+async function saveServiceCompletedThrough() {
+  if (!state.data?.permission?.isCdu) return;
+  const completedThrough = $("serviceCompletedThrough")?.value || "";
+  if (!completedThrough) {
+    message("recoveryMessage", "Choisissez la date jusqu’à laquelle le service est établi.", "error");
+    return;
+  }
+  const label = frDate(completedThrough, { day: "2-digit", month: "2-digit", year: "numeric" });
+  if (!confirm(`Confirmer que le service est établi jusqu’au ${label} ?\n\nLes repos hebdomadaires manquants seront calculés uniquement pour les semaines entièrement couvertes par cette date.`)) return;
+  try {
+    await api("/cadres/service", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "save-service-completed-through", completed_through: completedThrough })
+    });
+    message("recoveryMessage", `Service considéré comme établi jusqu’au ${label}. Les repos manquants ont été recalculés.`, "success");
+    await loadPlanning({ preserveScroll: true });
+  } catch (error) {
+    message("recoveryMessage", error.message, "error");
   }
 }
 
@@ -640,15 +673,16 @@ function confirmRorRR(code) {
   const extra = conflicts.length > 1 ? `\n${conflicts.length - 1} autre(s) cadre/semaine sont également concernés.` : "";
   const useRR = confirm(
     `${first.personName} dispose déjà de 2 jours de repos, ou cette saisie porterait la semaine à plus de 2 jours de repos (semaine du ${frDate(first.weekStart)}).\n\n` +
-    `Vous avez peut-être voulu saisir un RR.\n\nOK : poser RR à la place de R\nAnnuler : conserver R.${extra}`
+    `Vous avez peut-être voulu saisir un RR.\n\nOK : poser RR à la place de R\nAnnuler : annuler l’ajout et laisser la case inchangée.${extra}`
   );
-  return useRR ? "RR" : "R";
+  return useRR ? "RR" : null;
 }
 
 async function applyService(code, { merge = false, customColor = "", activity = false } = {}) {
   if (!state.selected.size) return message("planningMessage", "Sélectionnez d’abord une ou plusieurs cases.", "error");
   if (pastPlanningLocked()) return message("planningMessage", "Seul le CDU peut modifier le planning d’un jour passé.", "error");
   code = confirmRorRR(code);
+  if (!code) return message("planningMessage", "Ajout annulé : aucune modification n’a été apportée au planning.", "info");
   const replacedRest = [...state.selected].map(key => state.entries.get(key)).filter(entry => entry && ["RR", "RPC"].includes(entry.service_code) && entry.service_code !== code);
   let removalReason = "";
   if (replacedRest.length) {
@@ -928,7 +962,7 @@ function renderRecoveryDetailRows() {
   if (actionsHead) actionsHead.hidden = !canEdit;
   $("recoveryBody").innerHTML = rows.map(movement => {
     const actions = canEdit ? `<td><div class="recovery-row-actions"><button class="button compact role-cdu" data-edit-recovery="${movement.ids?.[0] || movement.id}" type="button">Modifier</button><button class="button compact role-cdu" data-delete-recovery="${(movement.ids || [movement.id]).join(',')}" type="button">Supprimer</button></div></td>` : "";
-    return `<tr><td>${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
+    return `<tr><td class="recovery-action-date">${frDate(String(movement.action_date || "").slice(0, 10))}</td><td>${frDate(movement.start_date)}</td><td>${movement.end_date !== movement.start_date ? frDate(movement.end_date) : "—"}</td><td>${movement.movement_type === "credit" ? "Crédit" : "Débit"}</td><td class="${Number(movement.amount) < 0 ? "fair-high" : "fair-low"}">${Number(movement.amount) > 0 ? "+" : ""}${number(movement.amount)}</td><td>${esc(displayReason(movement.reason))}</td><td>${esc(movement.comment || "—")}</td><td>${esc(movement.created_by)}</td>${actions}</tr>`;
   }).join("") || `<tr><td colspan="${canEdit ? 9 : 8}" class="empty-state">Aucun mouvement enregistré.</td></tr>`;
   $("recoveryBody").querySelectorAll('[data-edit-recovery]').forEach(button => button.onclick = () => editRecoveryMovement(Number(button.dataset.editRecovery)));
   $("recoveryBody").querySelectorAll('[data-delete-recovery]').forEach(button => button.onclick = () => deleteRecoveryMovements(button.dataset.deleteRecovery.split(',').map(Number)));
@@ -979,7 +1013,9 @@ function populateMovementPeople(selectedIds = []) {
 
 function updateMovementReasons() {
   const type = $("movementType").value;
-  $("movementReason").innerHTML = (RECOVERY_REASONS[type] || []).map(reason => `<option value="${esc(reason)}">${esc(reason)}</option>`).join("");
+  $("movementReason").innerHTML = (RECOVERY_REASONS[type] || [])
+    .filter(reason => !["SPO", "SOP"].includes(String(reason).trim().toUpperCase()))
+    .map(reason => `<option value="${esc(reason)}">${esc(reason)}</option>`).join("");
 }
 
 function openMovementDialog() {
@@ -1530,6 +1566,7 @@ $("closeMonthImage").onclick = () => $("monthImageDialog").close();
 $("cancelMonthImage").onclick = () => $("monthImageDialog").close();
 $("purgePlanning").onclick = openPurgeDialog;
 if ($("savePermanenceCounterStart")) $("savePermanenceCounterStart").onclick = savePermanenceCounterStart;
+if ($("saveServiceCompletedThrough")) $("saveServiceCompletedThrough").onclick = saveServiceCompletedThrough;
 $("purgeForm").addEventListener("submit", purgePlanningPeriod);
 $("purgeServiceEntries").addEventListener("change", syncPurgeScope);
 $("closePurgeDialog").onclick = () => $("purgeDialog").close();
