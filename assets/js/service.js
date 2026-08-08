@@ -7,6 +7,7 @@ const state = {
   end: null,
   mode: "default",
   months: 0,
+  monthValue: "",
   offsetWeeks: 0,
   selected: new Set(),
   lastSelected: "",
@@ -108,6 +109,12 @@ function message(target, text, type = "info") { const element = $(target); eleme
 
 function calculatePeriod() {
   const currentMonday = monday(utcDate());
+  if (state.mode === "month" && /^\d{4}-\d{2}$/.test(state.monthValue)) {
+    const [year, month] = state.monthValue.split("-").map(Number);
+    const start = new Date(Date.UTC(year, month - 1, 1, 12));
+    const end = new Date(Date.UTC(year, month, 0, 12));
+    return { start, end };
+  }
   if (state.mode === "future") {
     const start = currentMonday;
     return { start, end: endOfWeek(addMonths(start, state.months)) };
@@ -198,6 +205,9 @@ async function savePermanenceCounterStart() {
 function updatePeriodLabel() {
   $("periodLabel").textContent = `${frDate(state.start)} — ${frDate(state.end)}`;
   document.querySelectorAll(".range-button").forEach(button => button.classList.toggle("active", state.mode === "future" && Number(button.dataset.months) === state.months));
+  const monthPicker = $("monthPicker");
+  if (monthPicker && state.mode === "month" && state.monthValue) monthPicker.value = state.monthValue;
+  $("showFullMonth")?.classList.toggle("active", state.mode === "month");
 }
 
 function paletteButtonText(type) {
@@ -1363,8 +1373,39 @@ document.querySelectorAll(".module-tab").forEach(button => button.onclick = () =
   ["planning", "sop", "recovery"].forEach(tab => $(`${tab}Tab`).hidden = button.dataset.tab !== tab);
 });
 document.querySelectorAll(".range-button").forEach(button => button.onclick = () => { state.mode = "future"; state.months = Number(button.dataset.months); state.offsetWeeks = 0; loadPlanning(); });
-$("previousPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks -= 1; loadPlanning(); };
-$("nextPeriod").onclick = () => { state.mode = "default"; state.offsetWeeks += 1; loadPlanning(); };
+$("showFullMonth").onclick = () => {
+  const value = $("monthPicker").value;
+  if (!/^\d{4}-\d{2}$/.test(value)) {
+    message("planningMessage", "Choisissez un mois et une année.", "error");
+    return;
+  }
+  state.mode = "month";
+  state.monthValue = value;
+  state.offsetWeeks = 0;
+  loadPlanning();
+};
+$("previousPeriod").onclick = () => {
+  if (state.mode === "month" && /^\d{4}-\d{2}$/.test(state.monthValue)) {
+    const [year, month] = state.monthValue.split("-").map(Number);
+    const d = new Date(Date.UTC(year, month - 2, 1, 12));
+    state.monthValue = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  } else {
+    state.mode = "default";
+    state.offsetWeeks -= 1;
+  }
+  loadPlanning();
+};
+$("nextPeriod").onclick = () => {
+  if (state.mode === "month" && /^\d{4}-\d{2}$/.test(state.monthValue)) {
+    const [year, month] = state.monthValue.split("-").map(Number);
+    const d = new Date(Date.UTC(year, month, 1, 12));
+    state.monthValue = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  } else {
+    state.mode = "default";
+    state.offsetWeeks += 1;
+  }
+  loadPlanning();
+};
 $("today").onclick = () => { state.mode = "default"; state.offsetWeeks = 0; loadPlanning(); };
 $("modifySelection").onclick = modifySelection;
 $("deleteSelection").onclick = deleteSelection;
@@ -1423,4 +1464,7 @@ $("cancelPurge").onclick = () => $("purgeDialog").close();
 if ($("sopAddYear")) $("sopAddYear").onclick = addSopYear;
 if ($("sopYearInput")) $("sopYearInput").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); addSopYear(); } });
 
+const currentMonth = utcDate();
+state.monthValue = `${currentMonth.getUTCFullYear()}-${String(currentMonth.getUTCMonth() + 1).padStart(2, "0")}`;
+if ($("monthPicker")) $("monthPicker").value = state.monthValue;
 loadPlanning();

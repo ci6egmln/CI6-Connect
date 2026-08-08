@@ -446,13 +446,17 @@
     .counter-start-control label { margin:0; font-size:11px; }
     .counter-start-control input { width:128px; min-width:128px; height:30px; padding:3px 5px; }
     .counter-start-control .button { height:30px; min-height:30px; padding:4px 7px !important; }
+    .month-view-control { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .month-view-control input[type="month"] { width:142px; min-width:142px; height:30px; padding:3px 5px; }
+    .month-view-control .button { height:30px; min-height:30px; padding:4px 7px !important; }
 
-    /* Couleurs fonctionnelles des boutons : commun noir, CDU or, admin argent. */
+    /* Couleurs fonctionnelles des boutons : commun bleu, CDU or, admin argent.
+       Les onglets Planning / Équité SOP / Repos récupérateurs conservent leur style propre. */
     .button:not(.danger):not(.role-cdu):not(.role-admin),
-    .icon-button, .range-button { background:#15191c !important; border-color:#59636a !important; color:#fff !important; }
+    .icon-button, .range-button { background:#1e5f89 !important; border-color:#68b8eb !important; color:#fff !important; }
     .button:not(.danger):not(.role-cdu):not(.role-admin):hover,
-    .icon-button:hover, .range-button:hover { background:#1e5f89 !important; border-color:#68b8eb !important; }
-    .range-button.active { background:#1e5f89 !important; border-color:#68b8eb !important; color:#fff !important; }
+    .icon-button:hover, .range-button:hover { background:#2879aa !important; border-color:#8acbf1 !important; }
+    .range-button.active { background:#12496b !important; border-color:#8acbf1 !important; color:#fff !important; }
     .role-cdu { background:linear-gradient(135deg,#e2bf59,#a87a1d) !important; border-color:#f0d37a !important; color:#17130a !important; }
     .role-admin { background:linear-gradient(135deg,#d6dbe0,#8d979e) !important; border-color:#edf1f3 !important; color:#15191c !important; }
     .counter-start-control.readonly { opacity:.9; }
@@ -502,6 +506,10 @@
         <button class="range-button" data-months="6" type="button">6 mois</button>
         <button class="range-button" data-months="12" type="button">12 mois</button>
         <button class="range-button" data-months="18" type="button">18 mois</button>
+      </div>
+      <div class="month-view-control" aria-label="Afficher un mois complet">
+        <input id="monthPicker" type="month" aria-label="Mois et année à afficher">
+        <button id="showFullMonth" class="button compact" type="button">Mois complet</button>
       </div>
       <div class="toolbar-actions">
         <button id="studentService" class="button compact" type="button">Imprimer permanences</button>
